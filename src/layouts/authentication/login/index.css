@@ -1,0 +1,14 @@
+/* index.css */
+.login-container {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.login-background {
+  background-image: url("../login/Background/image10.png");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+}
