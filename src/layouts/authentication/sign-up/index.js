@@ -1,8 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import { Link } from "react-router-dom";
 
 import axios from "axios";
+
+import Swal from "sweetalert2";
 
 // @mui material components
 import Card from "@mui/material/Card";
@@ -29,11 +31,59 @@ function Cover() {
     otp: "",
   });
 
+  // Countdown state
+  const [otpCountdown, setOtpCountdown] = useState(0); // Timer for OTP countdown
+  const [isOtpSent, setIsOtpSent] = useState(false); // State to disable button after OTP is sent
+
+  // Email validation regex
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  // Phone number validation regex (assumes a 10-digit phone number)
+  const phoneRegex = /^[0-9]{10}$/;
+  // OTP must be exactly 6 digits
+  const otpRegex = /^[0-9]{6}$/;
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const validateForm = () => {
+    const { email, phone, otp } = formData;
+
+    if (!emailRegex.test(email)) {
+      Swal.fire({
+        icon: "error",
+        title: "Email không hợp lệ",
+        text: "Vui lòng nhập email đúng định dạng.",
+      });
+      return false;
+    }
+
+    if (!phoneRegex.test(phone)) {
+      Swal.fire({
+        icon: "error",
+        title: "Số điện thoại không hợp lệ",
+        text: "Vui lòng nhập số điện thoại gồm 10 chữ số.",
+      });
+      return false;
+    }
+
+    if (!otpRegex.test(otp)) {
+      Swal.fire({
+        icon: "error",
+        title: "OTP không hợp lệ",
+        text: "OTP phải gồm 6 chữ số.",
+      });
+      return false;
+    }
+
+    return true;
+  };
+
   const handleRegister = async () => {
+    if (!validateForm()) {
+      return; // Stop if validation fails
+    }
+
     console.log("Dữ liệu gửi đi:", {
       email: formData.email,
       otp: formData.otp,
@@ -44,20 +94,37 @@ function Cover() {
         email: formData.email,
         otp: formData.otp,
       });
-      console.log("Đăng ký thành công:", response.data);
-      // Xử lý điều hướng hoặc thông báo sau khi đăng ký thành công
+      Swal.fire({
+        icon: "success",
+        title: "Đăng ký thành công",
+        text: "Bạn đã đăng ký thành công!",
+      });
     } catch (error) {
-      console.error("Đăng ký thất bại:", error.response ? error.response.data : error.message);
+      Swal.fire({
+        icon: "error",
+        title: "Đăng ký thất bại",
+        text: error.response ? error.response.data : error.message,
+      });
     }
   };
 
   const handleSendOtp = async () => {
+    if (!formData.username || !formData.password || !formData.email || !formData.phone) {
+      Swal.fire({
+        icon: "warning",
+        title: "Thiếu thông tin",
+        text: "Vui lòng điền đầy đủ thông tin để gửi OTP.",
+      });
+      return;
+    }
+
     console.log("Dữ liệu gửi đi:", {
-      name: formData.username, // Kiểm tra tên
-      phone: formData.phone, // Kiểm tra số điện thoại
-      email: formData.email, // Kiểm tra email
-      passwordHash: formData.password, // Kiểm tra mật khẩu
+      name: formData.username,
+      phone: formData.phone,
+      email: formData.email,
+      passwordHash: formData.password,
     });
+
     try {
       const response = await axios.post("http://localhost:3030/user-api/register", {
         name: formData.username,
@@ -65,11 +132,33 @@ function Cover() {
         email: formData.email,
         phone: formData.phone,
       });
-      console.log("Gửi OTP thành công:", response.data);
+      Swal.fire({
+        icon: "success",
+        title: "Gửi OTP thành công",
+        text: "OTP đã được gửi đến email của bạn! Otp sẽ hết hạn sau 5 phút",
+      });
+      setIsOtpSent(true); // Set the OTP sent flag
+      setOtpCountdown(60); // Start 60s countdown
     } catch (error) {
-      console.error("Gửi OTP thất bại:", error.response ? error.response.data : error.message);
+      Swal.fire({
+        icon: "error",
+        title: "Gửi OTP thất bại",
+        text: error.response ? error.response.data : error.message,
+      });
     }
   };
+
+  useEffect(() => {
+    if (otpCountdown > 0) {
+      const timerId = setInterval(() => {
+        setOtpCountdown((prevCount) => prevCount - 1);
+      }, 1000);
+
+      return () => clearInterval(timerId); // Cleanup the timer when the component unmounts
+    } else {
+      setIsOtpSent(false); // Enable OTP button again when countdown finishes
+    }
+  }, [otpCountdown]);
 
   return (
     <CoverLayout image={bgImage}>
@@ -192,6 +281,7 @@ function Cover() {
                     <MDButton
                       variant="gradient"
                       fullWidth
+                      disabled={isOtpSent} // Disable button if OTP was sent
                       onChange={handleChange}
                       sx={{
                         height: "20px", // Chiều cao nút
@@ -204,7 +294,7 @@ function Cover() {
                       }}
                       onClick={handleSendOtp}
                     >
-                      Gửi OTP
+                      {isOtpSent ? `Gửi lại (${otpCountdown}s)` : "Gửi OTP"}
                     </MDButton>
                   </Grid>
                 </Grid>
