@@ -38,7 +38,7 @@ const menuItem = {
       transition: "background-color 300ms ease, color 300ms ease",
 
       "&:hover, &:focus, &.Mui-selected, &.Mui-selected:hover, &.Mui-selected:focus": {
-        backgroundColor: dark.main,
+        backgroundColor: white.main,
         color: white.main,
       },
     },

@@ -1,7 +1,11 @@
 import { useState } from "react";
 
+import Swal from "sweetalert2";
+
 // react-router-dom components
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+
+import axios from "axios";
 
 import Checkbox from "@mui/material/Checkbox";
 // @mui material components
@@ -24,13 +28,71 @@ import { CheckBox } from "@mui/icons-material";
 function Basic() {
   // Khởi tạo state cho checkbox với giá trị mặc định là false
   const [checked, setChecked] = useState(false);
+  const [success, setSuccess] = useState("");
 
   // Hàm để xử lý sự kiện khi checkbox thay đổi
   const handleChange = (event) => {
     setChecked(event.target.checked); // Cập nhật state theo trạng thái mới của checkbox
   };
+  const isEmailValid = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
 
   const handleSetRememberMe = () => setRememberMe(!rememberMe);
+
+  const [email, setEmail] = useState("");
+  const [passwordHash, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
+
+  const validateForm = () => {
+    setError(""); // Reset thông báo lỗi
+    setSuccess(""); // Reset thông báo thành công
+
+    // Kiểm tra email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || !emailRegex.test(email)) {
+      setError("Email không hợp lệ.");
+      return false;
+    }
+
+    // Kiểm tra mật khẩu
+    if (!passwordHash) {
+      setError("Mật khẩu không được để trống.");
+      return false;
+    }
+
+    return true;
+  };
+  const handleLogin = async () => {
+    if (!email || !passwordHash) {
+      Swal.fire("Lỗi", "Vui lòng nhập đầy đủ thông tin", "error");
+      return;
+    }
+    if (!isEmailValid(email)) {
+      Swal.fire("Lỗi", "Email sai định dạng. Vui lòng nhập lại.", "warning");
+      return;
+    }
+    try {
+      // Gửi yêu cầu đăng nhập
+      const response = await axios.post("http://localhost:3030/user-api/login", {
+        email,
+        passwordHash,
+      });
+
+      console.log("Đăng nhập thành công:", response.data);
+      // Lưu token vào localStorage
+      localStorage.setItem("token", response.data.token);
+      Swal.fire("Thành công", "Đăng nhập thành công!", "success").then(() => {
+        navigate("/home");
+      });
+    } catch (error) {
+      // Xử lý lỗi
+      console.error("Đăng nhập thất bại:", error.response ? error.response.data : error.message);
+      setError("Đăng nhập thất bại. Vui lòng kiểm tra email và mật khẩu.");
+    }
+  };
 
   return (
     <BasicLayout image={bgImage}>
@@ -49,12 +111,29 @@ function Basic() {
           </MDTypography>
         </MDBox>
         <MDBox pt={4} pb={3} px={3}>
+          {/* Hiển thị thông báo lỗi ở trên cùng */}
+          {error && (
+            <MDBox mb={2} textAlign="center">
+              <MDTypography variant="body2" color="red">
+                {error}
+              </MDTypography>
+            </MDBox>
+          )}
+          {/* Hiển thị thông báo thành công ở trên cùng */}
+          {success && (
+            <MDBox mb={2} textAlign="center">
+              <MDTypography variant="body2" color="green">
+                {success}
+              </MDTypography>
+            </MDBox>
+          )}
           <MDBox component="form" role="form">
             <MDBox mb={2}>
               <MDInput
                 type="text"
                 label="Tài khoản"
                 fullWidth
+                onChange={(e) => setEmail(e.target.value)}
                 InputLabelProps={{
                   sx: {
                     color: "white", // Màu chữ của label
@@ -80,6 +159,7 @@ function Basic() {
                 type="password"
                 label="Mật khẩu"
                 fullWidth
+                onChange={(e) => setPassword(e.target.value)}
                 InputLabelProps={{
                   sx: {
                     color: "white", // Màu chữ của label
@@ -124,8 +204,14 @@ function Basic() {
               </MDTypography>
             </MDBox>
             <MDBox mt={4} mb={1}>
-              <MDButton variant="gradient" color="white" fullWidth>
-                Đăng nhập
+              <MDButton
+                variant="gradient"
+                color="black"
+                fullWidth
+                onClick={handleLogin}
+                sx={{ color: "#111b2a" }} // Màu chữ đen
+              >
+                Đăng Nhập
               </MDButton>
             </MDBox>
             <MDBox mt={3} mb={1} textAlign="center">

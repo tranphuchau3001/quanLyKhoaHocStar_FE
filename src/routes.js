@@ -15,6 +15,14 @@ import Icon from "@mui/material/Icon";
 const routes = [
   {
     type: "collapse",
+    name: "Trang chủ",
+    key: "home",
+    icon: <Icon fontSize="small">home</Icon>,
+    route: "/home",
+    component: <Home />,
+  },
+  {
+    type: "collapse",
     name: "Dashboard",
     key: "dashboard",
     icon: <Icon fontSize="small">dashboard</Icon>,
@@ -60,14 +68,6 @@ const routes = [
     icon: <Icon fontSize="small">notifications</Icon>,
     route: "/notifications",
     component: <Notifications />,
-  },
-  {
-    type: "collapse",
-    name: "Profile",
-    key: "profile",
-    icon: <Icon fontSize="small">person</Icon>,
-    route: "/profile",
-    component: <Home />,
   },
   {
     type: "collapse",

@@ -1,3 +1,18 @@
+/**
+=========================================================
+* Material Dashboard 2 React - v2.2.0
+=========================================================
+
+* Product Page: https://www.creative-tim.com/product/material-dashboard-react
+* Copyright 2023 Creative Tim (https://www.creative-tim.com)
+
+Coded by www.creative-tim.com
+
+ =========================================================
+
+* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+*/
+
 import { useState, useEffect } from "react";
 
 // react-router components
@@ -95,7 +110,7 @@ function DefaultNavbar({ transparent, light, action }) {
           pl={{ xs: 0, lg: 1 }}
         >
           <MDTypography variant="button" fontWeight="bold" color={light ? "white" : "dark"}>
-            Học lập trình cùng Start Dev
+            Material Dashboard 2
           </MDTypography>
         </MDBox>
         <MDBox color="inherit" display={{ xs: "none", lg: "flex" }} m={0} p={0}>
@@ -114,7 +129,7 @@ function DefaultNavbar({ transparent, light, action }) {
             light={light}
           />
         </MDBox>
-        {action &&
+        {/* {action &&
           (action.type === "internal" ? (
             <MDBox display={{ xs: "none", lg: "inline-block" }}>
               <MDButton
@@ -153,7 +168,7 @@ function DefaultNavbar({ transparent, light, action }) {
           onClick={openMobileNavbar}
         >
           <Icon fontSize="default">{mobileNavbar ? "close" : "menu"}</Icon>
-        </MDBox>
+        </MDBox> */}
       </MDBox>
       {mobileView && <DefaultNavbarMobile open={mobileNavbar} close={closeMobileNavbar} />}
     </Container>

@@ -1,8 +1,11 @@
+import React, { useState } from "react";
+
 import { Link } from "react-router-dom";
+
+import axios from "axios";
 
 // @mui material components
 import Card from "@mui/material/Card";
-import Checkbox from "@mui/material/Checkbox";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -18,6 +21,56 @@ import bgImage from "assets/images/bg-login-layout.png";
 import { Grid } from "@mui/material";
 
 function Cover() {
+  const [formData, setFormData] = useState({
+    username: "",
+    password: "",
+    email: "",
+    phone: "",
+    otp: "",
+  });
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleRegister = async () => {
+    console.log("Dữ liệu gửi đi:", {
+      email: formData.email,
+      otp: formData.otp,
+    });
+
+    try {
+      const response = await axios.post("http://localhost:3030/user-api/verify-otp", {
+        email: formData.email,
+        otp: formData.otp,
+      });
+      console.log("Đăng ký thành công:", response.data);
+      // Xử lý điều hướng hoặc thông báo sau khi đăng ký thành công
+    } catch (error) {
+      console.error("Đăng ký thất bại:", error.response ? error.response.data : error.message);
+    }
+  };
+
+  const handleSendOtp = async () => {
+    console.log("Dữ liệu gửi đi:", {
+      name: formData.username, // Kiểm tra tên
+      phone: formData.phone, // Kiểm tra số điện thoại
+      email: formData.email, // Kiểm tra email
+      passwordHash: formData.password, // Kiểm tra mật khẩu
+    });
+    try {
+      const response = await axios.post("http://localhost:3030/user-api/register", {
+        name: formData.username,
+        passwordHash: formData.password,
+        email: formData.email,
+        phone: formData.phone,
+      });
+      console.log("Gửi OTP thành công:", response.data);
+    } catch (error) {
+      console.error("Gửi OTP thất bại:", error.response ? error.response.data : error.message);
+    }
+  };
+
   return (
     <CoverLayout image={bgImage}>
       <MDBox
@@ -42,69 +95,73 @@ function Cover() {
           </MDTypography>
           <MDBox pb={3} px={3}>
             <MDBox component="form" role="form">
+              <MDBox mb={2}></MDBox>
               <MDBox mb={2}>
                 <MDInput
-                  type="text"
+                  name="username" // Thêm thuộc tính name
+                  type="text" // Đổi type thành 'text' cho trường tên
                   label="Họ và tên"
                   variant="standard"
                   fullWidth
+                  onChange={handleChange}
                   InputLabelProps={{
                     sx: {
-                      color: "white", // Màu chữ của label
+                      color: "white",
                     },
                   }}
                   inputProps={{
-                    style: { color: "white" }, // Màu chữ khi nhập vào input
+                    style: { color: "white" },
                   }}
                 />
-              </MDBox>
-              <MDBox mb={2}>
-                <MDInput
-                  type="email"
-                  label="Tài khoản"
-                  variant="standard"
-                  fullWidth
-                  InputLabelProps={{
-                    sx: {
-                      color: "white", // Màu chữ của label
-                    },
-                  }}
-                  inputProps={{
-                    style: { color: "white" }, // Màu chữ khi nhập vào input
-                  }}
-                />
-              </MDBox>
 
-              <MDBox mb={2}>
                 <MDInput
+                  name="password" // Thêm thuộc tính name
                   type="password"
                   label="Mật khẩu"
                   variant="standard"
                   fullWidth
+                  onChange={handleChange}
                   InputLabelProps={{
                     sx: {
-                      color: "white", // Màu chữ của label
+                      color: "white",
                     },
                   }}
                   inputProps={{
-                    style: { color: "white" }, // Màu chữ khi nhập vào input
+                    style: { color: "white" },
                   }}
                 />
-              </MDBox>
 
-              <MDBox mb={2}>
                 <MDInput
+                  name="email" // Thêm thuộc tính name
                   type="email"
                   label="Email"
                   variant="standard"
                   fullWidth
+                  onChange={handleChange}
                   InputLabelProps={{
                     sx: {
-                      color: "white", // Màu chữ của label
+                      color: "white",
                     },
                   }}
                   inputProps={{
-                    style: { color: "white" }, // Màu chữ khi nhập vào input
+                    style: { color: "white" },
+                  }}
+                />
+
+                <MDInput
+                  name="phone" // Thêm thuộc tính name
+                  type="text" // Đổi type thành 'text' cho trường điện thoại
+                  label="Số điện thoại"
+                  variant="standard"
+                  fullWidth
+                  onChange={handleChange}
+                  InputLabelProps={{
+                    sx: {
+                      color: "white",
+                    },
+                  }}
+                  inputProps={{
+                    style: { color: "white" },
                   }}
                 />
               </MDBox>
@@ -114,10 +171,12 @@ function Cover() {
                   {/* Phần nhập OTP chiếm 8 phần */}
                   <Grid item xs={8}>
                     <MDInput
-                      type="otp"
+                      name="otp"
+                      type="text"
                       label="Nhập mã OTP"
                       variant="standard"
                       fullWidth
+                      onChange={handleChange}
                       InputLabelProps={{
                         sx: {
                           color: "white", // Màu chữ của label
@@ -133,6 +192,7 @@ function Cover() {
                     <MDButton
                       variant="gradient"
                       fullWidth
+                      onChange={handleChange}
                       sx={{
                         height: "20px", // Chiều cao nút
                         backgroundColor: "#6CA5CE", // Màu nền
@@ -142,16 +202,22 @@ function Cover() {
                           backgroundColor: "info", // Màu nền khi hover
                         },
                       }}
+                      onClick={handleSendOtp}
                     >
                       Gửi OTP
                     </MDButton>
                   </Grid>
                 </Grid>
               </MDBox>
-
               <MDBox mt={4}>
-                <MDButton variant="gradient" color="white" fullWidth>
-                  sign in
+                <MDButton
+                  variant="gradient"
+                  color="black"
+                  fullWidth
+                  onClick={handleRegister}
+                  sx={{ color: "#111b2a" }} // Màu chữ đen
+                >
+                  Đăng ký
                 </MDButton>
               </MDBox>
               <MDBox mt={3} mb={1} textAlign="center">
