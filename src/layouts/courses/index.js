@@ -1,12 +1,13 @@
-import React, { useState } from "react"; // Thêm import useState
+import React, { useState } from "react";
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
+import CardMedia from "@mui/material/CardMedia";
 import MDBox from "components/MDBox";
+import MDButton from "components/MDButton";
 import MDTypography from "components/MDTypography";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
-import DataTable from "examples/Tables/DataTable";
 
 import ListSubheader from "@mui/material/ListSubheader";
 import List from "@mui/material/List";
@@ -14,21 +15,15 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import Collapse from "@mui/material/Collapse";
-import InboxIcon from "@mui/icons-material/MoveToInbox";
-import DraftsIcon from "@mui/icons-material/Drafts";
-import SendIcon from "@mui/icons-material/Send";
 import ExpandLess from "@mui/icons-material/ExpandLess";
 import ExpandMore from "@mui/icons-material/ExpandMore";
-import StarBorder from "@mui/icons-material/StarBorder";
+import { Box, CardContent, Typography } from "@mui/material";
+import GroupsOutlinedIcon from "@mui/icons-material/GroupsOutlined";
+import PlayCircleOutlineIcon from "@mui/icons-material/PlayCircleOutline";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import ListIcon from "@mui/icons-material/List";
 
-// Data
-import authorsTableData from "layouts/tables/data/authorsTableData";
-import projectsTableData from "layouts/tables/data/projectsTableData";
-
-function Tables() {
-  const { columns, rows } = authorsTableData();
-  const { columns: pColumns, rows: pRows } = projectsTableData();
-
+function Courses() {
   const [open, setOpen] = useState({});
 
   const handleClick = (index) => {
@@ -41,27 +36,18 @@ function Tables() {
   const items = [
     {
       label: "Giới thiệu",
-      icon: <InboxIcon />,
+      icon: <ListIcon />,
       content: "Thông tin về khóa học.",
     },
     {
       label: "Nội dung",
-      icon: <InboxIcon />,
-      // eslint-disable-next-line prettier/prettier
-      content: [
-        "1. Tìm hiểu về HTML, CSS",
-        "2. Làm quen với Dev tools",
-        "3. Cài đặt VS Code",
-      ],
+      icon: <ListIcon />,
+      content: ["1. Tìm hiểu về HTML, CSS", "2. Làm quen với Dev tools", "3. Cài đặt VS Code"],
     },
     {
       label: "Bài tập",
-      icon: <InboxIcon />,
-      // eslint-disable-next-line prettier/prettier
-      content: [
-        "1. Bài 1",
-        "2. Bài 2",
-      ],
+      icon: <ListIcon />,
+      content: ["1. Bài 1", "2. Bài 2"],
     },
   ];
 
@@ -72,7 +58,7 @@ function Tables() {
         <Grid container spacing={6}>
           <Grid item xs={12}>
             <Grid container spacing={6}>
-              <Grid item xs={6}>
+              <Grid item xs={12} md={6}>
                 <Card>
                   <MDBox
                     mx={2}
@@ -125,36 +111,59 @@ function Tables() {
                   </List>
                 </Card>
               </Grid>
-              <Grid item xs={6}>
+              <Grid item xs={12} md={6}>
                 <Card>
-                  <MDBox
-                    mx={2}
-                    mt={-3}
-                    py={3}
-                    px={2}
-                    variant="gradient"
-                    bgColor="info"
-                    borderRadius="lg"
-                    coloredShadow="info"
-                  >
-                    <MDTypography variant="h6" color="white">
-                      Projects Table
-                    </MDTypography>
-                  </MDBox>
-                  <MDBox pt={3}>
-                    <DataTable
-                      table={{ columns: pColumns, rows: pRows }}
-                      isSorted={false}
-                      entriesPerPage={false}
-                      showTotalEntries={false}
-                      noEndBorder
-                    />
-                  </MDBox>
+                  <CardMedia
+                    sx={{ height: { xs: 200, sm: 300 } }}
+                    image={require("assets/images/html-css.png")}
+                    title="Khóa học HTML-CSS"
+                  />
+                  <CardContent>
+                    <Grid container justifyContent="space-between" alignItems="center">
+                      <Grid item>
+                        <Box display="flex" alignItems="center">
+                          <GroupsOutlinedIcon />
+                          <Typography variant="body2" sx={{ ml: 1 }}>
+                            10 thành viên
+                          </Typography>
+                        </Box>
+                      </Grid>
+                      <Grid item>
+                        <Box display="flex" alignItems="center">
+                          <PlayCircleOutlineIcon />
+                          <Typography variant="body2" sx={{ ml: 1 }}>
+                            10 video
+                          </Typography>
+                        </Box>
+                      </Grid>
+                      <Grid item>
+                        <Box display="flex" alignItems="center">
+                          <AccessTimeIcon />
+                          <Typography variant="body2" sx={{ ml: 1 }}>
+                            10 giờ 45 phút
+                          </Typography>
+                        </Box>
+                      </Grid>
+                    </Grid>
+                    <MDBox mt={4} mb={1}>
+                      <MDButton
+                        href="http://localhost:3000/learning"
+                        variant="gradient"
+                        color="success"
+                        fullWidth
+                      >
+                        Đăng ký học
+                      </MDButton>
+                    </MDBox>
+                    <Typography variant="body2" sx={{ mt: 2 }}>
+                      Để biết thêm thông tin chi tiết và nhận hỗ trợ vui lòng liên hệ với Star Dev
+                      qua email hoặc số điện thoại
+                    </Typography>
+                  </CardContent>
                 </Card>
               </Grid>
             </Grid>
           </Grid>
-          <Grid item xs={12}></Grid>
         </Grid>
       </MDBox>
       <Footer />
@@ -162,4 +171,4 @@ function Tables() {
   );
 }
 
-export default Tables;
+export default Courses;
