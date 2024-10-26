@@ -1,10 +1,10 @@
 {
-  "name": "material-dashboard-2-react",
-  "version": "2.2.0",
+  "name": "star-dev",
+  "version": "1.1.0",
   "private": true,
-  "author": "Creative Tim",
+  "author": "Star Dev",
   "license": "See license in https://www.creative-tim.com/license",
-  "description": "React version of Material Dashboard 2 by Creative Tim",
+  "description": "Course Management by Star Dev using templates by Creative Tim",
   "bugs": {
     "url": "https://github.com/creativetimofficial/material-dashboard-react/issues"
   },

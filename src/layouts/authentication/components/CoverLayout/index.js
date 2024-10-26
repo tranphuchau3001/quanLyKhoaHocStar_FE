@@ -11,10 +11,12 @@ import PageLayout from "examples/LayoutContainers/PageLayout";
 
 // Authentication layout components
 import Footer from "layouts/authentication/components/Footer";
+import NavbarAuthentication from "examples/Navbars/NavbarAuthentication";
 
 function CoverLayout({ image, children }) {
   return (
     <PageLayout>
+      <NavbarAuthentication />
       <MDBox
         width="100%"
         height="100vh" // Đảm bảo chiếm hết chiều cao màn hình

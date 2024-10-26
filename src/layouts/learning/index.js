@@ -3,7 +3,6 @@ import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
-import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 import ListSubheader from "@mui/material/ListSubheader";
 import List from "@mui/material/List";
@@ -85,7 +84,7 @@ function Learning() {
   const handleVideoChange = (url, videoId, index) => {
     setCurrentVideo(url);
     setSelectedVideoId(videoId);
-    setCurrentVideoIndex(index); // Cập nhật chỉ số video hiện tại
+    setCurrentVideoIndex(index);
   };
 
   const handlePrevious = () => {

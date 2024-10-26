@@ -12,10 +12,12 @@ import PageLayout from "examples/LayoutContainers/PageLayout";
 
 // Authentication pages components
 import Footer from "layouts/authentication/components/Footer";
+import NavbarAuthentication from "examples/Navbars/NavbarAuthentication";
 
 function BasicLayout({ image, children }) {
   return (
     <PageLayout>
+      <NavbarAuthentication />
       <MDBox
         position="absolute"
         width="100%"

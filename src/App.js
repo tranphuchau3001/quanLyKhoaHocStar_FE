@@ -20,7 +20,7 @@ import themeDark from "assets/theme-dark";
 import themeDarkRTL from "assets/theme-dark/theme-rtl";
 
 // RTL plugins
-import rtlPlugin from "stylis-plugin-rtl";
+// import rtlPlugin from "stylis-plugin-rtl";
 import { CacheProvider } from "@emotion/react";
 import createCache from "@emotion/cache";
 
@@ -32,7 +32,7 @@ import { useMaterialUIController, setMiniSidenav, setOpenConfigurator } from "co
 
 // Images
 import brandWhite from "assets/images/logos/image.png";
-import brandDark from "assets/images/logo-ct-dark.png";
+import brandDark from "assets/images/logos/image.png";
 
 export default function App() {
   const [controller, dispatch] = useMaterialUIController();
@@ -50,11 +50,11 @@ export default function App() {
   const [rtlCache, setRtlCache] = useState(null);
   const { pathname } = useLocation(); // Dùng pathname để kiểm tra đường dẫn hiện tại
 
-  // Cache for RTL
+  //Cache for RTL
   useMemo(() => {
     const cacheRtl = createCache({
       key: "rtl",
-      stylisPlugins: [rtlPlugin],
+      // stylisPlugins: [rtlPlugin],
     });
 
     setRtlCache(cacheRtl);
