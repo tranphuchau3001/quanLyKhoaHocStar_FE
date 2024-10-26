@@ -59,13 +59,14 @@ function Configurator() {
     darkMode,
   } = controller;
   const [disabled, setDisabled] = useState(false);
-  const sidenavColors = ["primary", "dark", "info", "success", "warning", "error"];
+  const sidenavColors = ["dark"];
 
   // Use the useEffect hook to change the button state for the sidenav type based on window size.
   useEffect(() => {
     // A function that sets the disabled state of the buttons for the sidenav type.
     function handleDisabled() {
-      return window.innerWidth > 1200 ? setDisabled(false) : setDisabled(true);
+      setWhiteSidenav(dispatch, true);
+      setTransparentSidenav(dispatch, false);
     }
 
     // The event listener that's calling the handleDisabled function when resizing the window.

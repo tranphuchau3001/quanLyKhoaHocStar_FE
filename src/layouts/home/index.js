@@ -132,7 +132,7 @@ const Home = () => {
       <DashboardNavbar />
       <Container maxWidth="lg">
         {/* Slideshow */}
-        <Box sx={{ position: "relative", overflow: "hidden", width: "100%" }}>
+        <Box sx={{ position: "relative", overflow: "hidden", width: "100%" }} mt={2}>
           <Splide ref={sliderRef} options={settings}>
             {images.map((image, index) => (
               <SplideSlide key={index}>
@@ -350,11 +350,9 @@ const Home = () => {
           ))}
         </Grid>
       </Container>
-      <Box className="decription" ref={descriptionRef}>
-        {" "}
+      <Box className="decription" ref={descriptionRef} mt={5}>
         {/* Gán ref cho thẻ Box */}
         <Box
-          mt={2}
           sx={{
             display: "flex",
             justifyContent: "center",
@@ -379,7 +377,7 @@ const Home = () => {
           className="about-section"
           sx={{
             p: 2,
-            backgroundColor: "#f9f9f9",
+            backgroundColor: "#red",
             paddingLeft: 20,
             paddingRight: 20,
             textAlign: "center",
