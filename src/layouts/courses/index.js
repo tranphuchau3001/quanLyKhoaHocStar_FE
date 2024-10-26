@@ -48,20 +48,13 @@ function Tables() {
       label: "Nội dung",
       icon: <InboxIcon />,
       // eslint-disable-next-line prettier/prettier
-      content: [
-        "1. Tìm hiểu về HTML, CSS",
-        "2. Làm quen với Dev tools",
-        "3. Cài đặt VS Code",
-      ],
+      content: ["1. Tìm hiểu về HTML, CSS", "2. Làm quen với Dev tools", "3. Cài đặt VS Code"],
     },
     {
       label: "Bài tập",
       icon: <InboxIcon />,
       // eslint-disable-next-line prettier/prettier
-      content: [
-        "1. Bài 1",
-        "2. Bài 2",
-      ],
+      content: ["1. Bài 1", "2. Bài 2"],
     },
   ];
 
