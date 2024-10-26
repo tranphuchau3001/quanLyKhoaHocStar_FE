@@ -41,22 +41,12 @@ function Courses() {
     },
     {
       label: "Nội dung",
-<<<<<<< HEAD
       icon: <ListIcon />,
-=======
-      icon: <InboxIcon />,
-      // eslint-disable-next-line prettier/prettier
->>>>>>> main
       content: ["1. Tìm hiểu về HTML, CSS", "2. Làm quen với Dev tools", "3. Cài đặt VS Code"],
     },
     {
       label: "Bài tập",
-<<<<<<< HEAD
       icon: <ListIcon />,
-=======
-      icon: <InboxIcon />,
-      // eslint-disable-next-line prettier/prettier
->>>>>>> main
       content: ["1. Bài 1", "2. Bài 2"],
     },
   ];
