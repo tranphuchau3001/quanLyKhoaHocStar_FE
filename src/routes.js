@@ -9,8 +9,12 @@ import SignIn from "layouts/authentication/sign-in";
 import SignUp from "layouts/authentication/sign-up";
 import Course from "layouts/courses";
 <<<<<<< HEAD
+<<<<<<< HEAD
 import Learning from "layouts/learning";
 import Products from "layouts/products";
+=======
+import Home from "layouts/home";
+>>>>>>> main
 =======
 import Home from "layouts/home";
 >>>>>>> main
@@ -90,22 +94,14 @@ const routes = [
     route: "/authentication/sign-up",
     component: <SignUp />,
   },
-  {
-    // type: "collapse",
-    name: "Learning",
-    key: "learning",
-    // icon: <Icon fontSize="small">assignment</Icon>,
-    route: "/learning",
-    component: <Learning />,
-  },
-  {
-    type: "collapse",
-    name: "Products",
-    key: "products",
-    icon: <Icon fontSize="small">assignment</Icon>,
-    route: "/products",
-    component: <Products />,
-  },
+  // {
+  //   // type: "collapse",
+  //   name: "Learning",
+  //   key: "learning",
+  //   // icon: <Icon fontSize="small">assignment</Icon>,
+  //   route: "/learning",
+  //   component: <Learning />,
+  // },
 ];
 
 export default routes;

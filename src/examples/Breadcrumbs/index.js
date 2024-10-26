@@ -82,13 +82,8 @@ function Breadcrumbs({ icon, title, route, light }) {
         color={light ? "white" : "dark"}
         noWrap
       >
-<<<<<<< HEAD
         {title.replace("-", " ")}
       </MDTypography> */}
-=======
-        {/* {title.replace("-", " ")} */}
-      </MDTypography>
->>>>>>> main
     </MDBox>
   );
 }

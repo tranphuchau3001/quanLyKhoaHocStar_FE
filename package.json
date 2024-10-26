@@ -19,7 +19,12 @@
     "@emotion/styled": "^11.10.8",
     "@mui/icons-material": "5.11.16",
 <<<<<<< HEAD
+<<<<<<< HEAD
     "@mui/material": "5.12.3",
+=======
+    "@mui/material": "^5.12.3",
+    "@splidejs/react-splide": "^0.7.12",
+>>>>>>> main
 =======
     "@mui/material": "^5.12.3",
     "@splidejs/react-splide": "^0.7.12",
