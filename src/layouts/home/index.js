@@ -42,23 +42,20 @@ const images = [
     imgSrc: imgReact,
     alt: "React Logo",
   },
-
-  // Thêm các slide khác nếu cần
 ];
 
 const Home = () => {
   const [courses, setCourses] = useState([]);
-  console.log(courses); // Xem dữ liệu trong state
+  console.log(courses);
 
   useEffect(() => {
-    // Hàm gọi API để lấy danh sách khóa học
     const fetchCourses = async () => {
       try {
         const response = await axios.get("http://localhost:3030/course-api/getAllCourse");
-        console.log(response.data); // Kiểm tra phản hồi từ API
+        console.log(response.data);
 
         if (response.data.success) {
-          setCourses(response.data.data); // Đặt dữ liệu vào state
+          setCourses(response.data.data);
         } else {
           console.error("Dữ liệu không thành công:", response.data.message);
         }
@@ -70,9 +67,9 @@ const Home = () => {
     fetchCourses();
   }, []);
 
-  const descriptionRef = useRef(null); // Tạo ref cho phần mô tả
+  const descriptionRef = useRef(null);
 
-  const sliderRef = useRef(null); // Tạo ref cho Splide
+  const sliderRef = useRef(null);
 
   const settings = {
     type: "loop",
@@ -85,8 +82,8 @@ const Home = () => {
     afterChange: (newIndex) => setCurrentIndex(newIndex),
   };
 
-  const freeCourseRefs = useRef([]); // Tạo ref cho các thẻ khóa học miễn phí
-  const proCourseRefs = useRef([]); // Tạo ref cho các thẻ khóa học PRO
+  const freeCourseRefs = useRef([]);
+  const proCourseRefs = useRef([]);
   const decription = useRef([]);
 
   useEffect(() => {
@@ -94,35 +91,31 @@ const Home = () => {
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            entry.target.classList.add("fade-in"); // Thêm class fade-in khi phần tử vào khung nhìn
-            observer.unobserve(entry.target); // Ngừng theo dõi sau khi phần tử đã xuất hiện
+            entry.target.classList.add("fade-in");
+            observer.unobserve(entry.target);
           }
         });
       },
-      { threshold: 0.1 } // Phát hiện khi 10% của phần tử hiển thị trong viewport
+      { threshold: 0.1 }
     );
 
-    // Áp dụng observer cho mỗi thẻ khóa học miễn phí
     freeCourseRefs.current.forEach((course) => {
       if (course) {
         observer.observe(course);
       }
     });
 
-    // Áp dụng observer cho mỗi thẻ khóa học PRO
     proCourseRefs.current.forEach((course) => {
       if (course) {
         observer.observe(course);
       }
     });
 
-    // Áp dụng observer cho phần mô tả
     if (descriptionRef.current) {
       observer.observe(descriptionRef.current);
     }
 
     return () => {
-      // Cleanup observer khi component unmount
       observer.disconnect();
     };
   }, []);
@@ -139,13 +132,13 @@ const Home = () => {
                 <Box
                   sx={{
                     position: "relative",
-                    height: "300px", // Chiều cao của slide
+                    height: "300px",
                     backgroundImage: `url(${image.imgSrc})`,
                     backgroundSize: "cover",
                     backgroundPosition: "center",
-                    border: "2px", // Chỉnh border
-                    borderRadius: "10px", // Bo góc border nếu cần
-                    overflow: "hidden", // Để không bị tràn ra ngoài
+                    border: "2px",
+                    borderRadius: "10px",
+                    overflow: "hidden",
                     marginBottom: "15px",
                   }}
                 >
@@ -158,7 +151,7 @@ const Home = () => {
                       transform: "translate(-50%, -50%)",
                       color: "#fff",
                       textAlign: "center",
-                      backgroundColor: "rgba(0, 0, 0, 0.5)", // Mờ nền
+                      backgroundColor: "rgba(0, 0, 0, 0.5)",
                       padding: "20px",
                       borderRadius: "10px",
                     }}

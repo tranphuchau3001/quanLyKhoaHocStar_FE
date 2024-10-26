@@ -81,7 +81,7 @@ function Cover() {
 
   const handleRegister = async () => {
     if (!validateForm()) {
-      return; // Stop if validation fails
+      return;
     }
 
     console.log("Dữ liệu gửi đi:", {
@@ -137,8 +137,8 @@ function Cover() {
         title: "Gửi OTP thành công",
         text: "OTP đã được gửi đến email của bạn! Otp sẽ hết hạn sau 5 phút",
       });
-      setIsOtpSent(true); // Set the OTP sent flag
-      setOtpCountdown(60); // Start 60s countdown
+      setIsOtpSent(true);
+      setOtpCountdown(60);
     } catch (error) {
       Swal.fire({
         icon: "error",
@@ -154,29 +154,24 @@ function Cover() {
         setOtpCountdown((prevCount) => prevCount - 1);
       }, 1000);
 
-      return () => clearInterval(timerId); // Cleanup the timer when the component unmounts
+      return () => clearInterval(timerId);
     } else {
-      setIsOtpSent(false); // Enable OTP button again when countdown finishes
+      setIsOtpSent(false);
     }
   }, [otpCountdown]);
 
   return (
     <CoverLayout image={bgImage}>
-      <MDBox
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight="100vh" // Đảm bảo toàn bộ chiều cao màn hình được sử dụng
-      >
+      <MDBox display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
         <Card
           sx={{
             borderRadius: "15px",
-            backgroundColor: "rgba(0, 0, 0, 0.2)", // Nền đen hơi trong suốt
-            backdropFilter: "blur(1px)", // Giảm blur để nền rõ hơn, hoặc xóa nếu không cần
-            boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)", // Đổ bóng cho khung đăng nhập
-            border: "1px solid rgba(255, 255, 255, 0.6)", // Viền mờ sáng
+            backgroundColor: "rgba(0, 0, 0, 0.2)",
+            backdropFilter: "blur(1px)",
+            boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)",
+            border: "1px solid rgba(255, 255, 255, 0.6)",
             width: "100%",
-            maxWidth: "400px", // Giới hạn chiều rộng của thẻ
+            maxWidth: "400px",
           }}
         >
           <MDTypography textAlign="center" variant="h4" fontWeight="bold" color="white" mt={2}>
@@ -187,8 +182,8 @@ function Cover() {
               <MDBox mb={2}></MDBox>
               <MDBox mb={2}>
                 <MDInput
-                  name="username" // Thêm thuộc tính name
-                  type="text" // Đổi type thành 'text' cho trường tên
+                  name="username"
+                  type="text"
                   label="Họ và tên"
                   variant="standard"
                   fullWidth
@@ -204,7 +199,7 @@ function Cover() {
                 />
 
                 <MDInput
-                  name="password" // Thêm thuộc tính name
+                  name="password"
                   type="password"
                   label="Mật khẩu"
                   variant="standard"
@@ -221,7 +216,7 @@ function Cover() {
                 />
 
                 <MDInput
-                  name="email" // Thêm thuộc tính name
+                  name="email"
                   type="email"
                   label="Email"
                   variant="standard"
@@ -238,8 +233,8 @@ function Cover() {
                 />
 
                 <MDInput
-                  name="phone" // Thêm thuộc tính name
-                  type="text" // Đổi type thành 'text' cho trường điện thoại
+                  name="phone"
+                  type="text"
                   label="Số điện thoại"
                   variant="standard"
                   fullWidth
@@ -268,11 +263,11 @@ function Cover() {
                       onChange={handleChange}
                       InputLabelProps={{
                         sx: {
-                          color: "white", // Màu chữ của label
+                          color: "white",
                         },
                       }}
                       inputProps={{
-                        style: { color: "white" }, // Màu chữ khi nhập vào input
+                        style: { color: "white" },
                       }}
                     />
                   </Grid>
@@ -281,15 +276,15 @@ function Cover() {
                     <MDButton
                       variant="gradient"
                       fullWidth
-                      disabled={isOtpSent} // Disable button if OTP was sent
+                      disabled={isOtpSent}
                       onChange={handleChange}
                       sx={{
-                        height: "20px", // Chiều cao nút
-                        backgroundColor: "#6CA5CE", // Màu nền
-                        fontWeight: "bold", // Đặt chữ in đậm
-                        color: "#030d1e", // Màu chữ
+                        height: "20px",
+                        backgroundColor: "#6CA5CE",
+                        fontWeight: "bold",
+                        color: "#030d1e",
                         "&:hover": {
-                          backgroundColor: "info", // Màu nền khi hover
+                          backgroundColor: "info",
                         },
                       }}
                       onClick={handleSendOtp}
@@ -305,7 +300,7 @@ function Cover() {
                   color="black"
                   fullWidth
                   onClick={handleRegister}
-                  sx={{ color: "#111b2a" }} // Màu chữ đen
+                  sx={{ color: "#111b2a" }}
                 >
                   Đăng ký
                 </MDButton>
