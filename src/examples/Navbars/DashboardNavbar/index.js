@@ -1,28 +1,15 @@
 import { useState, useEffect } from "react";
-
-// react-router components
-import { useLocation, Link } from "react-router-dom";
-
-// prop-types is a library for typechecking of props.
+import { useLocation, Link, useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
-
-// @material-ui core components
 import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
 import IconButton from "@mui/material/IconButton";
 import Menu from "@mui/material/Menu";
 import Icon from "@mui/material/Icon";
-import { useTranslation } from "react-i18next";
-
-// Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 import MDInput from "components/MDInput";
-
-// Material Dashboard 2 React example components
 import Breadcrumbs from "examples/Breadcrumbs";
 import NotificationItem from "examples/Items/NotificationItem";
-
-// Custom styles for DashboardNavbar
 import {
   navbar,
   navbarContainer,
@@ -30,8 +17,6 @@ import {
   navbarIconButton,
   navbarMobileMenu,
 } from "examples/Navbars/DashboardNavbar/styles";
-
-// Material Dashboard 2 React context
 import {
   useMaterialUIController,
   setTransparentNavbar,
@@ -47,29 +32,58 @@ function DashboardNavbar({ absolute, light, isMini }) {
   const [openMenu, setOpenMenu] = useState(false);
   const route = useLocation().pathname.split("/").slice(1);
   const [showMenu, setShowMenu] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const navigate = useNavigate();
 
   const handleMenuToggle = () => {
-    setShowMenu((prev) => !prev); // Đảo ngược trạng thái hiển thị menu
+    setShowMenu((prev) => !prev);
   };
+
   useEffect(() => {
-    // Setting the navbar type
+    const userId = localStorage.getItem("userId");
+    setIsLoggedIn(!!userId);
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.clear();
+    setIsLoggedIn(false);
+    navigate("/SignIn");
+  };
+
+  const renderAccountMenu = () => (
+    <Menu
+      id="account-menu"
+      anchorEl={anchorEl}
+      keepMounted
+      open={Boolean(anchorEl)}
+      onClose={handleClose}
+    >
+      {isLoggedIn ? (
+        <>
+          <MenuItem onClick={() => navigate("/profile")}>Thông tin tài khoản</MenuItem>
+          <MenuItem onClick={handleClose}>Cài đặt</MenuItem>
+          <MenuItem onClick={handleLogout}>Đăng xuất</MenuItem>
+        </>
+      ) : (
+        <MenuItem onClick={() => navigate("/authentication/sign-in")}>Đăng nhập</MenuItem>
+      )}
+    </Menu>
+  );
+
+  useEffect(() => {
     if (fixedNavbar) {
       setNavbarType("sticky");
     } else {
       setNavbarType("static");
     }
 
-    // A function that sets the transparent state of the navbar.
     function handleTransparentNavbar() {
       setTransparentNavbar(dispatch, (fixedNavbar && window.scrollY === 0) || !fixedNavbar);
     }
 
     window.addEventListener("scroll", handleTransparentNavbar);
-
-    // Call the handleTransparentNavbar function to set the state with the initial value.
     handleTransparentNavbar();
 
-    // Remove event listener on cleanup
     return () => window.removeEventListener("scroll", handleTransparentNavbar);
   }, [dispatch, fixedNavbar]);
 
@@ -77,8 +91,6 @@ function DashboardNavbar({ absolute, light, isMini }) {
   const handleConfiguratorOpen = () => setOpenConfigurator(dispatch, !openConfigurator);
   const handleOpenMenu = (event) => setOpenMenu(event.currentTarget);
   const handleCloseMenu = () => setOpenMenu(false);
-
-  // Render the notifications menu
   const renderMenu = () => (
     <Menu
       anchorEl={openMenu}
@@ -159,17 +171,7 @@ function DashboardNavbar({ absolute, light, isMini }) {
               >
                 <Icon sx={iconsStyle}>account_circle</Icon>
               </IconButton>
-              <Menu
-                id="simple-menu"
-                anchorEl={anchorEl}
-                keepMounted
-                open={Boolean(anchorEl)}
-                onClose={handleClose}
-              >
-                <MenuItem onClick={handleClose}>Thông tin tài khoản</MenuItem>
-                <MenuItem onClick={handleClose}>Cài đặt</MenuItem>
-                <MenuItem onClick={handleClose}>Đăng xuất</MenuItem>
-              </Menu>
+              {renderAccountMenu()}
             </div>
             {renderMenu()}
           </MDBox>

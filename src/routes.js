@@ -68,7 +68,7 @@ const routes = [
   //   component: <Notifications />,
   // },
   {
-    type: "collapse",
+    // type: "collapse",
     name: "Đăng nhập",
     key: "sign-in",
     icon: <Icon fontSize="small">login</Icon>,

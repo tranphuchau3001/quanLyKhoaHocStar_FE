@@ -250,7 +250,7 @@ const Home = () => {
                         color: "#999",
                       }}
                     >
-                      <Box sx={{ display: "flex", alignItems: "center" }}>
+                      {/* <Box sx={{ display: "flex", alignItems: "center" }}>
                         <PeopleIcon sx={{ fontSize: "18px", marginRight: "4px" }} />
                         <Typography variant="caption">130.954</Typography>
                       </Box>
@@ -261,7 +261,7 @@ const Home = () => {
                       <Box sx={{ display: "flex", alignItems: "center" }}>
                         <AccessTimeIcon sx={{ fontSize: "18px", marginRight: "4px" }} />
                         <Typography variant="caption">12 giờ</Typography>
-                      </Box>
+                      </Box> */}
                     </Box>
                   </Box>
                 </Link>

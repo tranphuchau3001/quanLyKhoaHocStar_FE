@@ -21,14 +21,47 @@ import "./profille.scss";
 const ProfilePage = () => {
   const [name, setName] = useState("");
   const [registrationDate, setRegistrationDate] = useState("");
+  const [userId, setUserId] = useState("");
+  const [courses, setCourses] = useState([]);
 
   useEffect(() => {
     const storedName = localStorage.getItem("name");
     const storedRegistrationDate = localStorage.getItem("registrationDate");
+    const storedUserId = localStorage.getItem("userId");
 
     if (storedName) setName(storedName);
     if (storedRegistrationDate) setRegistrationDate(storedRegistrationDate);
+    if (storedUserId) {
+      setUserId(storedUserId);
+      fetchCourses(); // Gọi fetchCourses ở đây
+    } else {
+      console.error("userId is not available");
+    }
   }, []);
+  const fetchCourses = async () => {
+    if (!userId) {
+      console.error("userId is empty, cannot fetch courses");
+      return; // Ngăn không cho gọi API nếu userId rỗng
+    }
+
+    try {
+      const response = await fetch(
+        `http://localhost:3030/api/v1/enrollment/getEnrollmentByUserId?userId=${userId}`
+      );
+      if (!response.ok) {
+        console.error("Network response was not ok:", response.status);
+        return;
+      }
+
+      const result = await response.json();
+      console.log(result.data);
+      if (result.success) {
+        setCourses(result.data);
+      }
+    } catch (error) {
+      console.error("Error fetching courses:", error);
+    }
+  };
 
   return (
     <PageLayout>
@@ -85,38 +118,40 @@ const ProfilePage = () => {
               <Typography variant="h6" mb={2}>
                 Các khóa học đã tham gia
               </Typography>
-              {[1, 2, 3].map((course, index) => (
-                <Card sx={{ display: "flex", alignItems: "center", mb: 2 }} key={index}>
-                  <Grid container alignItems="center">
-                    <Grid item xs={4} padding={1}>
-                      {" "}
-                      <CardMedia
-                        component="img"
-                        sx={{
-                          width: "100%",
-                          height: 80,
-                          borderRadius: 2,
-                          height: 100,
-                          marginTop: 0,
-                          marginBottom: 1,
-                        }}
-                        image={bgImage}
-                        alt="Course"
-                      />
+              {courses.map((course, index) => {
+                const imagePath = require(`assets/images/Background/background-course/${course.imgUrl}`);
+                return (
+                  <Card sx={{ display: "flex", alignItems: "center", mb: 2 }} key={index}>
+                    <Grid container alignItems="center">
+                      <Grid item xs={4} padding={1}>
+                        {" "}
+                        <CardMedia
+                          component="img"
+                          sx={{
+                            width: "100%",
+                            height: 80,
+                            borderRadius: 2,
+                            height: 100,
+                            marginTop: 0,
+                            marginBottom: 1,
+                          }}
+                          image={imagePath}
+                          alt="Course"
+                        />
+                      </Grid>
+                      <Grid item xs={8}>
+                        {" "}
+                        <CardContent sx={{ paddingLeft: "16px" }}>
+                          <Typography variant="h6">{course.courseName}</Typography>
+                          <Typography variant="body2" color="textSecondary">
+                            {course.description}
+                          </Typography>
+                        </CardContent>
+                      </Grid>
                     </Grid>
-                    <Grid item xs={8}>
-                      {" "}
-                      <CardContent sx={{ paddingLeft: "16px" }}>
-                        <Typography variant="h6">HTML CSS từ Zero đến Hero</Typography>
-                        <Typography variant="body2" color="textSecondary">
-                          Trong khóa này chúng ta sẽ cùng nhau xây dựng giao diện 2 trang web là The
-                          Band & Shopee.
-                        </Typography>
-                      </CardContent>
-                    </Grid>
-                  </Grid>
-                </Card>
-              ))}
+                  </Card>
+                );
+              })}
             </Paper>
           </Grid>
         </Grid>
