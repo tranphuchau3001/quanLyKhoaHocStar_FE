@@ -45,13 +45,11 @@ const images = [
 
 const Home = () => {
   const [courses, setCourses] = useState([]);
-  console.log(courses);
 
   useEffect(() => {
     const fetchCourses = async () => {
       try {
         const response = await axios.get("http://localhost:3030/course-api/getAllCourse");
-        console.log(response.data);
         if (response.data.success) {
           setCourses(response.data.data);
         } else {
