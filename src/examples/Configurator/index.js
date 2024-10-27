@@ -46,23 +46,21 @@ function Configurator() {
   const [disabled, setDisabled] = useState(false);
   const sidenavColors = ["primary", "dark", "info", "success", "warning", "error"];
 
+  const initialState = {
+    openConfigurator: false,
+    sidenavColor: "info",
+    transparentSidenav: false,
+    whiteSidenav: true,
+    darkMode: false,
+    fixedNavbar: false,
+  };
+
   // Use the useEffect hook to change the button state for the sidenav type based on window size.
   useEffect(() => {
-    // A function that sets the disabled state of the buttons for the sidenav type.
-    function handleDisabled() {
-      return window.innerWidth > 1200 ? setDisabled(false) : setDisabled(true);
-    }
-
-    // The event listener that's calling the handleDisabled function when resizing the window.
-    window.addEventListener("resize", handleDisabled);
-
-    // Call the handleDisabled function to set the state with the initial value.
-    handleDisabled();
-
-    // Remove event listener on cleanup
-    return () => window.removeEventListener("resize", handleDisabled);
-  }, []);
-
+    // Đặt mặc định thanh sidenav là trắng
+    setWhiteSidenav(dispatch, true);
+    setTransparentSidenav(dispatch, false);
+  }, [dispatch]);
   const handleCloseConfigurator = () => setOpenConfigurator(dispatch, false);
   const handleTransparentSidenav = () => {
     setTransparentSidenav(dispatch, true);
