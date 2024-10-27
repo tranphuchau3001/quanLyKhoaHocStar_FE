@@ -1,44 +1,26 @@
 import { useState } from "react";
-
 import Swal from "sweetalert2";
-
-// react-router-dom components
 import { useNavigate } from "react-router-dom";
-
 import axios from "axios";
-
 import Checkbox from "@mui/material/Checkbox";
-// @mui material components
 import Card from "@mui/material/Card";
-import Switch from "@mui/material/Switch";
-
-// Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDInput from "components/MDInput";
 import MDButton from "components/MDButton";
-
-// Authentication layout components
 import BasicLayout from "layouts/authentication/components/BasicLayout";
-
-// Images
 import bgImage from "assets/images/bg-login-layout.png";
 import { Button, Stack, SvgIcon } from "@mui/material";
-import { CheckBox } from "@mui/icons-material";
 function Basic() {
-  // Khởi tạo state cho checkbox với giá trị mặc định là false
   const [checked, setChecked] = useState(false);
   const [success, setSuccess] = useState("");
-
-  // Hàm để xử lý sự kiện khi checkbox thay đổi
   const handleChange = (event) => {
-    setChecked(event.target.checked); // Cập nhật state theo trạng thái mới của checkbox
+    setChecked(event.target.checked);
   };
   const isEmailValid = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
-
   const handleSetRememberMe = () => setRememberMe(!rememberMe);
 
   const [email, setEmail] = useState("");
@@ -47,17 +29,15 @@ function Basic() {
   const navigate = useNavigate();
 
   const validateForm = () => {
-    setError(""); // Reset thông báo lỗi
-    setSuccess(""); // Reset thông báo thành công
+    setError("");
+    setSuccess("");
 
-    // Kiểm tra email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email || !emailRegex.test(email)) {
       setError("Email không hợp lệ.");
       return false;
     }
 
-    // Kiểm tra mật khẩu
     if (!passwordHash) {
       setError("Mật khẩu không được để trống.");
       return false;
@@ -75,14 +55,12 @@ function Basic() {
       return;
     }
     try {
-      // Gửi yêu cầu đăng nhập
       const response = await axios.post("http://localhost:3030/user-api/login", {
         email,
         passwordHash,
       });
 
       console.log("Đăng nhập thành công:", response.data);
-      // Lưu token vào localStorage
       localStorage.setItem("token", response.data.token);
       Swal.fire("Thành công", "Đăng nhập thành công!", "success").then(() => {
         navigate("/home");
@@ -99,10 +77,10 @@ function Basic() {
       <Card
         sx={{
           borderRadius: "15px",
-          backgroundColor: "rgba(0, 0, 0, 0.2)", // Nền đen hơi trong suốt
-          backdropFilter: "blur(1px)", // Giảm blur để nền rõ hơn, hoặc xóa nếu không cần
-          boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)", // Đổ bóng cho khung đăng nhập
-          border: "1px solid rgba(255, 255, 255, 0.6)", // Viền mờ sáng
+          backgroundColor: "rgba(0, 0, 0, 0.2)",
+          backdropFilter: "blur(1px)",
+          boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)",
+          border: "1px solid rgba(255, 255, 255, 0.6)",
         }}
       >
         <MDBox textAlign="center">
@@ -111,7 +89,6 @@ function Basic() {
           </MDTypography>
         </MDBox>
         <MDBox pt={4} pb={3} px={3}>
-          {/* Hiển thị thông báo lỗi ở trên cùng */}
           {error && (
             <MDBox mb={2} textAlign="center">
               <MDTypography variant="body2" color="red">
@@ -119,7 +96,6 @@ function Basic() {
               </MDTypography>
             </MDBox>
           )}
-          {/* Hiển thị thông báo thành công ở trên cùng */}
           {success && (
             <MDBox mb={2} textAlign="center">
               <MDTypography variant="body2" color="green">
@@ -136,20 +112,20 @@ function Basic() {
                 onChange={(e) => setEmail(e.target.value)}
                 InputLabelProps={{
                   sx: {
-                    color: "white", // Màu chữ của label
-                    fontWeight: "bold", // Làm cho label đậm
-                    "&.Mui-focused": { color: "white" }, // Màu trắng khi có focus
+                    color: "white",
+                    fontWeight: "bold",
+                    "&.Mui-focused": { color: "white" },
                   },
                 }}
                 inputProps={{
-                  style: { color: "white" }, // Màu chữ khi nhập vào input
+                  style: { color: "white" },
                 }}
                 sx={{
                   "& .MuiInput-underline:before": {
-                    borderBottomColor: "white", // Màu viền dưới trước khi có focus
+                    borderBottomColor: "white",
                   },
                   "& .MuiInput-underline:after": {
-                    borderBottomColor: "white", // Màu viền dưới khi có focus
+                    borderBottomColor: "white",
                   },
                 }}
               />
@@ -162,20 +138,20 @@ function Basic() {
                 onChange={(e) => setPassword(e.target.value)}
                 InputLabelProps={{
                   sx: {
-                    color: "white", // Màu chữ của label
-                    fontWeight: "bold", // Làm cho label đậm
-                    "&.Mui-focused": { color: "white" }, // Màu trắng khi có focus
+                    color: "white",
+                    fontWeight: "bold",
+                    "&.Mui-focused": { color: "white" },
                   },
                 }}
                 inputProps={{
-                  style: { color: "white" }, // Màu chữ khi nhập vào input
+                  style: { color: "white" },
                 }}
                 sx={{
                   "& .MuiInput-underline:before": {
-                    borderBottomColor: "white", // Màu viền dưới trước khi có focus
+                    borderBottomColor: "white",
                   },
                   "& .MuiInput-underline:after": {
-                    borderBottomColor: "white", // Màu viền dưới khi có focus
+                    borderBottomColor: "white",
                   },
                 }}
               />
@@ -209,7 +185,7 @@ function Basic() {
                 color="black"
                 fullWidth
                 onClick={handleLogin}
-                sx={{ color: "#111b2a" }} // Màu chữ đen
+                sx={{ color: "#111b2a" }}
               >
                 Đăng Nhập
               </MDButton>
