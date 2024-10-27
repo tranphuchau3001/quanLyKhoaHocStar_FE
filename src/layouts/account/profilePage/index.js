@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import PageLayout from "examples/LayoutContainers/PageLayout";
 import bgImage from "assets/images/Background/background-Profile.png";
 import imgLogo from "assets/images/logos/image.png";
 import Navbar from "examples/Navbars/DashboardNavbar";
+import Footer from "examples/Footer";
 import {
   Box,
   Avatar,
@@ -18,6 +19,17 @@ import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import "./profille.scss";
 
 const ProfilePage = () => {
+  const [name, setName] = useState("");
+  const [registrationDate, setRegistrationDate] = useState("");
+
+  useEffect(() => {
+    const storedName = localStorage.getItem("name");
+    const storedRegistrationDate = localStorage.getItem("registrationDate");
+
+    if (storedName) setName(storedName);
+    if (storedRegistrationDate) setRegistrationDate(storedRegistrationDate);
+  }, []);
+
   return (
     <PageLayout>
       <Navbar />
@@ -46,7 +58,7 @@ const ProfilePage = () => {
           }}
         />
         <Typography variant="h5" className="profile-page__name" mt={2}>
-          Lê Thanh Tùng
+          {name || "Tên chưa được cập nhật"}
         </Typography>
       </Box>
       <Box className="profile-page__content" display="flex" justifyContent="center" p={3}>
@@ -58,7 +70,8 @@ const ProfilePage = () => {
               </Typography>
               <Typography variant="body2" color="textSecondary">
                 <AccessTimeIcon fontSize="small" sx={{ mr: 1 }} />
-                Thành viên của Start Dev vào
+                Thành viên của Start Dev vào{" "}
+                {new Date(registrationDate).toLocaleDateString() || "Ngày chưa được cập nhật"}
               </Typography>
               <Divider sx={{ my: 2 }} />
               <Typography variant="h6">Hoạt động gần đây</Typography>
@@ -108,6 +121,7 @@ const ProfilePage = () => {
           </Grid>
         </Grid>
       </Box>
+      <Footer />
     </PageLayout>
   );
 };

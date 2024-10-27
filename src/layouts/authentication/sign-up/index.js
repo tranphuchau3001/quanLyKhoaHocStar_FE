@@ -109,7 +109,7 @@ function Cover() {
   };
 
   const handleSendOtp = async () => {
-    if (!formData.username || !formData.password || !formData.email || !formData.phone) {
+    if (!formData.password || !formData.email) {
       Swal.fire({
         icon: "warning",
         title: "Thiếu thông tin",
