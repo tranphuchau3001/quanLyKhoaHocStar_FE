@@ -84,6 +84,19 @@ function CourseDetail() {
     });
   };
 
+  // Tổng số bài học của khóa học
+  const totalLessons = lessons.reduce(
+    (total, lessonArray) => total + (lessonArray ? lessonArray.length : 0),
+    0
+  );
+
+  // Tổng thời gian video của khóa học
+  const totalDuration = lessons.reduce((total, lessonArray) => {
+    return (
+      total + (lessonArray ? lessonArray.reduce((sum, lesson) => sum + lesson.duration, 0) : 0)
+    );
+  }, 0);
+
   if (loading) {
     return <div>Đang tải...</div>;
   }
@@ -173,8 +186,7 @@ function CourseDetail() {
                         <Box display="flex" alignItems="center">
                           <GroupsOutlinedIcon />
                           <Typography variant="body2" sx={{ ml: 1 }}>
-                            {"Số người tham gia: " +
-                              (course.participantCount || "Thông tin không có")}
+                            {course.participantCount || "Thông tin không có"}
                           </Typography>
                         </Box>
                       </Grid>
@@ -182,19 +194,27 @@ function CourseDetail() {
                         <Box display="flex" alignItems="center">
                           <PlayCircleOutlineIcon />
                           <Typography variant="body2" sx={{ ml: 1 }}>
-                            {course.meetingTime || "Thông tin không có"}
+                            {totalLessons + " video" || "Thông tin không có"}
                           </Typography>
                         </Box>
                       </Grid>
                       <Grid item>
-                        <Box display="flex" alignItems="center">
-                          <AccessTimeIcon />
-                          <Typography variant="body2" sx={{ ml: 1 }}>
-                            {course.startDate && course.endDate
-                              ? `${course.startDate} - ${course.endDate}`
-                              : "Thông tin không có"}
-                          </Typography>
-                        </Box>
+                        <Grid item>
+                          <Box display="flex" alignItems="center">
+                            <AccessTimeIcon />
+                            <Typography variant="body2" sx={{ ml: 1 }}>
+                              {totalDuration > 0
+                                ? totalDuration < 3600
+                                  ? `${Math.floor(totalDuration / 60)} phút ${
+                                      totalDuration % 60
+                                    } giây`
+                                  : `${Math.floor(totalDuration / 3600)} giờ ${Math.floor(
+                                      (totalDuration % 3600) / 60
+                                    )} phút`
+                                : "Thông tin không có"}
+                            </Typography>
+                          </Box>
+                        </Grid>
                       </Grid>
                     </Grid>
                     <MDBox mt={4} mb={1}>
