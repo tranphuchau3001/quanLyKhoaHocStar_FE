@@ -130,6 +130,9 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
       {...rest}
       variant="permanent"
       ownerState={{ transparentSidenav, whiteSidenav, miniSidenav, darkMode }}
+      sx={{
+        backgroundColor: "white", // Đặt màu nền là trắng, có thể thay đổi theo ý muốn
+      }}
     >
       <MDBox pt={3} pb={1} px={4} textAlign="center">
         <MDBox
