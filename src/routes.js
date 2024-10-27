@@ -3,7 +3,7 @@ import Dashboard from "layouts/dashboard";
 import Tables from "layouts/tables";
 import SignIn from "layouts/authentication/sign-in";
 import SignUp from "layouts/authentication/sign-up";
-import Course from "layouts/courses";
+import CourseDetail from "layouts/courses";
 import Learning from "layouts/learning";
 import Home from "layouts/home";
 // @mui icons
@@ -27,12 +27,12 @@ const routes = [
   //   component: <Dashboard />,
   // },
   {
-    type: "collapse",
+    // type: "collapse",
     name: "Khóa học",
     key: "courses",
-    icon: <Icon fontSize="small">table_view</Icon>,
-    route: "/courses",
-    component: <Course />,
+    icon: <Icon fontSize="small">info</Icon>,
+    route: "/courses/:courseId",
+    component: <CourseDetail />,
   },
   // {
   //   type: "collapse",

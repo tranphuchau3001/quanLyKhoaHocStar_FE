@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import axios from "axios";
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
 import CardMedia from "@mui/material/CardMedia";
@@ -8,48 +10,95 @@ import MDTypography from "components/MDTypography";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
-
 import ListSubheader from "@mui/material/ListSubheader";
 import List from "@mui/material/List";
 import ListItemButton from "@mui/material/ListItemButton";
-import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import Collapse from "@mui/material/Collapse";
 import ExpandLess from "@mui/icons-material/ExpandLess";
 import ExpandMore from "@mui/icons-material/ExpandMore";
-import { Box, CardContent, Typography } from "@mui/material";
+import { Box, CardContent, ListItemIcon, Typography } from "@mui/material";
 import GroupsOutlinedIcon from "@mui/icons-material/GroupsOutlined";
 import PlayCircleOutlineIcon from "@mui/icons-material/PlayCircleOutline";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import ListIcon from "@mui/icons-material/List";
 
-function Courses() {
-  const [open, setOpen] = useState({});
+function CourseDetail() {
+  const [course, setCourse] = useState(null);
+  const [modules, setModules] = useState([]);
+  const [lessons, setLessons] = useState([]);
+  const [open, setOpen] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { courseId } = useParams();
 
-  const handleClick = (index) => {
-    setOpen((prevOpen) => ({
-      ...prevOpen,
-      [index]: !prevOpen[index],
-    }));
+  const fetchLessons = async (moduleId) => {
+    try {
+      const response = await axios.get("http://localhost:3030/api/v1/lesson/getLessonsByModuleId", {
+        params: { moduleId },
+      });
+      return response.data.success ? response.data.data : [];
+    } catch (error) {
+      console.error("Error fetching lessons:", error);
+      return [];
+    }
   };
 
-  const items = [
-    {
-      label: "Giới thiệu",
-      icon: <ListIcon />,
-      content: "Thông tin về khóa học.",
-    },
-    {
-      label: "Nội dung",
-      icon: <ListIcon />,
-      content: ["1. Tìm hiểu về HTML, CSS", "2. Làm quen với Dev tools", "3. Cài đặt VS Code"],
-    },
-    {
-      label: "Bài tập",
-      icon: <ListIcon />,
-      content: ["1. Bài 1", "2. Bài 2"],
-    },
-  ];
+  const fetchCourse = async () => {
+    try {
+      const courseResponse = await axios.get("http://localhost:3030/course-api/getCourseById", {
+        params: { courseId },
+      });
+      setCourse(courseResponse.data.data);
+
+      const modulesResponse = await axios.get(
+        "http://localhost:3030/api/v1/module/getModulesByCourseId",
+        {
+          params: { courseId },
+        }
+      );
+      setModules(modulesResponse.data.data);
+      setOpen(new Array(modulesResponse.data.data.length).fill(false));
+
+      const allLessons = await Promise.all(
+        modulesResponse.data.data.map((module) => fetchLessons(module.moduleId))
+      );
+      setLessons(allLessons);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error calling API:", error.response ? error.response.data : error.message);
+      setError("Không thể tải chi tiết khóa học. Vui lòng thử lại sau.");
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCourse();
+  }, [courseId]);
+
+  const handleClick = (index) => {
+    setOpen((prevOpen) => {
+      const newOpen = [...prevOpen];
+      newOpen[index] = !newOpen[index];
+      return newOpen;
+    });
+  };
+
+  if (loading) {
+    return <div>Đang tải...</div>;
+  }
+
+  if (error) {
+    return <div>{error}</div>;
+  }
+
+  if (!course) {
+    return <div>Không tìm thấy khóa học.</div>;
+  }
+
+  const imagePath = course.imgUrl
+    ? require(`assets/images/Background/background-course/${course.imgUrl}`)
+    : require(`assets/images/Background/background-course/java.jpg`);
 
   return (
     <DashboardLayout>
@@ -71,10 +120,10 @@ function Courses() {
                     coloredShadow="info"
                   >
                     <MDTypography variant="h5" color="white" textAlign="center">
-                      Khóa Học: tên khóa học
+                      Khóa Học: {course.title}
                     </MDTypography>
                   </MDBox>
-                  <MDTypography sx={{ mt: 2, ml: 3, mb: 3 }}>Mô tả</MDTypography>
+                  <MDTypography sx={{ mt: 2, ml: 3, mb: 3 }}>{course.description}</MDTypography>
                   <List
                     component="nav"
                     aria-labelledby="nested-list-subheader"
@@ -84,25 +133,25 @@ function Courses() {
                       </ListSubheader>
                     }
                   >
-                    {items.map((item, index) => (
-                      <div key={index}>
+                    {modules.map((module, index) => (
+                      <div key={module.moduleId}>
                         <ListItemButton onClick={() => handleClick(index)}>
-                          <ListItemIcon>{item.icon}</ListItemIcon>
-                          <ListItemText primary={item.label} />
+                          <ListItemIcon>
+                            <ListIcon />
+                          </ListItemIcon>
+                          <ListItemText primary={module.title} />
                           {open[index] ? <ExpandLess /> : <ExpandMore />}
                         </ListItemButton>
                         <Collapse in={open[index]} timeout="auto" unmountOnExit>
                           <List component="div" disablePadding>
-                            {Array.isArray(item.content) ? (
-                              item.content.map((subItem, subIndex) => (
-                                <ListItemButton key={subIndex} sx={{ pl: 4 }}>
-                                  <ListItemText primary={subItem} />
+                            {lessons[index] && lessons[index].length > 0 ? (
+                              lessons[index].map((lesson, lessonIndex) => (
+                                <ListItemButton key={lesson.lessonId} sx={{ pl: 4 }}>
+                                  <ListItemText primary={`${lessonIndex + 1}. ${lesson.title}`} />
                                 </ListItemButton>
                               ))
                             ) : (
-                              <ListItemButton sx={{ pl: 4 }}>
-                                <ListItemText primary={item.content} />
-                              </ListItemButton>
+                              <ListItemText primary="Không có bài học nào." sx={{ pl: 4 }} />
                             )}
                           </List>
                         </Collapse>
@@ -115,8 +164,8 @@ function Courses() {
                 <Card>
                   <CardMedia
                     sx={{ height: { xs: 200, sm: 300 } }}
-                    image={require("assets/images/html-css.png")}
-                    title="Khóa học HTML-CSS"
+                    image={imagePath}
+                    title={`Khóa học ${course.title || "Khóa học không xác định"}`}
                   />
                   <CardContent>
                     <Grid container justifyContent="space-between" alignItems="center">
@@ -124,7 +173,8 @@ function Courses() {
                         <Box display="flex" alignItems="center">
                           <GroupsOutlinedIcon />
                           <Typography variant="body2" sx={{ ml: 1 }}>
-                            10 thành viên
+                            {"Số người tham gia: " +
+                              (course.participantCount || "Thông tin không có")}
                           </Typography>
                         </Box>
                       </Grid>
@@ -132,7 +182,7 @@ function Courses() {
                         <Box display="flex" alignItems="center">
                           <PlayCircleOutlineIcon />
                           <Typography variant="body2" sx={{ ml: 1 }}>
-                            10 video
+                            {course.meetingTime || "Thông tin không có"}
                           </Typography>
                         </Box>
                       </Grid>
@@ -140,7 +190,9 @@ function Courses() {
                         <Box display="flex" alignItems="center">
                           <AccessTimeIcon />
                           <Typography variant="body2" sx={{ ml: 1 }}>
-                            10 giờ 45 phút
+                            {course.startDate && course.endDate
+                              ? `${course.startDate} - ${course.endDate}`
+                              : "Thông tin không có"}
                           </Typography>
                         </Box>
                       </Grid>
@@ -157,7 +209,7 @@ function Courses() {
                     </MDBox>
                     <Typography variant="body2" sx={{ mt: 2 }}>
                       Để biết thêm thông tin chi tiết và nhận hỗ trợ vui lòng liên hệ với Star Dev
-                      qua email hoặc số điện thoại
+                      qua email hoặc số điện thoại.
                     </Typography>
                   </CardContent>
                 </Card>
@@ -171,4 +223,4 @@ function Courses() {
   );
 }
 
-export default Courses;
+export default CourseDetail;

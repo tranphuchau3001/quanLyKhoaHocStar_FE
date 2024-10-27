@@ -4,11 +4,9 @@ import axios from "axios";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import { Container, Typography, Box, Button, Grid } from "@mui/material";
 import { Splide, SplideSlide } from "@splidejs/react-splide";
-
 import PeopleIcon from "@mui/icons-material/People";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
-
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import imgVue from "assets/images/Background/background-course/vue.png";
@@ -16,6 +14,7 @@ import imgNode from "assets/images/Background/background-course/node.png";
 import imgReact from "assets/images/Background/background-course/react.png";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import Footer from "examples/Footer";
+import { Link } from "react-router-dom"; // Import Link
 import "@splidejs/react-splide/css";
 import imgLogo from "assets/images/logos/image.png";
 import "./home.scss";
@@ -53,7 +52,6 @@ const Home = () => {
       try {
         const response = await axios.get("http://localhost:3030/course-api/getAllCourse");
         console.log(response.data);
-
         if (response.data.success) {
           setCourses(response.data.data);
         } else {
@@ -188,7 +186,6 @@ const Home = () => {
           >
             <ArrowBackIosIcon />
           </Button>
-
           <Button
             onClick={() => sliderRef.current.splide.go(">")}
             sx={{
@@ -209,71 +206,71 @@ const Home = () => {
           KHÓA HỌC MIỄN PHÍ
         </Typography>
         <Grid container spacing={2}>
-          {courses.map((course, index) => {
+          {courses.map((course) => {
             const imagePath = require(`assets/images/Background/background-course/${course.imgUrl}`);
-            console.log(imagePath); // Sử dụng biến course
             return (
               <Grid item xs={12} sm={6} md={3} key={course.courseId}>
-                <Box
-                  className="course-card"
-                  sx={{
-                    p: 2,
-                    border: "1px solid #ddd",
-                    textAlign: "center",
-                    backgroundColor: "#fff",
-                    borderRadius: "8px",
-                    boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
-                    transition: "transform 0.3s ease",
-                    "&:hover": {
-                      transform: "scale(1.05)",
-                    },
-                  }}
-                >
-                  <div>
-                    <img
-                      src={imagePath} // Lấy hình ảnh từ context
-                      alt={course.alt || course.title} // Thêm alt nếu không có alt từ cơ sở dữ liệu
-                      style={{
-                        width: "100%",
-                        height: "160px",
-                        borderRadius: "8px",
-                        marginBottom: "10px",
-                      }}
-                    />
-                    <Typography variant="h6" sx={{ fontWeight: 600, color: "#333" }}>
-                      {course.title}
-                    </Typography>
-                  </div>
-                  <Typography variant="body2" color="red">
-                    Miễn phí
-                  </Typography>
+                <Link to={`/courses/${course.courseId}`} style={{ textDecoration: "none" }}>
                   <Box
+                    className="course-card"
                     sx={{
-                      mt: 1,
-                      display: "flex",
-                      justifyContent: "space-between",
-                      color: "#999",
+                      p: 2,
+                      border: "1px solid #ddd",
+                      textAlign: "center",
+                      backgroundColor: "#fff",
+                      borderRadius: "8px",
+                      boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
+                      transition: "transform 0.3s ease",
+                      "&:hover": {
+                        transform: "scale(1.05)",
+                      },
                     }}
                   >
-                    <Box sx={{ display: "flex", alignItems: "center" }}>
-                      <PeopleIcon sx={{ fontSize: "18px", marginRight: "4px" }} />
-                      <Typography variant="caption">130.954</Typography>
-                    </Box>
-                    <Box sx={{ display: "flex", alignItems: "center" }}>
-                      <VisibilityIcon sx={{ fontSize: "18px", marginRight: "4px" }} />
-                      <Typography variant="caption">5.5K</Typography>
-                    </Box>
-                    <Box sx={{ display: "flex", alignItems: "center" }}>
-                      <AccessTimeIcon sx={{ fontSize: "18px", marginRight: "4px" }} />
-                      <Typography variant="caption">12 giờ</Typography>
+                    <div>
+                      <img
+                        src={imagePath}
+                        alt={course.alt || course.title}
+                        style={{
+                          width: "100%",
+                          height: "160px",
+                          borderRadius: "8px",
+                          marginBottom: "10px",
+                        }}
+                      />
+                      <Typography variant="h6" sx={{ fontWeight: 600, color: "#333" }}>
+                        {course.title}
+                      </Typography>
+                    </div>
+                    <Typography variant="body2" color="red">
+                      Miễn phí
+                    </Typography>
+                    <Box
+                      sx={{
+                        mt: 1,
+                        display: "flex",
+                        justifyContent: "space-between",
+                        color: "#999",
+                      }}
+                    >
+                      <Box sx={{ display: "flex", alignItems: "center" }}>
+                        <PeopleIcon sx={{ fontSize: "18px", marginRight: "4px" }} />
+                        <Typography variant="caption">130.954</Typography>
+                      </Box>
+                      <Box sx={{ display: "flex", alignItems: "center" }}>
+                        <VisibilityIcon sx={{ fontSize: "18px", marginRight: "4px" }} />
+                        <Typography variant="caption">5.5K</Typography>
+                      </Box>
+                      <Box sx={{ display: "flex", alignItems: "center" }}>
+                        <AccessTimeIcon sx={{ fontSize: "18px", marginRight: "4px" }} />
+                        <Typography variant="caption">12 giờ</Typography>
+                      </Box>
                     </Box>
                   </Box>
-                </Box>
+                </Link>
               </Grid>
             );
           })}
         </Grid>
-
         {/* Phần nội dung KHÓA HỌC PRO */}
         <Typography variant="h5" gutterBottom sx={{ mt: 5 }}>
           KHÓA HỌC PRO
@@ -394,4 +391,5 @@ const Home = () => {
     </DashboardLayout>
   );
 };
+
 export default Home;
