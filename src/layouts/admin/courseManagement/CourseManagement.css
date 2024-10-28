@@ -1,0 +1,123 @@
+/* CourseManagement.css */
+
+.course-management-container {
+  margin-left: 240px;
+  padding: 20px;
+  color: #333;
+}
+
+.course-management-container h2 {
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+}
+
+.course-form {
+  display: flex;
+  gap: 20px;
+}
+
+.form-left {
+  width: 300px;
+  padding: 10px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.image-placeholder {
+  width: 100%;
+  height: 100px;
+  background-color: #e0e0e0;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.remove-image-btn {
+  display: inline-block;
+  margin-bottom: 10px;
+  background-color: #333;
+  color: white;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: bold;
+  color: #333;
+  display: block;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-top: 5px;
+}
+
+.status-options {
+  display: flex;
+  gap: 10px;
+}
+
+.form-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.form-buttons button {
+  padding: 8px 15px;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.add-button {
+  background-color: #4caf50; /* Màu xanh lá cho nút Thêm */
+}
+
+.edit-button {
+  background-color: #2196f3; /* Màu xanh dương cho nút Sửa */
+}
+
+.new-button {
+  background-color: #ff9800; /* Màu cam cho nút Mới */
+}
+
+.table-right {
+  flex-grow: 1;
+}
+
+.table-right table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #f9f9f9;
+}
+
+.table-right th,
+.table-right td {
+  padding: 12px;
+  border: 1px solid #ddd;
+  text-align: left;
+}
+
+.table-right th {
+  background-color: #e1bee7;
+  color: #4a148c;
+}

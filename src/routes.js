@@ -8,6 +8,8 @@ import Learning from "layouts/learning";
 import Home from "layouts/home";
 import Account from "layouts/admin/accountManagement";
 import Statistical from "layouts/admin/statistical";
+import CourseManagement from "layouts/admin/courseManagement";
+import LessonManagement from "layouts/admin/lessonManagement";
 // @mui icons
 import Icon from "@mui/material/Icon";
 
@@ -107,6 +109,22 @@ const routes = [
     icon: <Icon fontSize="small">home</Icon>,
     route: "/admin/statistical",
     component: <Statistical />,
+  },
+  {
+    type: "collapse",
+    name: "CourseManagement",
+    key: "courseManagement",
+    icon: <Icon fontSize="small">home</Icon>,
+    route: "/admin/CourseManagement",
+    component: <CourseManagement />,
+  },
+  {
+    type: "collapse",
+    name: "LessonManagement",
+    key: "lessonManagement",
+    icon: <Icon fontSize="small">home</Icon>,
+    route: "/admin/lessonManagement",
+    component: <LessonManagement />,
   },
 ];
 
