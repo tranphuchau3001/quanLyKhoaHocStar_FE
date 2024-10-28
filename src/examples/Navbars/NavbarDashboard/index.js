@@ -1,75 +1,59 @@
-import { useState, useEffect } from "react";
-import { useLocation, Link, useNavigate } from "react-router-dom";
+import { useState, useEffect, useContext } from "react"; // Thêm useContext
+import { useLocation, Link } from "react-router-dom";
 import PropTypes from "prop-types";
+
+// Nhập context xác thực
+import AuthContext from "layouts/authentication/sign-in/Context/authenContext";
+
+// @mui/material components
 import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
 import IconButton from "@mui/material/IconButton";
 import Menu from "@mui/material/Menu";
 import Icon from "@mui/material/Icon";
+import { Button, MenuItem } from "@mui/material";
+
+// Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 import MDInput from "components/MDInput";
+
+// Material Dashboard 2 React example components
 import Breadcrumbs from "examples/Breadcrumbs";
 import NotificationItem from "examples/Items/NotificationItem";
+
+// Custom styles for DashboardNavbar
 import {
   navbar,
   navbarContainer,
   navbarRow,
   navbarIconButton,
-  navbarMobileMenu,
 } from "examples/Navbars/DashboardNavbar/styles";
+
+// Material Dashboard 2 React context
 import {
   useMaterialUIController,
   setTransparentNavbar,
   setMiniSidenav,
   setOpenConfigurator,
 } from "context";
-import { Button, MenuItem } from "@mui/material";
+
+import routes from "routes";
 
 function DashboardNavbar({ absolute, light, isMini }) {
+  const { user, logout } = useContext(AuthContext); // Lấy user từ context
   const [navbarType, setNavbarType] = useState();
   const [controller, dispatch] = useMaterialUIController();
   const { miniSidenav, transparentNavbar, fixedNavbar, openConfigurator, darkMode } = controller;
   const [openMenu, setOpenMenu] = useState(false);
   const route = useLocation().pathname.split("/").slice(1);
   const [showMenu, setShowMenu] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const navigate = useNavigate();
 
   const handleMenuToggle = () => {
-    setShowMenu((prev) => !prev);
+    setShowMenu((prev) => !prev); // Đảo ngược trạng thái hiển thị menu
   };
 
   useEffect(() => {
-    const userId = localStorage.getItem("userId");
-    setIsLoggedIn(!!userId);
-  }, []);
-
-  const handleLogout = () => {
-    localStorage.clear();
-    setIsLoggedIn(false);
-    navigate("/SignIn");
-  };
-
-  const renderAccountMenu = () => (
-    <Menu
-      id="account-menu"
-      anchorEl={anchorEl}
-      keepMounted
-      open={Boolean(anchorEl)}
-      onClose={handleClose}
-    >
-      {isLoggedIn ? (
-        <>
-          <MenuItem onClick={() => navigate("/profile")}>Thông tin tài khoản</MenuItem>
-          <MenuItem onClick={handleClose}>Cài đặt</MenuItem>
-          <MenuItem onClick={handleLogout}>Đăng xuất</MenuItem>
-        </>
-      ) : (
-        <MenuItem onClick={() => navigate("/authentication/sign-in")}>Đăng nhập</MenuItem>
-      )}
-    </Menu>
-  );
-  useEffect(() => {
+    // Thiết lập loại navbar
     if (fixedNavbar) {
       setNavbarType("sticky");
     } else {
@@ -81,8 +65,8 @@ function DashboardNavbar({ absolute, light, isMini }) {
     }
 
     window.addEventListener("scroll", handleTransparentNavbar);
-    handleTransparentNavbar();
 
+    handleTransparentNavbar();
     return () => window.removeEventListener("scroll", handleTransparentNavbar);
   }, [dispatch, fixedNavbar]);
 
@@ -90,6 +74,8 @@ function DashboardNavbar({ absolute, light, isMini }) {
   const handleConfiguratorOpen = () => setOpenConfigurator(dispatch, !openConfigurator);
   const handleOpenMenu = (event) => setOpenMenu(event.currentTarget);
   const handleCloseMenu = () => setOpenMenu(false);
+
+  // Render menu thông báo
   const renderMenu = () => (
     <Menu
       anchorEl={openMenu}
@@ -108,7 +94,7 @@ function DashboardNavbar({ absolute, light, isMini }) {
     </Menu>
   );
 
-  // Styles for the navbar icons
+  // Styles cho biểu tượng navbar
   const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => ({
     color: () => {
       let colorValue = light || darkMode ? white.main : dark.main;
@@ -120,6 +106,7 @@ function DashboardNavbar({ absolute, light, isMini }) {
       return colorValue;
     },
   });
+
   const [anchorEl, setAnchorEl] = useState(null);
 
   const handleClick = (event) => {
@@ -164,15 +151,38 @@ function DashboardNavbar({ absolute, light, isMini }) {
                 disableRipple
                 color="inherit"
                 sx={navbarIconButton}
-                aria-controls="notification-menu"
+                aria-controls="account-menu"
                 aria-haspopup="true"
                 variant="contained"
               >
                 <Icon sx={iconsStyle}>account_circle</Icon>
               </IconButton>
-              {renderAccountMenu()}
+              <Menu
+                id="account-menu"
+                anchorEl={anchorEl}
+                keepMounted
+                open={Boolean(anchorEl)}
+                onClose={handleClose}
+              >
+                <MenuItem onClick={handleClose}>Thông tin tài khoản</MenuItem>
+                <MenuItem onClick={handleClose}>Cài đặt</MenuItem>
+                {user ? ( // Kiểm tra nếu có người dùng
+                  <MenuItem
+                    onClick={() => {
+                      handleClose();
+                      logout();
+                    }}
+                  >
+                    Đăng xuất
+                  </MenuItem> // Hiển thị Đăng xuất
+                ) : (
+                  <MenuItem component={Link} to="layouts/authentication/sign-in">
+                    Đăng nhập
+                  </MenuItem> // Hiển thị Đăng nhập
+                )}
+              </Menu>
             </div>
-            {renderMenu()}
+            {renderMenu()} {/* Hiển thị menu thông báo */}
           </MDBox>
         )}
       </Toolbar>
@@ -180,14 +190,14 @@ function DashboardNavbar({ absolute, light, isMini }) {
   );
 }
 
-// Setting default values for the props of DashboardNavbar
+// Cài đặt giá trị mặc định cho các props của DashboardNavbar
 DashboardNavbar.defaultProps = {
   absolute: false,
   light: false,
   isMini: false,
 };
 
-// Typechecking props for the DashboardNavbar
+// Kiểm tra kiểu dữ liệu cho props của DashboardNavbar
 DashboardNavbar.propTypes = {
   absolute: PropTypes.bool,
   light: PropTypes.bool,

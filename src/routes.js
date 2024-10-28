@@ -3,13 +3,14 @@ import Dashboard from "layouts/dashboard";
 import Tables from "layouts/tables";
 import SignIn from "layouts/authentication/sign-in";
 import SignUp from "layouts/authentication/sign-up";
-import Course from "layouts/courses";
+import CourseDetail from "layouts/courses";
 import Learning from "layouts/learning";
 import Home from "layouts/home";
 import Account from "layouts/admin/accountManagement";
 import Statistical from "layouts/admin/statistical";
 import CourseManagement from "layouts/admin/courseManagement";
 import LessonManagement from "layouts/admin/lessonManagement";
+import Profile from "layouts/account/profilePage";
 // @mui icons
 import Icon from "@mui/material/Icon";
 
@@ -31,12 +32,12 @@ const routes = [
   //   component: <Dashboard />,
   // },
   {
-    type: "collapse",
+    // type: "collapse",
     name: "Khóa học",
     key: "courses",
-    icon: <Icon fontSize="small">table_view</Icon>,
-    route: "/courses",
-    component: <Course />,
+    icon: <Icon fontSize="small">info</Icon>,
+    route: "/courses/:courseId",
+    component: <CourseDetail />,
   },
   // {
   //   type: "collapse",
@@ -71,7 +72,7 @@ const routes = [
   //   component: <Notifications />,
   // },
   {
-    type: "collapse",
+    // type: "collapse",
     name: "Đăng nhập",
     key: "sign-in",
     icon: <Icon fontSize="small">login</Icon>,
@@ -80,9 +81,17 @@ const routes = [
   },
   {
     type: "collapse",
-    name: "Đăng ký",
+    name: "Thông tin tài khoản",
     key: "sign-up",
-    icon: <Icon fontSize="small">assignment</Icon>,
+    icon: <Icon fontSize="small">person</Icon>,
+    route: "/profile",
+    component: <Profile />,
+  },
+  {
+    // type: "collapse",
+    name: "Thông tin tài khoản",
+    key: "sign-up",
+    // icon: <Icon fontSize="small">person</Icon>,
     route: "/authentication/sign-up",
     component: <SignUp />,
   },

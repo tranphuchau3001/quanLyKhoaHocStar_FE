@@ -56,8 +56,7 @@ function CourseManagement() {
             <label>Trạng thái:</label>
             <div className="status-options">
               <input type="radio" name="status" value="active" /> Hoạt động
-              <input type="radio" name="status" value="inactive" /> Ngừng hoạt
-              động
+              <input type="radio" name="status" value="inactive" /> Ngừng hoạt động
             </div>
           </div>
           <div className="form-buttons">

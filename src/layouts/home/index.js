@@ -1,14 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
-import MDBox from "components/MDBox";
 import axios from "axios";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import { Container, Typography, Box, Button, Grid } from "@mui/material";
 import { Splide, SplideSlide } from "@splidejs/react-splide";
-
-import PeopleIcon from "@mui/icons-material/People";
-import VisibilityIcon from "@mui/icons-material/Visibility";
-import AccessTimeIcon from "@mui/icons-material/AccessTime";
-
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import imgVue from "assets/images/Background/background-course/vue.png";
@@ -16,6 +10,7 @@ import imgNode from "assets/images/Background/background-course/node.png";
 import imgReact from "assets/images/Background/background-course/react.png";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import Footer from "examples/Footer";
+import { Link, useNavigate } from "react-router-dom";
 import "@splidejs/react-splide/css";
 import imgLogo from "assets/images/logos/image.png";
 import "./home.scss";
@@ -45,17 +40,22 @@ const images = [
 ];
 
 const Home = () => {
-  const [courses, setCourses] = useState([]);
-  console.log(courses);
+  const navigate = useNavigate();
 
+  const [courses, setCourses] = useState([]); // Khai báo state cho danh sách khóa học
+  const [freeCourses, setFreeCourses] = useState([]); // Mảng khóa học miễn phí
+  const [proCourses, setProCourses] = useState([]); // Mảng khóa học pro
+  const [showMoreFree, setShowMoreFree] = useState(false); // Trạng thái xem thêm cho khóa học miễn phí
+  const [showMorePro, setShowMorePro] = useState(false); // Trạng thái xem thêm cho khóa học pro
   useEffect(() => {
     const fetchCourses = async () => {
       try {
         const response = await axios.get("http://localhost:3030/course-api/getAllCourse");
-        console.log(response.data);
-
         if (response.data.success) {
-          setCourses(response.data.data);
+          const allCourses = response.data.data;
+          setCourses(allCourses);
+          setFreeCourses(allCourses.filter((course) => course.price === 0));
+          setProCourses(allCourses.filter((course) => course.price > 0));
         } else {
           console.error("Dữ liệu không thành công:", response.data.message);
         }
@@ -66,6 +66,48 @@ const Home = () => {
 
     fetchCourses();
   }, []);
+
+  const checkEnrollment = async (courseId) => {
+    const userId = localStorage.getItem("userId"); // Lấy ID người dùng từ local storage
+    try {
+      const response = await fetch(
+        `http://localhost:3030/api/v1/enrollment/getEnrollmentByCourseId?courseId=${courseId}`
+      );
+      const data = await response.json();
+
+      console.log("Enrollment Data:", data);
+
+      // Kiểm tra xem mảng data có chứa bản ghi nào với userId không
+      const isEnrolled = data.data.some((enrollment) => enrollment.userId === Number(userId));
+
+      return isEnrolled;
+    } catch (error) {
+      console.error("Lỗi khi lấy thông tin đăng ký khóa học:", error);
+      return false;
+    }
+  };
+
+  const handleCourseClick = async (courseId) => {
+    console.log("handleCourseClick called with courseId:", courseId);
+    const isEnrolled = await checkEnrollment(courseId);
+    console.log("Is user enrolled?", isEnrolled); // In ra để kiểm tra
+
+    if (isEnrolled) {
+      console.log("User is enrolled, navigating to /learning");
+      navigate("/learning");
+    } else {
+      console.log("User is not enrolled, navigating to course detail");
+      navigate(`/courses/${courseId}`);
+    }
+  };
+
+  const handleShowMoreFree = () => {
+    setShowMoreFree(!showMoreFree);
+  };
+
+  const handleShowMorePro = () => {
+    setShowMorePro(!showMorePro);
+  };
 
   const descriptionRef = useRef(null);
 
@@ -188,7 +230,6 @@ const Home = () => {
           >
             <ArrowBackIosIcon />
           </Button>
-
           <Button
             onClick={() => sliderRef.current.splide.go(">")}
             sx={{
@@ -209,9 +250,8 @@ const Home = () => {
           KHÓA HỌC MIỄN PHÍ
         </Typography>
         <Grid container spacing={2}>
-          {courses.map((course, index) => {
+          {(showMoreFree ? freeCourses : freeCourses.slice(0, 8)).map((course) => {
             const imagePath = require(`assets/images/Background/background-course/${course.imgUrl}`);
-            console.log(imagePath); // Sử dụng biến course
             return (
               <Grid item xs={12} sm={6} md={3} key={course.courseId}>
                 <Box
@@ -228,11 +268,12 @@ const Home = () => {
                       transform: "scale(1.05)",
                     },
                   }}
+                  onClick={() => handleCourseClick(course.courseId)}
                 >
                   <div>
                     <img
-                      src={imagePath} // Lấy hình ảnh từ context
-                      alt={course.alt || course.title} // Thêm alt nếu không có alt từ cơ sở dữ liệu
+                      src={imagePath}
+                      alt={course.alt || course.title}
                       style={{
                         width: "100%",
                         height: "160px",
@@ -255,93 +296,118 @@ const Home = () => {
                       color: "#999",
                     }}
                   >
-                    <Box sx={{ display: "flex", alignItems: "center" }}>
-                      <PeopleIcon sx={{ fontSize: "18px", marginRight: "4px" }} />
-                      <Typography variant="caption">130.954</Typography>
-                    </Box>
-                    <Box sx={{ display: "flex", alignItems: "center" }}>
-                      <VisibilityIcon sx={{ fontSize: "18px", marginRight: "4px" }} />
-                      <Typography variant="caption">5.5K</Typography>
-                    </Box>
-                    <Box sx={{ display: "flex", alignItems: "center" }}>
-                      <AccessTimeIcon sx={{ fontSize: "18px", marginRight: "4px" }} />
-                      <Typography variant="caption">12 giờ</Typography>
-                    </Box>
+                    {/* <Box sx={{ display: "flex", alignItems: "center" }}>
+                        <PeopleIcon sx={{ fontSize: "18px", marginRight: "4px" }} />
+                        <Typography variant="caption">130.954</Typography>
+                      </Box>
+                      <Box sx={{ display: "flex", alignItems: "center" }}>
+                        <VisibilityIcon sx={{ fontSize: "18px", marginRight: "4px" }} />
+                        <Typography variant="caption">5.5K</Typography>
+                      </Box>
+                      <Box sx={{ display: "flex", alignItems: "center" }}>
+                        <AccessTimeIcon sx={{ fontSize: "18px", marginRight: "4px" }} />
+                        <Typography variant="caption">12 giờ</Typography>
+                      </Box> */}
                   </Box>
                 </Box>
               </Grid>
             );
           })}
         </Grid>
-
-        {/* Phần nội dung KHÓA HỌC PRO */}
+        {freeCourses.length > 8 && (
+          <Box textAlign="center" mt={5}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleShowMoreFree}
+              sx={{
+                padding: "10px 20px",
+                borderRadius: "25px",
+                fontWeight: 600,
+                backgroundColor: "#FFC107", // Màu nền vàng
+                color: "#fff", // Màu chữ trắng
+                transition: "background-color 0.3s, transform 0.3s",
+                "&:hover": {
+                  backgroundColor: "#FFA000", // Màu nền vàng đậm khi hover
+                  transform: "scale(1.05)",
+                },
+              }}
+            >
+              {showMoreFree ? "Rút gọn" : "Xem thêm"}
+            </Button>
+          </Box>
+        )}
         <Typography variant="h5" gutterBottom sx={{ mt: 5 }}>
           KHÓA HỌC PRO
         </Typography>
         <Grid container spacing={2} mb={3}>
-          {images.map((course, index) => (
-            <Grid item xs={12} sm={6} md={3} key={index}>
-              <Box
-                className="course-card" // Class mặc định cho thẻ khóa học
-                ref={(el) => (proCourseRefs.current[index] = el)} // Gán ref cho từng thẻ khóa học PRO
-                sx={{
-                  p: 2,
-                  border: "1px solid #ddd",
-                  textAlign: "center",
-                  backgroundColor: "#fff",
-                  borderRadius: "8px",
-                  boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
-                  transition: "transform 0.3s ease",
-                  opacity: 0, // Ẩn trước khi phần tử vào khung nhìn
-                  transform: "translateY(20px)", // Đẩy xuống một chút trước khi vào khung nhìn
-                  "&:hover": {
-                    transform: "scale(1.05)",
-                  },
-                }}
-              >
-                <div>
-                  <img
-                    src={imgVue}
-                    alt={course.alt}
-                    style={{
-                      width: "100%",
-                      height: "160px",
+          {(showMorePro ? proCourses : proCourses.slice(0, 8)).map((course) => {
+            const imagePath = require(`assets/images/Background/background-course/${course.imgUrl}`);
+            return (
+              <Grid item xs={12} sm={6} md={3} key={course.courseId}>
+                <Link to={`/courses/${course.courseId}`} style={{ textDecoration: "none" }}>
+                  <Box
+                    className="course-card"
+                    sx={{
+                      p: 2,
+                      border: "1px solid #ddd",
+                      textAlign: "center",
+                      backgroundColor: "#fff",
                       borderRadius: "8px",
-                      marginBottom: "10px",
+                      boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
+                      transition: "transform 0.3s ease",
+                      "&:hover": {
+                        transform: "scale(1.05)",
+                      },
                     }}
-                  />
-                  <Typography variant="h6" sx={{ fontWeight: 600, color: "#333" }}>
-                    {course.title}
-                  </Typography>
-                </div>
-                <Typography variant="body2" color="red">
-                  Miễn phí
-                </Typography>
-                <Box
-                  sx={{
-                    mt: 1,
-                    display: "flex",
-                    justifyContent: "space-between",
-                    color: "#999",
-                  }}
-                >
-                  <Box sx={{ display: "flex", alignItems: "center" }}>
-                    <PeopleIcon sx={{ fontSize: "18px", marginRight: "4px" }} />
-                    <Typography variant="caption">130.954</Typography>
+                  >
+                    <div>
+                      <img
+                        src={imagePath}
+                        alt={course.alt || course.title}
+                        style={{
+                          width: "100%",
+                          height: "160px",
+                          borderRadius: "8px",
+                          marginBottom: "10px",
+                        }}
+                      />
+                      <Typography variant="h6" sx={{ fontWeight: 600, color: "#333" }}>
+                        {course.title}
+                      </Typography>
+                    </div>
+                    <Typography variant="body2" color="red">
+                      {course.price.toLocaleString("vi-VN")} VND
+                    </Typography>
                   </Box>
-                  <Box sx={{ display: "flex", alignItems: "center" }}>
-                    <VisibilityIcon sx={{ fontSize: "18px", marginRight: "4px" }} />
-                    <Typography variant="caption">5.5K</Typography>
-                  </Box>
-                  <Box sx={{ display: "flex", alignItems: "center" }}>
-                    <AccessTimeIcon sx={{ fontSize: "18px", marginRight: "4px" }} />
-                    <Typography variant="caption">12 giờ</Typography>
-                  </Box>
-                </Box>
-              </Box>
-            </Grid>
-          ))}
+                </Link>
+              </Grid>
+            );
+          })}
         </Grid>
+        {proCourses.length > 8 && (
+          <Box textAlign="center" mt={5}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleShowMorePro}
+              sx={{
+                padding: "10px 20px",
+                borderRadius: "25px",
+                fontWeight: 600,
+                backgroundColor: "#FFC107", // Màu nền vàng
+                color: "#fff", // Màu chữ trắng
+                transition: "background-color 0.3s, transform 0.3s",
+                "&:hover": {
+                  backgroundColor: "#FFA000", // Màu nền vàng đậm khi hover
+                  transform: "scale(1.05)",
+                },
+              }}
+            >
+              {showMorePro ? "Rút gọn" : "Xem thêm"}
+            </Button>
+          </Box>
+        )}
       </Container>
       <Box className="decription" ref={descriptionRef}>
         {" "}
@@ -377,21 +443,20 @@ const Home = () => {
             paddingRight: 20,
             textAlign: "center",
           }}
-        >
-          <Typography variant="body1">
-            <strong>Star Dev</strong> là nền tảng học lập trình trực tuyến dành cho mọi đối tượng,
-            từ người mới bắt đầu đến các lập trình viên chuyên nghiệp. Với khoá học phong phú về các
-            ngôn ngữ lập trình như Python, Java, C++, JavaScript và nhiều công nghệ hiện đại khác,
-            Star Dev giúp bạn tiếp cận kiến thức dễ dàng, thực hành theo dự án thực tế và phát triển
-            kỹ năng lập trình toàn diện. Đặc biệt, nền tảng cung cấp hệ thống hỗ trợ 24/7 và cộng
-            đồng học viên năng động, giúp bạn giải đáp thắc mắc, cùng nhau tiến bộ trong hành trình
-            học tập. Hãy tham gia Star Dev ngay hôm nay để bắt đầu hành trình chinh phục lập trình
-            của bạn!
-          </Typography>
-        </Box>
+        ></Box>
+        <Typography variant="body1" sx={{ textAlign: "justify" }}>
+          <strong>Star Dev</strong> là nền tảng học lập trình trực tuyến dành cho mọi đối tượng, từ
+          người mới bắt đầu đến các lập trình viên chuyên nghiệp. Với khoá học phong phú về các ngôn
+          ngữ lập trình như Python, Java, C++, JavaScript và nhiều công nghệ hiện đại khác, Star Dev
+          giúp bạn tiếp cận kiến thức dễ dàng, thực hành theo dự án thực tế và phát triển kỹ năng
+          lập trình toàn diện. Đặc biệt, nền tảng cung cấp hệ thống hỗ trợ 24/7 và cộng đồng học
+          viên năng động, giúp bạn giải đáp thắc mắc, cùng nhau tiến bộ trong hành trình học tập.
+          Hãy tham gia Star Dev ngay hôm nay để bắt đầu hành trình chinh phục lập trình của bạn!
+        </Typography>
       </Box>
       <Footer />
     </DashboardLayout>
   );
 };
+
 export default Home;
