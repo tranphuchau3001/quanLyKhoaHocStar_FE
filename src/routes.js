@@ -6,6 +6,7 @@ import SignUp from "layouts/authentication/sign-up";
 import CourseDetail from "layouts/courses";
 import Learning from "layouts/learning";
 import Home from "layouts/home";
+import Profile from "layouts/account/profilePage";
 // @mui icons
 import Icon from "@mui/material/Icon";
 
@@ -67,7 +68,7 @@ const routes = [
   //   component: <Notifications />,
   // },
   {
-    type: "collapse",
+    // type: "collapse",
     name: "Đăng nhập",
     key: "sign-in",
     icon: <Icon fontSize="small">login</Icon>,
@@ -76,9 +77,17 @@ const routes = [
   },
   {
     type: "collapse",
-    name: "Đăng ký",
+    name: "Thông tin tài khoản",
     key: "sign-up",
-    icon: <Icon fontSize="small">assignment</Icon>,
+    icon: <Icon fontSize="small">person</Icon>,
+    route: "/profile",
+    component: <Profile />,
+  },
+  {
+    // type: "collapse",
+    name: "Thông tin tài khoản",
+    key: "sign-up",
+    // icon: <Icon fontSize="small">person</Icon>,
     route: "/authentication/sign-up",
     component: <SignUp />,
   },

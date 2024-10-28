@@ -250,7 +250,7 @@ const Home = () => {
                         color: "#999",
                       }}
                     >
-                      <Box sx={{ display: "flex", alignItems: "center" }}>
+                      {/* <Box sx={{ display: "flex", alignItems: "center" }}>
                         <PeopleIcon sx={{ fontSize: "18px", marginRight: "4px" }} />
                         <Typography variant="caption">130.954</Typography>
                       </Box>
@@ -261,7 +261,7 @@ const Home = () => {
                       <Box sx={{ display: "flex", alignItems: "center" }}>
                         <AccessTimeIcon sx={{ fontSize: "18px", marginRight: "4px" }} />
                         <Typography variant="caption">12 giờ</Typography>
-                      </Box>
+                      </Box> */}
                     </Box>
                   </Box>
                 </Link>
@@ -338,42 +338,43 @@ const Home = () => {
           ))}
         </Grid>
       </Container>
-      <Box className="decription" ref={descriptionRef}>
-        {" "}
-        {/* Gán ref cho thẻ Box */}
-        <Box
-          mt={2}
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            mb: 2,
-          }}
-        >
-          <img
-            src={imgLogo}
-            alt="Logo"
-            style={{
-              marginTop: "25px",
-              maxWidth: "200px",
-              maxHeight: "200px",
-              border: "2px",
-              borderRadius: "10px",
-              overflow: "hidden",
+      <>
+        <Box className="decription" ref={descriptionRef}>
+          {" "}
+          {/* Gán ref cho thẻ Box */}
+          <Box
+            mt={2}
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              mb: 2,
             }}
-          />
-        </Box>
-        <Box
-          className="about-section"
-          sx={{
-            p: 2,
-            backgroundColor: "#f9f9f9",
-            paddingLeft: 20,
-            paddingRight: 20,
-            textAlign: "center",
-          }}
-        >
-          <Typography variant="body1">
+          >
+            <img
+              src={imgLogo}
+              alt="Logo"
+              style={{
+                marginTop: "25px",
+                maxWidth: "200px",
+                maxHeight: "200px",
+                border: "2px",
+                borderRadius: "10px",
+                overflow: "hidden",
+              }}
+            />
+          </Box>
+          <Box
+            className="about-section"
+            sx={{
+              p: 2,
+              backgroundColor: "#f9f9f9",
+              paddingLeft: 20,
+              paddingRight: 20,
+              textAlign: "center",
+            }}
+          ></Box>
+          <Typography variant="body1" sx={{ textAlign: "justify" }}>
             <strong>Star Dev</strong> là nền tảng học lập trình trực tuyến dành cho mọi đối tượng,
             từ người mới bắt đầu đến các lập trình viên chuyên nghiệp. Với khoá học phong phú về các
             ngôn ngữ lập trình như Python, Java, C++, JavaScript và nhiều công nghệ hiện đại khác,
@@ -384,8 +385,8 @@ const Home = () => {
             của bạn!
           </Typography>
         </Box>
-      </Box>
-      <Footer />
+        <Footer />
+      </>
     </DashboardLayout>
   );
 };
