@@ -69,7 +69,6 @@ function DashboardNavbar({ absolute, light, isMini }) {
       )}
     </Menu>
   );
-
   useEffect(() => {
     if (fixedNavbar) {
       setNavbarType("sticky");

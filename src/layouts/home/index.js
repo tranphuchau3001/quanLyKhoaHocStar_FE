@@ -338,52 +338,55 @@ const Home = () => {
           ))}
         </Grid>
       </Container>
-      <Box className="decription" ref={descriptionRef}>
-        {" "}
-        {/* Gán ref cho thẻ Box */}
-        <Box
-          mt={2}
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            mb: 2,
-          }}
-        >
-          <img
-            src={imgLogo}
-            alt="Logo"
-            style={{
-              marginTop: "25px",
-              maxWidth: "200px",
-              maxHeight: "200px",
-              border: "2px",
-              borderRadius: "10px",
-              overflow: "hidden",
+      <>
+        <Box className="decription" ref={descriptionRef}>
+          {" "}
+          {/* Gán ref cho thẻ Box */}
+          <Box
+            mt={2}
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              mb: 2,
             }}
-          />
+          >
+            <img
+              src={imgLogo}
+              alt="Logo"
+              style={{
+                marginTop: "25px",
+                maxWidth: "200px",
+                maxHeight: "200px",
+                border: "2px",
+                borderRadius: "10px",
+                overflow: "hidden",
+              }}
+            />
+          </Box>
+          <Box
+            className="about-section"
+            sx={{
+              p: 2,
+              backgroundColor: "#f9f9f9",
+              paddingLeft: 20,
+              paddingRight: 20,
+              textAlign: "center",
+            }}
+          ></Box>
+          <Typography variant="body1" sx={{ textAlign: "justify" }}>
+            <strong>Star Dev</strong> là nền tảng học lập trình trực tuyến dành cho mọi đối tượng,
+            từ người mới bắt đầu đến các lập trình viên chuyên nghiệp. Với khoá học phong phú về các
+            ngôn ngữ lập trình như Python, Java, C++, JavaScript và nhiều công nghệ hiện đại khác,
+            Star Dev giúp bạn tiếp cận kiến thức dễ dàng, thực hành theo dự án thực tế và phát triển
+            kỹ năng lập trình toàn diện. Đặc biệt, nền tảng cung cấp hệ thống hỗ trợ 24/7 và cộng
+            đồng học viên năng động, giúp bạn giải đáp thắc mắc, cùng nhau tiến bộ trong hành trình
+            học tập. Hãy tham gia Star Dev ngay hôm nay để bắt đầu hành trình chinh phục lập trình
+            của bạn!
+          </Typography>
         </Box>
-        <Box
-          className="about-section"
-          sx={{
-            p: 2,
-            backgroundColor: "#f9f9f9",
-            paddingLeft: 20,
-            paddingRight: 20,
-            textAlign: "center",
-          }}
-        ></Box>
-        <Typography variant="body1" sx={{ textAlign: "justify" }}>
-          <strong>Star Dev</strong> là nền tảng học lập trình trực tuyến dành cho mọi đối tượng, từ
-          người mới bắt đầu đến các lập trình viên chuyên nghiệp. Với khoá học phong phú về các ngôn
-          ngữ lập trình như Python, Java, C++, JavaScript và nhiều công nghệ hiện đại khác, Star Dev
-          giúp bạn tiếp cận kiến thức dễ dàng, thực hành theo dự án thực tế và phát triển kỹ năng
-          lập trình toàn diện. Đặc biệt, nền tảng cung cấp hệ thống hỗ trợ 24/7 và cộng đồng học
-          viên năng động, giúp bạn giải đáp thắc mắc, cùng nhau tiến bộ trong hành trình học tập.
-          Hãy tham gia Star Dev ngay hôm nay để bắt đầu hành trình chinh phục lập trình của bạn!
-        </Typography>
-      </Box>
-      <Footer />
+        <Footer />
+      </>
     </DashboardLayout>
   );
 };
