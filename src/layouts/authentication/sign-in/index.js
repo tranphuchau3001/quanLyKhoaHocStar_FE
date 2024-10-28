@@ -63,11 +63,8 @@ function Basic() {
         const { userId, name, phone, email, avatarUrl, roleId, registrationDate, status } =
           response.data.data;
 
-        console.log(response);
-
-        // Lưu thông tin vào localStorage
         localStorage.setItem("userId", userId);
-        localStorage.setItem("name", name); // Sửa 'username' thành 'name'
+        localStorage.setItem("name", name);
         localStorage.setItem("phone", phone);
         localStorage.setItem("email", email);
         localStorage.setItem("avatarUrl", avatarUrl);
@@ -81,7 +78,6 @@ function Basic() {
         Swal.fire("Thất bại", "Đăng nhập thất bại. Vui lòng thử lại.", "error");
       }
     } catch (error) {
-      // Xử lý lỗi nếu API không trả về kết quả như mong muốn
       Swal.fire("Thất bại", "Vui lòng kiểm tra email và mật khẩu.", "error");
       console.error("Đăng nhập thất bại:", error.response ? error.response.data : error.message);
     }
