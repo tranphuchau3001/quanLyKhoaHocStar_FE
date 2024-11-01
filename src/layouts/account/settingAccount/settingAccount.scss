@@ -1,0 +1,94 @@
+.account-settings {
+    display: flex;
+    height: 100vh;
+    padding: 20px;
+    background-color: #f9f9f9;
+  
+    .sidebar {
+      width: 41.67%; // Tương đương với 5/12
+      padding: 20px;
+      background-color: #fff;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  
+      .logo {
+        width: 50px;
+        margin-bottom: 20px;
+      }
+  
+      h6 {
+        margin-top: 0;
+        margin-bottom: 10px;
+      }
+  
+      p {
+        font-size: 14px;
+        color: #777;
+      }
+  
+      .MuiListItem-root {
+        padding: 10px 0;
+  
+        .MuiListItemIcon-root {
+          color: #333;
+        }
+      }
+    }
+  
+    .MuiDivider-vertical {
+      margin: 0 20px;
+    }
+  
+    .content {
+      width: 58.33%; // Tương đương với 7/12
+      padding: 20px;
+      background-color: #fff;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  
+      h6 {
+        margin-bottom: 10px;
+      }
+  
+      p {
+        font-size: 14px;
+        color: #777;
+        margin-bottom: 20px;
+      }
+  
+      .info-section {
+        width: 100%;
+        margin-bottom: 20px;
+        padding-left: 20px;
+        padding-right: 20px;
+        padding-top: 10px;
+        h2 {
+          font-size: 16px;
+          margin-bottom: 5px;
+        }
+  
+        .MuiTextField-root {
+          width: 100%;
+        }
+  
+        .avatar {
+          width: 50px;
+          height: 50px;
+          background-color: #bbb;
+        }
+      }
+  
+      .save-button {
+        display: block;
+        width: 150px;
+        margin-top: 50px;
+        background-color: #00e5ff;
+        color: #fff;
+        margin: 20px auto 0; // Căn giữa nút bằng cách thiết lập `auto` cho margin trái và phải
+  
+        &:hover {
+          background-color: #00b8d4;
+        }
+        text-align: center;
+      }
+    }
+  }
+  

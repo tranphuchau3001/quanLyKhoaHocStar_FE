@@ -7,6 +7,7 @@ import CourseDetail from "layouts/courses";
 import Learning from "layouts/learning";
 import Home from "layouts/home";
 import Profile from "layouts/account/profilePage";
+import AccountSettings from "layouts/account/settingAccount";
 // @mui icons
 import Icon from "@mui/material/Icon";
 
@@ -98,6 +99,14 @@ const routes = [
     // icon: <Icon fontSize="small">assignment</Icon>,
     route: "/learning",
     component: <Learning />,
+  },
+  {
+    // type: "collapse",
+    name: "Cài đặt tài khoản",
+    key: "settingAccount",
+    // icon: <Icon fontSize="small">assignment</Icon>,
+    route: "/AccountSettings",
+    component: <AccountSettings />,
   },
 ];
 

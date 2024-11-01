@@ -61,7 +61,7 @@ function DashboardNavbar({ absolute, light, isMini }) {
       {isLoggedIn ? (
         <>
           <MenuItem onClick={() => navigate("/profile")}>Thông tin tài khoản</MenuItem>
-          <MenuItem onClick={handleClose}>Cài đặt</MenuItem>
+          <MenuItem onClick={() => navigate("/AccountSettings")}>Cài đặt</MenuItem>
           <MenuItem onClick={handleLogout}>Đăng xuất</MenuItem>
         </>
       ) : (
