@@ -219,7 +219,7 @@ function CourseDetail() {
                     </Grid>
                     <MDBox mt={4} mb={1}>
                       <MDButton
-                        href="http://localhost:3000/learning"
+                        href={`http://localhost:3000/learning/${courseId}`}
                         variant="gradient"
                         color="success"
                         fullWidth

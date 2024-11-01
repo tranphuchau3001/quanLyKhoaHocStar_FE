@@ -95,8 +95,8 @@ const routes = [
     // type: "collapse",
     name: "Learning",
     key: "learning",
-    // icon: <Icon fontSize="small">assignment</Icon>,
-    route: "/learning",
+    icon: <Icon fontSize="small">assignment</Icon>,
+    route: "/learning/:courseId",
     component: <Learning />,
   },
 ];

@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import axios from "axios";
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
 import MDBox from "components/MDBox";
@@ -19,87 +21,114 @@ import ArrowCircleLeftOutlinedIcon from "@mui/icons-material/ArrowCircleLeftOutl
 import ArrowCircleRightOutlinedIcon from "@mui/icons-material/ArrowCircleRightOutlined";
 import DefaultNavbar from "examples/Navbars/DefaultNavbar";
 
-const courseContent = [
-  {
-    id: 1,
-    label: "Giới thiệu",
-    icon: <ListIcon />,
-    videos: [
-      {
-        id: 1,
-        title: "Video giới thiệu",
-        url: "https://www.youtube.com/embed/bZjQq_T1hDE?showinfo=0&rel=0",
-      },
-    ],
-  },
-  {
-    id: 2,
-    label: "Nội dung",
-    icon: <ListIcon />,
-    videos: [
-      {
-        id: 2,
-        title: "Tìm hiểu về HTML, CSS",
-        url: "https://www.youtube.com/embed/jlCSd2mUynI?showinfo=0&rel=0",
-      },
-      {
-        id: 3,
-        title: "Làm quen với Dev tools",
-        url: "https://www.youtube.com/embed/QAFJliCcvL8?showinfo=0&rel=0",
-      },
-      {
-        id: 4,
-        title: "Cài đặt VS Code",
-        url: "https://www.youtube.com/embed/GEHUIid1pks?showinfo=0&rel=0",
-      },
-    ],
-  },
-  {
-    id: 3,
-    label: "Bài tập",
-    icon: <ListIcon />,
-    videos: [
-      {
-        id: 5,
-        title: "Bài 1",
-        url: "https://www.youtube.com/embed/kIn5KHLl4Us?showinfo=0&rel=0",
-      },
-    ],
-  },
-];
-
 function Learning() {
-  const [open, setOpen] = useState({});
-  const [currentVideo, setCurrentVideo] = useState(courseContent[0].videos[0].url);
+  const [open, setOpen] = useState([]);
+  const [currentVideo, setCurrentVideo] = useState("");
   const [selectedVideoId, setSelectedVideoId] = useState(null);
-  const [currentVideoIndex, setCurrentVideoIndex] = useState(0); // Chỉ số video hiện tại
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
+  const [course, setCourse] = useState(null);
+  const [modules, setModules] = useState([]);
+  const [lessons, setLessons] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { courseId } = useParams();
 
-  const handleClick = (index) => {
-    setOpen((prevOpen) => ({
-      ...prevOpen,
-      [index]: !prevOpen[index],
-    }));
+  const fetchLessons = async (moduleId) => {
+    try {
+      const response = await axios.get("http://localhost:3030/api/v1/lesson/getLessonsByModuleId", {
+        params: { moduleId },
+      });
+      return response.data.success ? response.data.data : [];
+    } catch (error) {
+      console.error("Error fetching lessons:", error);
+      return [];
+    }
   };
 
-  const handleVideoChange = (url, videoId, index) => {
-    setCurrentVideo(url);
-    setSelectedVideoId(videoId);
-    setCurrentVideoIndex(index);
+  const fetchCourse = async () => {
+    try {
+      const courseResponse = await axios.get("http://localhost:3030/course-api/getCourseById", {
+        params: { courseId },
+      });
+      setCourse(courseResponse.data.data);
+
+      const modulesResponse = await axios.get(
+        "http://localhost:3030/api/v1/module/getModulesByCourseId",
+        {
+          params: { courseId },
+        }
+      );
+      setModules(modulesResponse.data.data);
+      setOpen(new Array(modulesResponse.data.data.length).fill(false));
+
+      const allLessons = await Promise.all(
+        modulesResponse.data.data.map((module) => fetchLessons(module.moduleId))
+      );
+      setLessons(allLessons);
+      setLoading(false);
+
+      if (allLessons.length > 0 && allLessons[0].length > 0) {
+        const firstLesson = allLessons[0][0];
+        setCurrentVideo(`https://www.youtube.com/embed/${firstLesson.videoUrl}`);
+        setSelectedVideoId(firstLesson.lessonId);
+        setCurrentVideoIndex(0);
+        setOpen((prev) => {
+          const newOpen = [...prev];
+          newOpen[0] = true;
+          return newOpen;
+        });
+      }
+    } catch (error) {
+      console.error("Error calling API:", error.response ? error.response.data : error.message);
+      setError("Không thể tải chi tiết khóa học. Vui lòng thử lại sau.");
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCourse();
+  }, [courseId]);
+
+  const handleClick = (index) => {
+    setOpen((prevOpen) => {
+      const newOpen = [...prevOpen];
+      newOpen[index] = !newOpen[index];
+      return newOpen;
+    });
+  };
+
+  const handleVideoChange = (videoId) => {
+    const lesson = lessons.flat().find((lesson) => lesson.lessonId === videoId);
+    if (lesson) {
+      setCurrentVideo(`https://www.youtube.com/embed/${lesson.videoUrl}`);
+      setSelectedVideoId(lesson.lessonId);
+      setCurrentVideoIndex(lessons.flat().findIndex((l) => l.lessonId === lesson.lessonId));
+    }
   };
 
   const handlePrevious = () => {
     if (currentVideoIndex > 0) {
-      const previousVideo = courseContent.flatMap((item) => item.videos)[currentVideoIndex - 1];
-      handleVideoChange(previousVideo.url, previousVideo.id, currentVideoIndex - 1);
+      handleVideoChange(lessons.flat()[currentVideoIndex - 1].lessonId);
     }
   };
 
   const handleNext = () => {
-    if (currentVideoIndex < courseContent.flatMap((item) => item.videos).length - 1) {
-      const nextVideo = courseContent.flatMap((item) => item.videos)[currentVideoIndex + 1];
-      handleVideoChange(nextVideo.url, nextVideo.id, currentVideoIndex + 1);
+    if (currentVideoIndex < lessons.flat().length - 1) {
+      handleVideoChange(lessons.flat()[currentVideoIndex + 1].lessonId);
     }
   };
+
+  if (loading) {
+    return <div>Đang tải...</div>;
+  }
+
+  if (error) {
+    return <div>{error}</div>;
+  }
+
+  if (!course) {
+    return <div>Không tìm thấy khóa học.</div>;
+  }
 
   return (
     <PageLayout>
@@ -142,10 +171,7 @@ function Learning() {
                       variant="contained"
                       color="info"
                       onClick={handleNext}
-                      disabled={
-                        currentVideoIndex ===
-                        courseContent.flatMap((item) => item.videos).length - 1
-                      }
+                      disabled={currentVideoIndex === lessons.flat().length - 1}
                       sx={{ padding: "10px 20px" }}
                     >
                       Bài tiếp theo <ArrowCircleRightOutlinedIcon sx={{ marginLeft: 1 }} />
@@ -166,9 +192,10 @@ function Learning() {
                     coloredShadow="info"
                   >
                     <MDTypography variant="h5" color="white" textAlign="center">
-                      Khóa Học: tên khóa học
+                      Khóa Học: {course.title}
                     </MDTypography>
                   </MDBox>
+                  <MDTypography sx={{ mt: 2, ml: 3, mb: 3 }}>{course.description}</MDTypography>
                   <List
                     component="nav"
                     aria-labelledby="nested-list-subheader"
@@ -178,30 +205,43 @@ function Learning() {
                       </ListSubheader>
                     }
                   >
-                    {courseContent.map((item, index) => (
-                      <div key={item.id}>
+                    {modules.map((module, index) => (
+                      <div key={module.moduleId}>
                         <ListItemButton onClick={() => handleClick(index)}>
-                          <ListItemIcon>{item.icon}</ListItemIcon>
-                          <ListItemText primary={item.label} />
+                          <ListItemIcon>
+                            <ListIcon />
+                          </ListItemIcon>
+                          <MDTypography variant="body2" fontWeight="bold">
+                            {module.title}
+                          </MDTypography>
                           {open[index] ? <ExpandLess /> : <ExpandMore />}
                         </ListItemButton>
                         <Collapse in={open[index]} timeout="auto" unmountOnExit>
                           <List component="div" disablePadding>
-                            {item.videos.map((subItem) => (
-                              <ListItemButton
-                                key={subItem.id}
-                                sx={{
-                                  pl: 4,
-                                  backgroundColor:
-                                    selectedVideoId === subItem.id ? "lightblue" : "transparent",
-                                }}
-                                onClick={() =>
-                                  handleVideoChange(subItem.url, subItem.id, currentVideoIndex)
-                                }
-                              >
-                                <ListItemText primary={subItem.title} />
-                              </ListItemButton>
-                            ))}
+                            {lessons[index] && lessons[index].length > 0 ? (
+                              lessons[index].map((lesson, lessonIndex) => (
+                                <ListItemButton
+                                  key={lesson.lessonId}
+                                  sx={{
+                                    pl: 4,
+                                    backgroundColor:
+                                      currentVideoIndex ===
+                                      lessons
+                                        .flat()
+                                        .findIndex((l) => l.lessonId === lesson.lessonId)
+                                        ? "lightblue"
+                                        : "transparent",
+                                  }}
+                                  onClick={() => handleVideoChange(lesson.lessonId)}
+                                >
+                                  <MDTypography variant="body2">
+                                    {`${lessonIndex + 1}. ${lesson.title}`}
+                                  </MDTypography>
+                                </ListItemButton>
+                              ))
+                            ) : (
+                              <ListItemText primary="Không có bài học nào." sx={{ pl: 4 }} />
+                            )}
                           </List>
                         </Collapse>
                       </div>
