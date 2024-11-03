@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import Grid from "@mui/material/Grid";
@@ -20,6 +20,7 @@ import MDButton from "components/MDButton";
 import ArrowCircleLeftOutlinedIcon from "@mui/icons-material/ArrowCircleLeftOutlined";
 import ArrowCircleRightOutlinedIcon from "@mui/icons-material/ArrowCircleRightOutlined";
 import DefaultNavbar from "examples/Navbars/DefaultNavbar";
+import YouTube from "react-youtube";
 
 function Learning() {
   const [open, setOpen] = useState([]);
@@ -31,6 +32,9 @@ function Learning() {
   const [lessons, setLessons] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [canProceedToNext, setCanProceedToNext] = useState(false);
+  const [completedLessons, setCompletedLessons] = useState(new Set());
+  const videoRef = useRef(null);
   const { courseId } = useParams();
 
   const fetchLessons = async (moduleId) => {
@@ -69,7 +73,7 @@ function Learning() {
 
       if (allLessons.length > 0 && allLessons[0].length > 0) {
         const firstLesson = allLessons[0][0];
-        setCurrentVideo(`https://www.youtube.com/embed/${firstLesson.videoUrl}`);
+        setCurrentVideo(firstLesson.videoUrl);
         setSelectedVideoId(firstLesson.lessonId);
         setCurrentVideoIndex(0);
         setOpen((prev) => {
@@ -91,8 +95,7 @@ function Learning() {
 
   const handleClick = (index) => {
     setOpen((prevOpen) => {
-      const newOpen = [...prevOpen];
-      newOpen[index] = !newOpen[index];
+      const newOpen = prevOpen.map((item, idx) => (idx === index ? !item : false));
       return newOpen;
     });
   };
@@ -100,9 +103,10 @@ function Learning() {
   const handleVideoChange = (videoId) => {
     const lesson = lessons.flat().find((lesson) => lesson.lessonId === videoId);
     if (lesson) {
-      setCurrentVideo(`https://www.youtube.com/embed/${lesson.videoUrl}`);
+      setCurrentVideo(lesson.videoUrl);
       setSelectedVideoId(lesson.lessonId);
       setCurrentVideoIndex(lessons.flat().findIndex((l) => l.lessonId === lesson.lessonId));
+      setCanProceedToNext(false);
     }
   };
 
@@ -113,8 +117,31 @@ function Learning() {
   };
 
   const handleNext = () => {
-    if (currentVideoIndex < lessons.flat().length - 1) {
+    if (currentVideoIndex < lessons.flat().length - 1 && canProceedToNext) {
       handleVideoChange(lessons.flat()[currentVideoIndex + 1].lessonId);
+    }
+  };
+
+  const handleVideoStateChange = (event) => {
+    const currentTime = event.target.getCurrentTime();
+    const duration = event.target.getDuration();
+
+    // Khi người dùng xem được 80% thời lượng video
+    if (currentTime / duration >= 0.8) {
+      setCanProceedToNext(true); // cho phép qua bài tiếp theo
+      setCompletedLessons((prev) => {
+        const newCompleted = new Set(prev);
+        newCompleted.add(selectedVideoId); // Thêm video vào danh sách đã hoàn thành
+        return newCompleted;
+      });
+
+      setLessons((prevLessons) =>
+        prevLessons.map((moduleLessons, moduleIndex) =>
+          moduleLessons.map((lesson, lessonIndex) =>
+            lesson.lessonId === selectedVideoId ? { ...lesson, status: "completed" } : lesson
+          )
+        )
+      );
     }
   };
 
@@ -139,10 +166,26 @@ function Learning() {
             <Grid container spacing={6} padding={3}>
               <Grid item xs={12} md={8}>
                 <Card>
-                  <MDBox sx={{ position: "relative", paddingTop: "56.25%" }}>
-                    <iframe
-                      title="Video giới thiệu"
-                      src={currentVideo}
+                  <MDBox
+                    sx={{
+                      position: "relative",
+                      paddingTop: "56.25%",
+                      overflow: "hidden",
+                      width: "100%",
+                      height: "0",
+                    }}
+                  >
+                    <YouTube
+                      videoId={currentVideo}
+                      onStateChange={handleVideoStateChange}
+                      opts={{
+                        width: "100%",
+                        height: "100%",
+                        playerVars: {
+                          rel: 0,
+                          autoplay: 0,
+                        },
+                      }}
                       style={{
                         position: "absolute",
                         top: 0,
@@ -150,9 +193,6 @@ function Learning() {
                         width: "100%",
                         height: "100%",
                       }}
-                      frameBorder="0"
-                      allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
                     />
                   </MDBox>
                   <MDBox
@@ -171,7 +211,9 @@ function Learning() {
                       variant="contained"
                       color="info"
                       onClick={handleNext}
-                      disabled={currentVideoIndex === lessons.flat().length - 1}
+                      disabled={
+                        !canProceedToNext || currentVideoIndex === lessons.flat().length - 1
+                      }
                       sx={{ padding: "10px 20px" }}
                     >
                       Bài tiếp theo <ArrowCircleRightOutlinedIcon sx={{ marginLeft: 1 }} />
@@ -211,36 +253,55 @@ function Learning() {
                           <ListItemIcon>
                             <ListIcon />
                           </ListItemIcon>
-                          <MDTypography variant="body2" fontWeight="bold">
-                            {module.title}
-                          </MDTypography>
+                          <ListItemText primary={module.title} />
                           {open[index] ? <ExpandLess /> : <ExpandMore />}
                         </ListItemButton>
                         <Collapse in={open[index]} timeout="auto" unmountOnExit>
                           <List component="div" disablePadding>
                             {lessons[index] && lessons[index].length > 0 ? (
-                              lessons[index].map((lesson, lessonIndex) => (
+                              lessons[index].map((lesson) => (
                                 <ListItemButton
                                   key={lesson.lessonId}
+                                  onClick={() => {
+                                    // Cho phép click vào bài học đang xem hoặc bài học đã hoàn thành
+                                    if (
+                                      lesson.lessonId === selectedVideoId ||
+                                      completedLessons.has(lesson.lessonId)
+                                    ) {
+                                      handleVideoChange(lesson.lessonId);
+                                    }
+                                  }}
+                                  disabled={
+                                    !completedLessons.has(lesson.lessonId) &&
+                                    lesson.lessonId !== selectedVideoId
+                                  } // Vô hiệu hóa bài học chưa hoàn thành
                                   sx={{
                                     pl: 4,
-                                    backgroundColor:
-                                      currentVideoIndex ===
-                                      lessons
-                                        .flat()
-                                        .findIndex((l) => l.lessonId === lesson.lessonId)
-                                        ? "lightblue"
+                                    bgcolor:
+                                      lesson.lessonId === selectedVideoId
+                                        ? "rgba(76, 175, 80, 0.5)"
                                         : "transparent",
+                                    opacity:
+                                      lesson.lessonId === selectedVideoId
+                                        ? 1
+                                        : completedLessons.has(lesson.lessonId)
+                                        ? 1
+                                        : 0.5, // Làm mờ các bài chưa hoàn thành
                                   }}
-                                  onClick={() => handleVideoChange(lesson.lessonId)}
                                 >
-                                  <MDTypography variant="body2">
-                                    {`${lessonIndex + 1}. ${lesson.title}`}
-                                  </MDTypography>
+                                  <ListItemText primary={lesson.title} />
+                                  {/* Hiện dấu tích xanh nếu bài học đã hoàn thành */}
+                                  {completedLessons.has(lesson.lessonId) && (
+                                    <MDTypography sx={{ color: "green", marginLeft: 1 }}>
+                                      ✔
+                                    </MDTypography>
+                                  )}
                                 </ListItemButton>
                               ))
                             ) : (
-                              <ListItemText primary="Không có bài học nào." sx={{ pl: 4 }} />
+                              <MDTypography variant="body2" sx={{ ml: 5 }}>
+                                Không có bài học
+                              </MDTypography>
                             )}
                           </List>
                         </Collapse>
