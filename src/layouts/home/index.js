@@ -90,11 +90,11 @@ const Home = () => {
   const handleCourseClick = async (courseId) => {
     console.log("handleCourseClick called with courseId:", courseId);
     const isEnrolled = await checkEnrollment(courseId);
-    console.log("Is user enrolled?", isEnrolled); // In ra để kiểm tra
+    console.log("Is user enrolled?", isEnrolled);
 
     if (isEnrolled) {
-      console.log("User is enrolled, navigating to /learning");
-      navigate("/learning");
+      console.log("User is enrolled, navigating to /learning/" + courseId);
+      navigate(`/learning/${courseId}`);
     } else {
       console.log("User is not enrolled, navigating to course detail");
       navigate(`/courses/${courseId}`);
