@@ -7,10 +7,11 @@ import CourseDetail from "layouts/courses";
 import Learning from "layouts/learning";
 import Home from "layouts/home";
 import Profile from "layouts/account/profilePage";
+import CourseManager from "layouts/admin/CoursesManager";
 // @mui icons
 import Icon from "@mui/material/Icon";
 
-const routes = [
+const userRoutes = [
   {
     type: "collapse",
     name: "Trang chủ",
@@ -28,7 +29,6 @@ const routes = [
   //   component: <Dashboard />,
   // },
   {
-    // type: "collapse",
     name: "Khóa học",
     key: "courses",
     icon: <Icon fontSize="small">info</Icon>,
@@ -68,7 +68,6 @@ const routes = [
   //   component: <Notifications />,
   // },
   {
-    // type: "collapse",
     name: "Đăng nhập",
     key: "sign-in",
     icon: <Icon fontSize="small">login</Icon>,
@@ -84,21 +83,36 @@ const routes = [
     component: <Profile />,
   },
   {
-    // type: "collapse",
     name: "Thông tin tài khoản",
     key: "sign-up",
-    // icon: <Icon fontSize="small">person</Icon>,
     route: "/authentication/sign-up",
     component: <SignUp />,
   },
   {
-    // type: "collapse",
     name: "Learning",
     key: "learning",
-    // icon: <Icon fontSize="small">assignment</Icon>,
     route: "/learning",
     component: <Learning />,
   },
+  // {
+  //   type: "collapse",
+  //   name: "coursesManager",
+  //   key: "coursesManager",
+  //   icon: <Icon fontSize="small">library_books</Icon>,
+  //   route: "/admin/coursesManager",
+  //   component: <CourseManager />,
+  // },
 ];
+const adminRoutes = [
+  {
+    type: "collapse",
+    name: "Quản Lý Khóa Học",
+    key: "coursesManager",
+    icon: <Icon fontSize="small">library_books</Icon>,
+    route: "/admin/CoursesManager",
+    component: <CourseManager />,
+  },
+];
+const routesConfig = { userRoutes, adminRoutes };
 
-export default routes;
+export default routesConfig;
