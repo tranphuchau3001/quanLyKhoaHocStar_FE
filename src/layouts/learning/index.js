@@ -36,6 +36,20 @@ function Learning() {
   const [completedLessons, setCompletedLessons] = useState(new Set());
   const videoRef = useRef(null);
   const { courseId } = useParams();
+  const [progressSaved, setProgressSaved] = useState(false);
+
+  const fetchUserProgress = async (moduleId) => {
+    try {
+      const response = await axios.get(
+        "http://localhost:3030/api/v1/user-progress/getAllUserProgress"
+      );
+      console.log("Call API getAllUserProgress OK");
+      return response.data.success ? response.data.data : [];
+    } catch (error) {
+      console.error("Error fetching lessons:", error);
+      return [];
+    }
+  };
 
   const fetchLessons = async (moduleId) => {
     try {
@@ -48,7 +62,6 @@ function Learning() {
       return [];
     }
   };
-
   const fetchCourse = async () => {
     try {
       const courseResponse = await axios.get("http://localhost:3030/course-api/getCourseById", {
@@ -71,16 +84,18 @@ function Learning() {
       setLessons(allLessons);
       setLoading(false);
 
-      if (allLessons.length > 0 && allLessons[0].length > 0) {
-        const firstLesson = allLessons[0][0];
-        setCurrentVideo(firstLesson.videoUrl);
-        setSelectedVideoId(firstLesson.lessonId);
-        setCurrentVideoIndex(0);
-        setOpen((prev) => {
-          const newOpen = [...prev];
-          newOpen[0] = true;
-          return newOpen;
-        });
+      // Thay đổi ở đây
+      const userId = localStorage.getItem("userId");
+      if (userId) {
+        const completedLessonsFromApi = await fetchUserProgressByUserIdAndCourseId(
+          userId,
+          courseId
+        );
+        setCompletedLessons(new Set(completedLessonsFromApi));
+        console.log("Các bài học đã hoàn thành:", completedLessonsFromApi);
+
+        // Gọi setNextVideo sau khi đã cập nhật completedLessons
+        setNextVideo(allLessons, completedLessonsFromApi);
       }
     } catch (error) {
       console.error("Error calling API:", error.response ? error.response.data : error.message);
@@ -89,13 +104,131 @@ function Learning() {
     }
   };
 
+  const saveUserProgress = async (lessonId) => {
+    const userId = localStorage.getItem("userId");
+    const status = "completed";
+
+    if (!userId || !courseId || !lessonId) {
+      console.error("Thông tin không đầy đủ để lưu tiến trình học tập.");
+      return;
+    }
+
+    console.log("Đang lưu tiến trình cho:", { userId, courseId, lessonId, status });
+
+    try {
+      const response = await axios.post(
+        "http://localhost:3030/api/v1/user-progress/addUserProgress",
+        {
+          userId,
+          courseId,
+          lessonId,
+          status,
+        }
+      );
+
+      if (response.data.success) {
+        console.log("Tiến trình học tập đã được lưu thành công.");
+        setCompletedLessons((prev) => new Set(prev).add(lessonId));
+      } else {
+        console.error("Không thể lưu tiến trình học tập:", response.data.message);
+      }
+    } catch (error) {
+      console.error("Lỗi khi lưu tiến trình học tập:", error);
+    }
+  };
+
+  const fetchUserProgressByUserIdAndCourseId = async (userId, courseId) => {
+    try {
+      const response = await axios.get(
+        "http://localhost:3030/api/v1/user-progress/getUserProgressByUserIdAndCourseId",
+        { params: { userId, courseId } }
+      );
+
+      if (response.data.success) {
+        return response.data.data.map((progress) => progress.lessonId);
+      } else {
+        console.error("Không thể lấy tiến trình học:", response.data.message);
+        return [];
+      }
+    } catch (error) {
+      console.error("Lỗi khi gọi API lấy tiến trình học:", error);
+      return [];
+    }
+  };
+
+  const fetchProgress = async () => {
+    const userId = localStorage.getItem("userId");
+    if (!userId) return;
+
+    const completedLessonsFromApi = await fetchUserProgressByUserIdAndCourseId(userId, courseId);
+    setCompletedLessons(new Set(completedLessonsFromApi));
+    // console.log("Các bài học đã hoàn thành:", completedLessonsFromApi);
+
+    // setNextVideo(lessons, completedLessonsFromApi);
+  };
+
+  const setNextVideo = async (allLessons, completedLessons) => {
+    console.log("All Lessons:", allLessons);
+    console.log("Completed Lessons:", completedLessons);
+
+    if (allLessons.length > 0 && allLessons[0].length > 0) {
+      const completedLessonIds = Array.from(completedLessons);
+      const completedLessonsList = allLessons
+        .flat()
+        .filter((lesson) => completedLessonIds.includes(lesson.lessonId));
+
+      console.log("Bài học đã hoàn thành:", completedLessonsList);
+
+      if (completedLessonsList.length > 0) {
+        const lastCompletedLessonIndex = allLessons
+          .flat()
+          .findIndex(
+            (lesson) =>
+              lesson.lessonId === completedLessonsList[completedLessonsList.length - 1].lessonId
+          );
+
+        if (lastCompletedLessonIndex + 1 < allLessons.flat().length) {
+          const nextLesson = allLessons.flat()[lastCompletedLessonIndex + 1];
+          console.log("Bài học tiếp theo:", nextLesson);
+          setCurrentVideo(nextLesson.videoUrl);
+          setSelectedVideoId(nextLesson.lessonId);
+          setCurrentVideoIndex(lastCompletedLessonIndex + 1);
+        } else {
+          const firstLesson = allLessons[0][0];
+          console.log("Tất cả các bài học đã hoàn thành. Mở bài học đầu tiên:", firstLesson);
+          setCurrentVideo(firstLesson.videoUrl);
+          setSelectedVideoId(firstLesson.lessonId);
+          setCurrentVideoIndex(0);
+        }
+      } else {
+        const firstLesson = allLessons[0][0];
+        console.log("Không có bài học hoàn thành. Mở bài học đầu tiên:", firstLesson);
+        setCurrentVideo(firstLesson.videoUrl);
+        setSelectedVideoId(firstLesson.lessonId);
+        setCurrentVideoIndex(0);
+      }
+
+      setOpen((prev) => {
+        const newOpen = [...prev];
+        newOpen[0] = true;
+        return newOpen;
+      });
+    }
+  };
+
   useEffect(() => {
-    fetchCourse();
+    const initializeData = async () => {
+      await fetchCourse();
+      await fetchProgress();
+    };
+
+    initializeData();
   }, [courseId]);
 
   const handleClick = (index) => {
     setOpen((prevOpen) => {
-      const newOpen = prevOpen.map((item, idx) => (idx === index ? !item : false));
+      const newOpen = [...prevOpen];
+      newOpen[index] = !newOpen[index];
       return newOpen;
     });
   };
@@ -107,7 +240,13 @@ function Learning() {
       setSelectedVideoId(lesson.lessonId);
       setCurrentVideoIndex(lessons.flat().findIndex((l) => l.lessonId === lesson.lessonId));
       setCanProceedToNext(false);
+      setProgressSaved(false);
+
+      if (completedLessons.has(lesson.lessonId) && currentVideoIndex < lessons.flat().length - 1) {
+        setCanProceedToNext(true); // Cập nhật trạng thái để bài học tiếp theo có thể bấm vào
+      }
     }
+    console.log("index:" + videoId);
   };
 
   const handlePrevious = () => {
@@ -118,6 +257,7 @@ function Learning() {
 
   const handleNext = () => {
     if (currentVideoIndex < lessons.flat().length - 1 && canProceedToNext) {
+      // Chuyển đến bài học tiếp theo khi bài học hiện tại đã hoàn thành 80% hoặc hơn
       handleVideoChange(lessons.flat()[currentVideoIndex + 1].lessonId);
     }
   };
@@ -125,23 +265,32 @@ function Learning() {
   const handleVideoStateChange = (event) => {
     const currentTime = event.target.getCurrentTime();
     const duration = event.target.getDuration();
+    const progress = currentTime / duration;
 
-    // Khi người dùng xem được 80% thời lượng video
-    if (currentTime / duration >= 0.8) {
-      setCanProceedToNext(true); // cho phép qua bài tiếp theo
+    // Kiểm tra nếu video đã xem được 80% và chưa lưu tiến trình
+    if (progress >= 0.8 && !progressSaved) {
+      setCanProceedToNext(true);
+      setProgressSaved(true);
+
+      // Cập nhật danh sách bài học đã hoàn thành
       setCompletedLessons((prev) => {
         const newCompleted = new Set(prev);
-        newCompleted.add(selectedVideoId); // Thêm video vào danh sách đã hoàn thành
+        newCompleted.add(selectedVideoId); // Đánh dấu bài học hiện tại là đã hoàn thành
+        console.log("selectedVideoId: " + selectedVideoId);
         return newCompleted;
       });
 
+      // Cập nhật trạng thái bài học hoàn thành trong `lessons`
       setLessons((prevLessons) =>
-        prevLessons.map((moduleLessons, moduleIndex) =>
-          moduleLessons.map((lesson, lessonIndex) =>
+        prevLessons.map((moduleLessons) =>
+          moduleLessons.map((lesson) =>
             lesson.lessonId === selectedVideoId ? { ...lesson, status: "completed" } : lesson
           )
         )
       );
+
+      // Lưu tiến trình học tập của người dùng
+      saveUserProgress(selectedVideoId);
     }
   };
 
@@ -259,38 +408,56 @@ function Learning() {
                         <Collapse in={open[index]} timeout="auto" unmountOnExit>
                           <List component="div" disablePadding>
                             {lessons[index] && lessons[index].length > 0 ? (
-                              lessons[index].map((lesson) => (
+                              lessons[index].map((lesson, lessonIndex) => (
                                 <ListItemButton
                                   key={lesson.lessonId}
                                   onClick={() => {
-                                    // Cho phép click vào bài học đang xem hoặc bài học đã hoàn thành
-                                    if (
+                                    console.log("Selected Video ID:", selectedVideoId);
+                                    console.log("Completed Lessons:", completedLessons);
+                                    console.log("Can Proceed to Next:", canProceedToNext);
+                                    console.log("Current Video Index:", currentVideoIndex);
+                                    console.log("Lesson Index:", lessonIndex);
+
+                                    const canClick =
                                       lesson.lessonId === selectedVideoId ||
-                                      completedLessons.has(lesson.lessonId)
-                                    ) {
+                                      completedLessons.has(lesson.lessonId) ||
+                                      (canProceedToNext &&
+                                        lessonIndex === currentVideoIndex + 1 &&
+                                        completedLessons.has(lesson.lessonId));
+
+                                    console.log("Can Click:", canClick);
+
+                                    if (canClick) {
                                       handleVideoChange(lesson.lessonId);
                                     }
                                   }}
                                   disabled={
+                                    // Điều kiện disabled sửa lại để không cho phép chọn bài học chưa hoàn thành
                                     !completedLessons.has(lesson.lessonId) &&
-                                    lesson.lessonId !== selectedVideoId
-                                  } // Vô hiệu hóa bài học chưa hoàn thành
+                                    lesson.lessonId !== selectedVideoId &&
+                                    !(
+                                      canProceedToNext &&
+                                      lessonIndex <= currentVideoIndex &&
+                                      completedLessons.has(lesson.lessonId)
+                                    ) // Thêm điều kiện hoàn thành cho bài học tiếp theo
+                                  }
                                   sx={{
                                     pl: 4,
                                     bgcolor:
                                       lesson.lessonId === selectedVideoId
                                         ? "rgba(76, 175, 80, 0.5)"
-                                        : "transparent",
+                                        : "transparent", // Nổi bật bài học hiện tại
                                     opacity:
                                       lesson.lessonId === selectedVideoId
                                         ? 1
-                                        : completedLessons.has(lesson.lessonId)
+                                        : completedLessons.has(lesson.lessonId) ||
+                                          (canProceedToNext &&
+                                            lessonIndex === currentVideoIndex + 1)
                                         ? 1
-                                        : 0.5, // Làm mờ các bài chưa hoàn thành
+                                        : 0.5, // Giảm opacity cho bài học chưa hoàn thành
                                   }}
                                 >
                                   <ListItemText primary={lesson.title} />
-                                  {/* Hiện dấu tích xanh nếu bài học đã hoàn thành */}
                                   {completedLessons.has(lesson.lessonId) && (
                                     <MDTypography sx={{ color: "green", marginLeft: 1 }}>
                                       ✔
