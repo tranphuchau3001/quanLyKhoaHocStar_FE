@@ -17,8 +17,11 @@ import "./settingAccount.scss";
 import PageLayout from "examples/LayoutContainers/PageLayout";
 import Navbar from "examples/Navbars/DashboardNavbar";
 import axios from "axios";
-import defaultAvatar from "../../../assets/images/avatar-Account/image.png"; // Đường dẫn chính xác
-import { color } from "@mui/system";
+import defaultAvatar from "../../../assets/images/avatar-Account/image.png";
+import SecurityPopup from "./securityPopup";
+import "./settingAccount.scss";
+import { Password } from "@mui/icons-material";
+import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 const AccountSettings = () => {
   const [userInfo, setUserInfo] = useState({
     name: null,
@@ -26,9 +29,12 @@ const AccountSettings = () => {
     avatarUrl: null,
   });
   const [avatar, setAvatar] = useState(defaultAvatar);
+  const [errors, setErrors] = useState({ name: "", phone: "" });
   const userId = localStorage.getItem("userId");
+  const email = localStorage.getItem("email");
   const inputFileRef = useRef(null);
   const [currentTab, setCurrentTab] = useState("info");
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
 
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -54,8 +60,16 @@ const AccountSettings = () => {
     fetchUserInfo();
   }, [userId]);
 
+  const validateFields = () => {
+    const nameError = userInfo.name ? "" : "Vui lòng nhập tên";
+    const phoneError =
+      userInfo.phone && /^\d{10}$/.test(userInfo.phone) ? "" : "Số điện thoại không hợp lệ";
+    setErrors({ name: nameError, phone: phoneError });
+    return !nameError && !phoneError;
+  };
+
   const handleDoubleClick = () => {
-    inputFileRef.current.click(); // Kích hoạt thẻ input file
+    inputFileRef.current.click();
   };
 
   const handleFileChange = (event) => {
@@ -63,15 +77,36 @@ const AccountSettings = () => {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setAvatar(reader.result); // Cập nhật avatar với ảnh vừa chọn
+        setAvatar(reader.result);
       };
       reader.readAsDataURL(file);
     }
   };
+  const handleOpenPopup = () => {
+    setIsPopupOpen(true);
+  };
 
-  const avatarPath = userInfo.avatarUrl
-    ? require(`../../../assets/images/avatar-Account/${userInfo.avatarUrl}`)
-    : defaultAvatar;
+  const handleClosePopup = () => {
+    setIsPopupOpen(false);
+  };
+
+  const handleSave = async () => {
+    if (validateFields()) {
+      try {
+        const response = await axios.put("http://localhost:3030/user-api/update", {
+          userId: userId,
+          name: userInfo.name || undefined,
+          phone: userInfo.phone || undefined,
+          email: email,
+          avatarUrl: "default.png",
+        });
+        console.log("Dữ liệu đã được lưu:", response.data);
+      } catch (error) {
+        console.error("Có lỗi xảy ra khi lưu dữ liệu:", error);
+      }
+    }
+  };
+
   return (
     <PageLayout>
       <Navbar />
@@ -89,6 +124,10 @@ const AccountSettings = () => {
               sx={{
                 backgroundColor: currentTab === "info" ? "#000" : "transparent",
                 color: currentTab === "info" ? "#fff" : "inherit",
+                "&:hover": {
+                  backgroundColor: "#d3d3d3",
+                  color: "#000",
+                },
               }}
             >
               <ListItemIcon sx={{ color: currentTab === "info" ? "#fff" : "inherit" }}>
@@ -98,10 +137,17 @@ const AccountSettings = () => {
             </ListItem>
             <ListItem
               button
-              onClick={() => setCurrentTab("security")}
+              onClick={() => {
+                setCurrentTab("security");
+                handleOpenPopup();
+              }}
               sx={{
                 backgroundColor: currentTab === "security" ? "#000" : "transparent",
                 color: currentTab === "security" ? "#fff" : "inherit",
+                "&:hover": {
+                  backgroundColor: "#d3d3d3",
+                  color: "#000",
+                },
               }}
             >
               <ListItemIcon sx={{ color: currentTab === "security" ? "#fff" : "inherit" }}>
@@ -109,66 +155,128 @@ const AccountSettings = () => {
               </ListItemIcon>
               <ListItemText primary="Mật khẩu và bảo mật" />
             </ListItem>
+            <ListItem
+              button
+              onClick={() => setCurrentTab("courses")}
+              sx={{
+                backgroundColor: currentTab === "courses" ? "#000" : "transparent",
+                color: currentTab === "courses" ? "#fff" : "inherit",
+                "&:hover": {
+                  backgroundColor: "#d3d3d3",
+                  color: "#000",
+                },
+              }}
+            >
+              <ListItemText primary="Khóa học và lịch học" />
+            </ListItem>
           </List>
         </Box>
 
         <Divider orientation="vertical" flexItem />
-
         <Box className="content">
-          <Typography variant="h3">Thông tin cá nhân</Typography>
-          <Typography variant="body2" color="textSecondary">
-            Quản lý thông tin cá nhân của bạn
-          </Typography>
+          {currentTab === "info" && (
+            <>
+              <Typography variant="h3">Thông tin cá nhân</Typography>
+              <Typography variant="body2" color="textSecondary">
+                Quản lý thông tin cá nhân của bạn
+              </Typography>
 
-          <Box className="info-section">
-            <ListItemText>
-              <Typography variant="subtitle1">Họ và tên</Typography>
-              <TextField
-                value={userInfo.name || "Chưa cập nhật tên"}
-                fullWidth
-                variant="outlined"
-              />
-            </ListItemText>
-          </Box>
+              <Box className="info-section">
+                <ListItemText>
+                  <Typography variant="subtitle1">Họ và tên</Typography>
+                  <TextField
+                    value={userInfo.name}
+                    placeholder="Chưa cập nhật tên"
+                    fullWidth
+                    variant="outlined"
+                    onChange={(e) => setUserInfo({ ...userInfo, name: e.target.value })}
+                  />
+                </ListItemText>
+              </Box>
 
-          <Box className="info-section">
-            <Typography variant="subtitle1">Ảnh đại diện</Typography>
+              <Box className="info-section">
+                <Typography variant="subtitle1">Ảnh đại diện</Typography>
 
-            <Avatar
-              src={avatar} // Sử dụng avatar đã được kiểm tra
-              alt="Avatar"
-              sx={{
-                width: 50,
-                height: 50,
-                cursor: "pointer",
-                border: "1px solid #000000", // Thay đổi màu sắc border nếu cần
-                borderRadius: "50%", // Đảm bảo border vẫn giữ hình tròn
-              }}
-              onDoubleClick={handleDoubleClick} // Thêm sự kiện double click
-            />
-            <input
-              type="file"
-              accept="image/*"
-              style={{ display: "none" }} // Ẩn input file
-              ref={inputFileRef} // Tham chiếu đến input file
-              onChange={handleFileChange} // Xử lý khi chọn file
-            />
-          </Box>
+                <Avatar
+                  src={avatar} // Sử dụng avatar đã được kiểm tra
+                  alt="Avatar"
+                  sx={{
+                    width: 50,
+                    height: 50,
+                    cursor: "pointer",
+                    border: "1px solid #000000", // Thay đổi màu sắc border nếu cần
+                    borderRadius: "50%", // Đảm bảo border vẫn giữ hình tròn
+                  }}
+                  onDoubleClick={handleDoubleClick} // Thêm sự kiện double click
+                />
+                <input
+                  type="file"
+                  accept="image/*"
+                  style={{ display: "none" }}
+                  ref={inputFileRef}
+                  onChange={handleFileChange}
+                />
+              </Box>
 
-          <Box className="info-section">
-            <Typography variant="subtitle1">Số điện thoại</Typography>
-            <TextField
-              value={userInfo.phone || "Chưa cập nhật số điện thoại"}
-              fullWidth
-              variant="outlined"
-            />
-          </Box>
+              <Box className="info-section">
+                <Typography variant="subtitle1">Số điện thoại</Typography>
+                <TextField
+                  value={userInfo.phone}
+                  placeholder="Chưa cập nhật số điện thoại"
+                  fullWidth
+                  variant="outlined"
+                  onChange={(e) => setUserInfo({ ...userInfo, phone: e.target.value })}
+                />
+              </Box>
 
-          <Button variant="contained" color="primary" className="save-button">
-            Lưu lại
-          </Button>
+              <Button
+                variant="contained"
+                color="primary"
+                className="save-button"
+                onClick={handleSave}
+              >
+                Lưu lại
+              </Button>
+            </>
+          )}
+
+          {currentTab === "courses" && (
+            <>
+              <Typography variant="h3">Khóa học đang quản lý</Typography>
+              <Typography variant="body2" color="textSecondary">
+                Quản lý khóa học bạn đang quản lý và có thể thêm lịch học cho khóa học này
+              </Typography>
+              {/* Thêm các khóa học với nút "Lịch học" và "Học viên" */}
+              <Box className="course-list">
+                <Box className="course-item">
+                  <img src="course_image.png" alt="Khóa học" className="course-image" />
+                  <Box className="course-details">
+                    <Typography variant="h6">HTML, CSS Cơ bản</Typography>
+                    <Typography variant="body2">
+                      Khóa học giúp các bạn hiểu và thực hiện được các đoạn code html css cơ bản
+                    </Typography>
+                    <Box className="course-schedule-section">
+                      <Button
+                        variant="contained"
+                        className="course-schedule-button schedule-button"
+                      >
+                        Lịch học
+                      </Button>
+                      <Button
+                        variant="contained"
+                        className="course-schedule-button students-button"
+                      >
+                        Học viên
+                      </Button>
+                    </Box>
+                  </Box>
+                </Box>
+              </Box>
+            </>
+          )}
         </Box>
       </Box>
+      <SecurityPopup open={isPopupOpen} onClose={handleClosePopup} />
     </PageLayout>
   );
 };
