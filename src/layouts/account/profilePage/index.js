@@ -58,14 +58,14 @@ const ProfilePage = () => {
     } else if (!isNavigating.current) {
       console.error("userId is not available or empty");
       Swal.fire({
-        title: "Lỗi",
+        title: "Cảnh báo",
         text: "Bạn cần đăng nhập mới có thông tin.",
-        icon: "error",
+        icon: "warning",
         confirmButtonText: "OK",
       }).then((result) => {
         if (result.isConfirmed) {
-          isNavigating.current = true; // Đặt flag để tránh điều hướng lặp lại
-          navigate("/authentication/sign-in"); // Chỉ điều hướng khi người dùng bấm OK
+          isNavigating.current = true;
+          navigate("/authentication/sign-in");
         }
       });
     }

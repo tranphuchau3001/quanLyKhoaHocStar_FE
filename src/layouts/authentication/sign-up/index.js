@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { Link } from "react-router-dom";
 
@@ -31,15 +32,11 @@ function Cover() {
     otp: "",
   });
 
-  // Countdown state
-  const [otpCountdown, setOtpCountdown] = useState(0); // Timer for OTP countdown
-  const [isOtpSent, setIsOtpSent] = useState(false); // State to disable button after OTP is sent
-
-  // Email validation regex
+  const [otpCountdown, setOtpCountdown] = useState(0);
+  const [isOtpSent, setIsOtpSent] = useState(false);
+  const navigate = useNavigate();
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  // Phone number validation regex (assumes a 10-digit phone number)
   const phoneRegex = /^[0-9]{10}$/;
-  // OTP must be exactly 6 digits
   const otpRegex = /^[0-9]{6}$/;
 
   const handleChange = (e) => {
@@ -99,6 +96,7 @@ function Cover() {
         title: "Đăng ký thành công",
         text: "Bạn đã đăng ký thành công!",
       });
+      navigate("/authentication/sign-in");
     } catch (error) {
       Swal.fire({
         icon: "error",

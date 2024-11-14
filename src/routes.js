@@ -1,4 +1,3 @@
-// Material Dashboard 2 React layouts
 import Dashboard from "layouts/dashboard";
 import Tables from "layouts/tables";
 import SignIn from "layouts/authentication/sign-in";
@@ -8,6 +7,7 @@ import Learning from "layouts/learning";
 import Home from "layouts/home";
 import Profile from "layouts/account/profilePage";
 import CourseManager from "layouts/admin/CoursesManager";
+import ModulesManager from "layouts/admin/ModulesManager";
 // @mui icons
 import Icon from "@mui/material/Icon";
 
@@ -94,14 +94,6 @@ const userRoutes = [
     route: "/learning",
     component: <Learning />,
   },
-  // {
-  //   type: "collapse",
-  //   name: "coursesManager",
-  //   key: "coursesManager",
-  //   icon: <Icon fontSize="small">library_books</Icon>,
-  //   route: "/admin/coursesManager",
-  //   component: <CourseManager />,
-  // },
 ];
 const adminRoutes = [
   {
@@ -111,6 +103,14 @@ const adminRoutes = [
     icon: <Icon fontSize="small">library_books</Icon>,
     route: "/admin/CoursesManager",
     component: <CourseManager />,
+  },
+  {
+    type: "collapse",
+    name: "Quản Lý Bài Học",
+    key: "lessonManager",
+    icon: <Icon fontSize="small">library_books</Icon>,
+    route: "/admin/ModulesManager",
+    component: <ModulesManager />,
   },
 ];
 const routesConfig = { userRoutes, adminRoutes };

@@ -34,6 +34,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import PropTypes from "prop-types";
 import "./coursesManager.scss";
+import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 
 const defaultImage = "https://via.placeholder.com/150";
 
@@ -229,9 +230,8 @@ const CourseManagement = () => {
       return;
     }
 
-    const status = active ? "true" : "false";
-    const instructorData = price > 0 && selectedInstructor ? { userId: selectedInstructor } : null;
-
+    const status = active ? true : false;
+    const instructorData = price > 0 && selectedInstructor ? selectedInstructor : null;
     const courseData = {
       courseId: courseCode,
       imgUrl: file.name,
@@ -262,10 +262,11 @@ const CourseManagement = () => {
         fetchCourses();
       } else {
         Swal.fire("Lỗi!", "Có lỗi xảy ra khi cập nhật khóa học. Vui lòng thử lại!", "error");
+        console.error("Lỗi khi gọi API cập nhật khóa học:", error);
       }
     } catch (error) {
       console.error("Lỗi khi gọi API cập nhật khóa học:", error);
-      Swal.fire("Lỗi!", "Có lỗi xảy ra khi cập nhật khóa học. Vui lòng thử lại!", "error");
+      Swal.fire("Lỗi!", "Có lỗi xảy ra khi cập nhật khóa học2. Vui lòng thử lại!", "error");
     }
   };
 
@@ -307,7 +308,8 @@ const CourseManagement = () => {
       const response = await fetch("http://localhost:3030/user-api/getAllUser");
       const result = await response.json();
       if (result.success && Array.isArray(result.data)) {
-        setInstructors(result.data);
+        const instructors = result.data.filter((user) => user.roleId === 2);
+        setInstructors(instructors);
       } else {
         console.error("Dữ liệu trả về không hợp lệ");
       }
@@ -377,6 +379,7 @@ const CourseManagement = () => {
       const courseData = response.data.data;
 
       console.log(courseData);
+
       setCourseCode(courseData.courseId);
       setCourseName(courseData.title);
       setDescription(courseData.description);
@@ -385,10 +388,16 @@ const CourseManagement = () => {
       setSchedule(courseData.schedule);
       setMeetingTime(courseData.meetingTime);
       setPrice(courseData.price);
-      setSelectedInstructor(courseData.instructor ? courseData.instructor.userId : "");
       setActive(courseData.status === true);
       setInactive(courseData.status === false);
-      // setFileUrl(courseData.imgUrl || defaultImage);
+      const instructorId = courseData.instructor; // Đây là giá trị userId
+      const instructor = instructors.find((instructor) => instructor.userId === instructorId);
+
+      if (instructor) {
+        setSelectedInstructor(instructor.userId); // Cập nhật giá trị selectedInstructor là userId
+      } else {
+        setSelectedInstructor(""); // Nếu không tìm thấy giảng viên
+      }
     } catch (error) {
       console.error("Lỗi khi gọi API lấy thông tin khóa học:", error);
       if (error.response) {
@@ -489,12 +498,9 @@ const CourseManagement = () => {
   };
   return (
     <DashboardLayout>
+      <DashboardNavbar />
       <ToastContainer />
       <Container maxWidth="lg" style={{ backgroundColor: "#f4f4f4", padding: "20px" }}>
-        <Typography variant="h4" gutterBottom textAlign="center">
-          Quản lý khóa học
-        </Typography>
-
         <Grid container spacing={3}>
           <Grid item xs={12} md={5}>
             <Paper
@@ -548,21 +554,26 @@ const CourseManagement = () => {
                   {price > 0 && (
                     <FormControl fullWidth margin="normal">
                       <InputLabel id="instructor-label" shrink>
-                        Giảng viên đảm nhiệm:
+                        Chọn người hướng dẫn:
                       </InputLabel>
                       <Select
                         labelId="instructor-label"
                         id="instructor-select"
-                        value={selectedInstructor}
+                        value={selectedInstructor || ""} // Đảm bảo giá trị hợp lệ
                         onChange={(e) => setSelectedInstructor(e.target.value)}
                         label="Giảng viên đảm nhiệm"
                         sx={{ height: 40 }}
                       >
-                        {instructors.map((inst) => (
-                          <MenuItem key={inst.userId} value={inst.userId}>
-                            {inst.name}
-                          </MenuItem>
-                        ))}
+                        {/* Kiểm tra mảng instructor có hợp lệ không */}
+                        {instructors && Array.isArray(instructors) && instructors.length > 0 ? (
+                          instructors.map((instructor) => (
+                            <MenuItem key={instructor.userId} value={instructor.userId}>
+                              {instructor.name}
+                            </MenuItem>
+                          ))
+                        ) : (
+                          <MenuItem disabled>Chưa có giảng viên nào</MenuItem> // Nếu không có instructor
+                        )}
                       </Select>
                     </FormControl>
                   )}
