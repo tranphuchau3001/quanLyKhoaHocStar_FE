@@ -1,14 +1,7 @@
-// react-router-dom components
 import { Link } from "react-router-dom";
-
-// prop-types is a library for typechecking of props.
 import PropTypes from "prop-types";
-
-// @mui material components
 import { Breadcrumbs as MuiBreadcrumbs } from "@mui/material";
 import Icon from "@mui/material/Icon";
-
-// Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 
@@ -60,15 +53,6 @@ function Breadcrumbs({ icon, title, route, light }) {
           {title.replace("-", " ")}
         </MDTypography>
       </MuiBreadcrumbs>
-      {/* <MDTypography
-        fontWeight="bold"
-        textTransform="capitalize"
-        variant="h6"
-        color={light ? "white" : "dark"}
-        noWrap
-      >
-        {title.replace("-", " ")}
-      </MDTypography> */}
     </MDBox>
   );
 }

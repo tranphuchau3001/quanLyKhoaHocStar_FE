@@ -14,9 +14,10 @@ import { CacheProvider } from "@emotion/react";
 import createCache from "@emotion/cache";
 import routes from "routes";
 import { useMaterialUIController, setMiniSidenav, setOpenConfigurator } from "context";
-// Images
 import brandWhite from "assets/images/logos/image.png";
 import brandDark from "assets/images/logos/image.png";
+
+import routesConfig from "./routes";
 
 export default function App() {
   const [controller, dispatch] = useMaterialUIController();
@@ -32,58 +33,55 @@ export default function App() {
   } = controller;
   const [onMouseEnter, setOnMouseEnter] = useState(false);
   const [rtlCache, setRtlCache] = useState(null);
-  const { pathname } = useLocation(); // Dùng pathname để kiểm tra đường dẫn hiện tại
+  const { pathname } = useLocation();
 
-  //Cache for RTL
+  const userRole = localStorage.getItem("roleId");
+  let routes;
+  if (userRole === "1") {
+    routes = [...routesConfig.userRoutes, ...routesConfig.adminRoutes];
+  } else if (userRole === null) {
+    routes = routesConfig.userRoutes;
+  } else {
+    routes = routesConfig.userRoutes;
+  }
+
   useMemo(() => {
     const cacheRtl = createCache({
       key: "rtl",
-      // stylisPlugins: [rtlPlugin],
     });
 
     setRtlCache(cacheRtl);
   }, []);
 
-  // Open sidenav when mouse enter on mini sidenav
   const handleOnMouseEnter = () => {
     if (miniSidenav && !onMouseEnter) {
       setMiniSidenav(dispatch, false);
       setOnMouseEnter(true);
     }
   };
-
-  // Close sidenav when mouse leave mini sidenav
   const handleOnMouseLeave = () => {
     if (onMouseEnter) {
       setMiniSidenav(dispatch, true);
       setOnMouseEnter(false);
     }
   };
-
-  // Toggle Configurator
   const handleConfiguratorOpen = () => setOpenConfigurator(dispatch, !openConfigurator);
-
-  // Set direction
   useEffect(() => {
     document.body.setAttribute("dir", direction);
   }, [direction]);
-
-  // Reset page scroll on route change
   useEffect(() => {
     document.documentElement.scrollTop = 0;
     document.scrollingElement.scrollTop = 0;
   }, [pathname]);
 
-  const getRoutes = (allRoutes) =>
-    allRoutes.map((route) => {
+  const getRoutes = (Routes) =>
+    Routes.map((route) => {
       if (route.collapse) {
         return getRoutes(route.collapse);
       }
-
       if (route.route) {
         return <Route exact path={route.route} element={route.component} key={route.key} />;
       }
-
       return null;
     });
 
@@ -110,15 +108,13 @@ export default function App() {
       </Icon>
     </MDBox>
   );
-
-  // Kiểm tra nếu trang hiện tại là home hoặc layout là dashboard để render Sidenav
   const showSidenav = layout === "dashboard" || pathname === "/home";
 
   return direction === "rtl" ? (
     <CacheProvider value={rtlCache}>
       <ThemeProvider theme={darkMode ? themeDarkRTL : themeRTL}>
         <CssBaseline />
-        {showSidenav && ( // Kiểm tra xem có render Sidenav hay không
+        {showSidenav && (
           <>
             <Sidenav
               color={sidenavColor}
@@ -141,7 +137,7 @@ export default function App() {
   ) : (
     <ThemeProvider theme={darkMode ? themeDark : theme}>
       <CssBaseline />
-      {showSidenav && ( // Kiểm tra xem có render Sidenav hay không
+      {showSidenav && (
         <>
           <Sidenav
             color={sidenavColor}
