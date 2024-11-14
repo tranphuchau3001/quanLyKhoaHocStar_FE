@@ -444,6 +444,7 @@ const CourseManagement = () => {
         hidden={value !== index}
         id={`tabpanel-${index}`}
         aria-labelledby={`tab-${index}`}
+        // eslint-disable-next-line react/jsx-props-no-spreading
         {...other}
       >
         {value === index && <>{children}</>}
