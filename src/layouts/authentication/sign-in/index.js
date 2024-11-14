@@ -55,7 +55,6 @@ function Basic() {
         password,
       });
 
-      // Kiểm tra xem response có chứa dữ liệu và token hợp lệ không
       if (response.data && response.data.token && response.data.userId) {
         const { token, userId, name, email, avatarUrl, roleId, registrationDate, status } =
           response.data;
@@ -72,31 +71,25 @@ function Basic() {
 
         console.log("Dữ liệu đã lưu vào localStorage:", { token, userId, name, email });
 
-        // Hiển thị thông báo thành công
         Swal.fire("Thành công", "Đăng nhập thành công!", "success").then(() => {
           navigate("/home");
         });
       } else {
-        // Nếu không có token hoặc dữ liệu không hợp lệ
         console.log("Đăng nhập thất bại: Không có dữ liệu hợp lệ.");
         Swal.fire("Thất bại", "Đăng nhập thất bại. Vui lòng thử lại.", "error");
       }
     } catch (error) {
-      console.error("Lỗi khi gọi API: ", error); // In ra lỗi chi tiết nếu có
+      console.error("Lỗi khi gọi API: ", error);
 
-      // Xử lý lỗi nếu có
       if (error.response) {
-        // Nếu có lỗi từ server, hiển thị thông báo chi tiết
         Swal.fire(
           "Thất bại",
           `Đăng nhập thất bại. Lỗi: ${error.response?.data?.message || error.response.statusText}`,
           "error"
         );
       } else if (error.request) {
-        // Nếu không nhận được phản hồi từ server
         Swal.fire("Thất bại", "Không thể kết nối đến server. Vui lòng thử lại.", "error");
       } else {
-        // Nếu lỗi xảy ra trong khi thiết lập yêu cầu
         Swal.fire("Thất bại", "Lỗi: " + error.message, "error");
       }
     }

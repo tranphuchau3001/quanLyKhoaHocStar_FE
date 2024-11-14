@@ -105,6 +105,11 @@ function CourseDetail() {
 
     if (course.price > 0) {
       navigate(`/payment?courseId=${courseId}`);
+      Swal.fire({
+        title: "Đang phát triển!",
+        text: "Vui lòng quay lại sau!",
+        icon: "warning",
+      });
       return;
     }
 
