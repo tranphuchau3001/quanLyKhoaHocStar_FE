@@ -35,6 +35,7 @@ const AccountSettings = () => {
   const inputFileRef = useRef(null);
   const [currentTab, setCurrentTab] = useState("info");
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [courses, setCourses] = useState([]);
 
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -58,6 +59,19 @@ const AccountSettings = () => {
     };
 
     fetchUserInfo();
+
+    const fetchCourses = async () => {
+      try {
+        const response = await axios.get(
+          "http://localhost:3030/api/v1/history/getAllSubmissionHistory"
+        );
+        setCourses(response.data.courses || []);
+      } catch (error) {
+        console.error("Lỗi khi lấy dữ liệu khóa học:", error);
+      }
+    };
+
+    fetchCourses();
   }, [userId]);
 
   const validateFields = () => {
@@ -167,6 +181,9 @@ const AccountSettings = () => {
                 },
               }}
             >
+              <ListItemIcon sx={{ color: currentTab === "calendar" ? "#fff" : "inherit" }}>
+                <CalendarMonthIcon />
+              </ListItemIcon>
               <ListItemText primary="Khóa học và lịch học" />
             </ListItem>
           </List>
@@ -246,31 +263,28 @@ const AccountSettings = () => {
               <Typography variant="body2" color="textSecondary">
                 Quản lý khóa học bạn đang quản lý và có thể thêm lịch học cho khóa học này
               </Typography>
-              {/* Thêm các khóa học với nút "Lịch học" và "Học viên" */}
               <Box className="course-list">
-                <Box className="course-item">
-                  <img src="course_image.png" alt="Khóa học" className="course-image" />
-                  <Box className="course-details">
-                    <Typography variant="h6">HTML, CSS Cơ bản</Typography>
-                    <Typography variant="body2">
-                      Khóa học giúp các bạn hiểu và thực hiện được các đoạn code html css cơ bản
-                    </Typography>
-                    <Box className="course-schedule-section">
-                      <Button
-                        variant="contained"
-                        className="course-schedule-button schedule-button"
-                      >
-                        Lịch học
-                      </Button>
-                      <Button
-                        variant="contained"
-                        className="course-schedule-button students-button"
-                      >
-                        Học viên
-                      </Button>
+                {courses.map((course, index) => (
+                  <Box key={index} className="course-item">
+                    <img
+                      src={course.imageUrl || "default-image.png"}
+                      alt="Khóa học"
+                      className="course-image"
+                    />
+                    <Box className="course-details">
+                      <Typography variant="h6">{course.title}</Typography>
+                      <Typography variant="body2">{course.description}</Typography>
+                      <Box className="course-buttons">
+                        <Button variant="contained" className="schedule-button">
+                          Lịch học
+                        </Button>
+                        <Button variant="contained" className="students-button">
+                          Học viên
+                        </Button>
+                      </Box>
                     </Box>
                   </Box>
-                </Box>
+                ))}
               </Box>
             </>
           )}
