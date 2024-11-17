@@ -42,20 +42,26 @@ const images = [
 const Home = () => {
   const navigate = useNavigate();
 
-  const [courses, setCourses] = useState([]); // Khai báo state cho danh sách khóa học
-  const [freeCourses, setFreeCourses] = useState([]); // Mảng khóa học miễn phí
-  const [proCourses, setProCourses] = useState([]); // Mảng khóa học pro
-  const [showMoreFree, setShowMoreFree] = useState(false); // Trạng thái xem thêm cho khóa học miễn phí
-  const [showMorePro, setShowMorePro] = useState(false); // Trạng thái xem thêm cho khóa học pro
+  const [courses, setCourses] = useState([]);
+  const [freeCourses, setFreeCourses] = useState([]);
+  const [proCourses, setProCourses] = useState([]);
+  const [showMoreFree, setShowMoreFree] = useState(false);
+  const [showMorePro, setShowMorePro] = useState(false);
   useEffect(() => {
     const fetchCourses = async () => {
       try {
         const response = await axios.get("http://localhost:3030/course-api/getAllCourse");
         if (response.data.success) {
           const allCourses = response.data.data;
-          setCourses(allCourses);
-          setFreeCourses(allCourses.filter((course) => course.price === 0));
-          setProCourses(allCourses.filter((course) => course.price > 0));
+          const today = new Date();
+          const validCourses = allCourses.filter((course) => {
+            const startDate = new Date(course.startDate);
+            const endDate = new Date(course.endDate);
+            return today >= startDate && today <= endDate;
+          });
+          setCourses(validCourses);
+          setFreeCourses(validCourses.filter((course) => course.price === 0));
+          setProCourses(validCourses.filter((course) => course.price > 0));
         } else {
           console.error("Dữ liệu không thành công:", response.data.message);
         }
@@ -68,16 +74,12 @@ const Home = () => {
   }, []);
 
   const checkEnrollment = async (courseId) => {
-    const userId = localStorage.getItem("userId"); // Lấy ID người dùng từ local storage
+    const userId = localStorage.getItem("userId");
     try {
       const response = await fetch(
         `http://localhost:3030/api/v1/enrollment/getEnrollmentByCourseId?courseId=${courseId}`
       );
       const data = await response.json();
-
-      console.log("Enrollment Data:", data);
-
-      // Kiểm tra xem mảng data có chứa bản ghi nào với userId không
       const isEnrolled = data.data.some((enrollment) => enrollment.userId === Number(userId));
 
       return isEnrolled;
@@ -90,7 +92,6 @@ const Home = () => {
   const handleCourseClick = async (courseId) => {
     console.log("handleCourseClick called with courseId:", courseId);
     const isEnrolled = await checkEnrollment(courseId);
-    console.log("Is user enrolled?", isEnrolled); // In ra để kiểm tra
 
     if (isEnrolled) {
       console.log("User is enrolled, navigating to /learning");
@@ -166,7 +167,6 @@ const Home = () => {
     <DashboardLayout>
       <DashboardNavbar />
       <Container maxWidth="lg">
-        {/* Slideshow */}
         <Box sx={{ position: "relative", overflow: "hidden", width: "100%" }}>
           <Splide ref={sliderRef} options={settings}>
             {images.map((image, index) => (
@@ -184,7 +184,6 @@ const Home = () => {
                     marginBottom: "15px",
                   }}
                 >
-                  {/* Text overlay */}
                   <Box
                     sx={{
                       position: "absolute",
@@ -215,8 +214,6 @@ const Home = () => {
               </SplideSlide>
             ))}
           </Splide>
-
-          {/* Nút chuyển slide */}
           <Button
             onClick={() => sliderRef.current.splide.go("<")}
             sx={{
@@ -244,8 +241,6 @@ const Home = () => {
             <ArrowForwardIosIcon />
           </Button>
         </Box>
-
-        {/* Phần nội dung KHÓA HỌC MIỄN PHÍ */}
         <Typography variant="h5" gutterBottom>
           KHÓA HỌC MIỄN PHÍ
         </Typography>

@@ -20,14 +20,6 @@ const userRoutes = [
     route: "/home",
     component: <Home />,
   },
-  // {
-  //   type: "collapse",
-  //   name: "Dashboard",
-  //   key: "dashboard",
-  //   icon: <Icon fontSize="small">dashboard</Icon>,
-  //   route: "/dashboard",
-  //   component: <Dashboard />,
-  // },
   {
     name: "Khóa học",
     key: "courses",
@@ -35,14 +27,14 @@ const userRoutes = [
     route: "/courses/:courseId",
     component: <CourseDetail />,
   },
-  // {
-  //   type: "collapse",
-  //   name: "Tables",
-  //   key: "tables",
-  //   icon: <Icon fontSize="small">table_view</Icon>,
-  //   route: "/tables",
-  //   component: <Tables />,
-  // },
+  {
+    type: "collapse",
+    name: "Tables",
+    key: "tables",
+    icon: <Icon fontSize="small">table_view</Icon>,
+    route: "/tables",
+    component: <Tables />,
+  },
   // {
   //   type: "collapse",
   //   name: "Billing",
@@ -96,6 +88,14 @@ const userRoutes = [
   },
 ];
 const adminRoutes = [
+  {
+    type: "collapse",
+    name: "Dashboard",
+    key: "dashboard",
+    icon: <Icon fontSize="small">dashboard</Icon>,
+    route: "/dashboard",
+    component: <Dashboard />,
+  },
   {
     type: "collapse",
     name: "Quản Lý Khóa Học",
