@@ -1,10 +1,12 @@
 import Dashboard from "layouts/dashboard";
+import Home from "layouts/home";
 import Tables from "layouts/tables";
 import SignIn from "layouts/authentication/sign-in";
 import SignUp from "layouts/authentication/sign-up";
 import CourseDetail from "layouts/courses";
 import Learning from "layouts/learning";
-import Home from "layouts/home";
+import Payment from "layouts/payment";
+import Notifications from "layouts/notifications";
 import Profile from "layouts/account/profilePage";
 import CourseManager from "layouts/admin/CoursesManager";
 import ModulesManager from "layouts/admin/ModulesManager";
@@ -45,6 +47,22 @@ const userRoutes = [
   // },
   // {
   //   type: "collapse",
+  //   name: "Tables",
+  //   key: "tables",
+  //   icon: <Icon fontSize="small">table_view</Icon>,
+  //   route: "/tables",
+  //   component: <Tables />,
+  // },
+  {
+    // type: "collapse",
+    name: "Payment",
+    key: "payment",
+    icon: <Icon fontSize="small">receipt_long</Icon>,
+    route: "/payment",
+    component: <Payment />,
+  },
+  // {
+  //   type: "collapse",
   //   name: "RTL",
   //   key: "rtl",
   //   icon: <Icon fontSize="small">format_textdirection_r_to_l</Icon>,
@@ -83,7 +101,8 @@ const userRoutes = [
   {
     name: "Learning",
     key: "learning",
-    route: "/learning",
+    icon: <Icon fontSize="small">assignment</Icon>,
+    route: "/learning/:courseId",
     component: <Learning />,
   },
 ];

@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
 import PageLayout from "examples/LayoutContainers/PageLayout";
+import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import bgImage from "assets/images/Background/background-Profile.png";
 import imgLogo from "assets/images/logos/image.png";
 import Navbar from "examples/Navbars/DashboardNavbar";
@@ -97,7 +98,7 @@ const ProfilePage = () => {
   };
 
   return (
-    <PageLayout>
+    <DashboardLayout>
       <Navbar />
       <Box className="profile-page__header" textAlign="center" pb={5} mt={2}>
         <img
@@ -190,7 +191,7 @@ const ProfilePage = () => {
         </Grid>
       </Box>
       <Footer />
-    </PageLayout>
+    </DashboardLayout>
   );
 };
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import Swal from "sweetalert2";
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
 import CardMedia from "@mui/material/CardMedia";
@@ -15,13 +16,16 @@ import List from "@mui/material/List";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
 import Collapse from "@mui/material/Collapse";
+import { Box, CardContent, ListItemIcon, Typography } from "@mui/material";
+
+// Icon
 import ExpandLess from "@mui/icons-material/ExpandLess";
 import ExpandMore from "@mui/icons-material/ExpandMore";
-import { Box, CardContent, ListItemIcon, Typography } from "@mui/material";
-import GroupsOutlinedIcon from "@mui/icons-material/GroupsOutlined";
 import PlayCircleOutlineIcon from "@mui/icons-material/PlayCircleOutline";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import ListIcon from "@mui/icons-material/List";
+import MoneyIcon from "@mui/icons-material/Money";
+import PaymentsIcon from "@mui/icons-material/Payments";
 
 function CourseDetail() {
   const [course, setCourse] = useState(null);
@@ -31,6 +35,7 @@ function CourseDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { courseId } = useParams();
+  const navigate = useNavigate();
 
   const fetchLessons = async (moduleId) => {
     try {
@@ -84,30 +89,74 @@ function CourseDetail() {
     });
   };
 
-  // Tổng số bài học của khóa học
+  const handleEnrollment = async () => {
+    // Lấy userId từ localStorage
+    const userId = localStorage.getItem("userId");
+
+    if (!userId) {
+      Swal.fire({
+        title: "Bạn chưa đăng nhập!",
+        text: "Vui lòng đăng nhập để đăng ký khóa học!",
+        icon: "warning",
+      });
+      navigate("/authentication/sign-in");
+      return;
+    }
+
+    if (course.price > 0) {
+      navigate(`/payment?courseId=${courseId}`);
+      Swal.fire({
+        title: "Đang phát triển!",
+        text: "Vui lòng quay lại sau!",
+        icon: "warning",
+      });
+      return;
+    }
+
+    try {
+      const response = await axios.post("http://localhost:3030/api/v1/enrollment/addEnrollment", {
+        userId: Number(userId),
+        courseId: courseId,
+      });
+
+      if (response.data.success) {
+        Swal.fire({
+          title: "Thành công!",
+          text: "Đăng ký thành công!",
+          icon: "success",
+        });
+        navigate(`/learning/${courseId}`);
+      } else {
+        Swal.fire({
+          title: "Thất bại!",
+          text: "Đăng ký không thành công!",
+          icon: "error",
+        });
+      }
+    } catch (error) {
+      console.error("Error enrolling:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "Có lỗi xảy ra khi đăng ký học!",
+      });
+    }
+  };
+
   const totalLessons = lessons.reduce(
     (total, lessonArray) => total + (lessonArray ? lessonArray.length : 0),
     0
   );
 
-  // Tổng thời gian video của khóa học
   const totalDuration = lessons.reduce((total, lessonArray) => {
     return (
       total + (lessonArray ? lessonArray.reduce((sum, lesson) => sum + lesson.duration, 0) : 0)
     );
   }, 0);
 
-  if (loading) {
-    return <div>Đang tải...</div>;
-  }
-
-  if (error) {
-    return <div>{error}</div>;
-  }
-
-  if (!course) {
-    return <div>Không tìm thấy khóa học.</div>;
-  }
+  if (loading) return <div>Đang tải...</div>;
+  if (error) return <div>{error}</div>;
+  if (!course) return <div>Không tìm thấy khóa học.</div>;
 
   const imagePath = course.imgUrl
     ? require(`assets/images/Background/background-course/${course.imgUrl}`)
@@ -184,12 +233,18 @@ function CourseDetail() {
                     <Grid container justifyContent="space-between" alignItems="center">
                       <Grid item>
                         <Box display="flex" alignItems="center">
-                          <GroupsOutlinedIcon />
+                          <PaymentsIcon />
                           <Typography variant="body2" sx={{ ml: 1 }}>
-                            {course.participantCount || "Thông tin không có"}
+                            {course.price === 0
+                              ? "Miễn phí"
+                              : new Intl.NumberFormat("vi-VN", {
+                                  style: "currency",
+                                  currency: "VND",
+                                }).format(course.price) || "Thông tin không có"}
                           </Typography>
                         </Box>
                       </Grid>
+
                       <Grid item>
                         <Box display="flex" alignItems="center">
                           <PlayCircleOutlineIcon />
@@ -199,27 +254,25 @@ function CourseDetail() {
                         </Box>
                       </Grid>
                       <Grid item>
-                        <Grid item>
-                          <Box display="flex" alignItems="center">
-                            <AccessTimeIcon />
-                            <Typography variant="body2" sx={{ ml: 1 }}>
-                              {totalDuration > 0
-                                ? totalDuration < 3600
-                                  ? `${Math.floor(totalDuration / 60)} phút ${
-                                      totalDuration % 60
-                                    } giây`
-                                  : `${Math.floor(totalDuration / 3600)} giờ ${Math.floor(
-                                      (totalDuration % 3600) / 60
-                                    )} phút`
-                                : "Thông tin không có"}
-                            </Typography>
-                          </Box>
-                        </Grid>
+                        <Box display="flex" alignItems="center">
+                          <AccessTimeIcon />
+                          <Typography variant="body2" sx={{ ml: 1 }}>
+                            {totalDuration > 0
+                              ? totalDuration < 3600
+                                ? `${Math.floor(totalDuration / 60)} phút ${
+                                    totalDuration % 60
+                                  } giây`
+                                : `${Math.floor(totalDuration / 3600)} giờ ${Math.floor(
+                                    (totalDuration % 3600) / 60
+                                  )} phút`
+                              : "Thông tin không có"}
+                          </Typography>
+                        </Box>
                       </Grid>
                     </Grid>
                     <MDBox mt={4} mb={1}>
                       <MDButton
-                        href="http://localhost:3000/learning"
+                        onClick={handleEnrollment}
                         variant="gradient"
                         color="success"
                         fullWidth
