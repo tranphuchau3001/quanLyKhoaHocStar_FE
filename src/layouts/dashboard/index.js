@@ -1,6 +1,7 @@
-// @mui material components
+import React, { useState, useEffect } from "react";
 import Grid from "@mui/material/Grid";
-
+import fetchBarChartData from "../dashboard/data/reportsBarChartData";
+import fetchReportsLineChartData from "../dashboard/data/reportsLineChartData";
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 
@@ -13,15 +14,47 @@ import ReportsLineChart from "examples/Charts/LineCharts/ReportsLineChart";
 import ComplexStatisticsCard from "examples/Cards/StatisticsCards/ComplexStatisticsCard";
 
 // Data
-import reportsBarChartData from "layouts/dashboard/data/reportsBarChartData";
-import reportsLineChartData from "layouts/dashboard/data/reportsLineChartData";
-
+// import fetchBarChartData from "layouts/dashboard/data/reportsBarChartData";
+// import fetchReportsLineChartData from "layouts/dashboard/data/reportsLineChartData";
 // Dashboard components
 import Projects from "layouts/dashboard/components/Projects";
 import OrdersOverview from "layouts/dashboard/components/OrdersOverview";
 
 function Dashboard() {
-  const { sales, tasks } = reportsLineChartData;
+  const [chartData, setChartData] = useState({
+    labels: [],
+    datasets: {
+      label: "Revenue",
+      data: [],
+    },
+  });
+  const [chartData2, setChartData2] = useState({
+    labels: [],
+    datasets: {
+      label: "Revenue",
+      data: [],
+    },
+  });
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await fetchBarChartData();
+      setChartData(data);
+    };
+
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    const loadData = async () => {
+      const data = await fetchReportsLineChartData();
+      setChartData2(data);
+    };
+
+    loadData();
+  }, []);
+  // if (!chartData) {
+  //   return <p>Loading...</p>; // Hiển thị khi đang tải dữ liệu
+  // // }
 
   return (
     <DashboardLayout>
@@ -90,33 +123,33 @@ function Dashboard() {
         </Grid>
         <MDBox mt={4.5}>
           <Grid container spacing={3}>
-            <Grid item xs={12} md={6} lg={4}>
+            <Grid item xs={12} md={6} lg={6}>
               <MDBox mb={3}>
                 <ReportsBarChart
                   color="info"
-                  title="website views"
+                  title="Thống kê doanh thu"
                   description="Last Campaign Performance"
                   date="campaign sent 2 days ago"
-                  chart={reportsBarChartData}
+                  chart={chartData}
                 />
               </MDBox>
             </Grid>
-            <Grid item xs={12} md={6} lg={4}>
+            <Grid item xs={12} md={6} lg={6}>
               <MDBox mb={3}>
                 <ReportsLineChart
                   color="success"
-                  title="daily sales"
+                  title="Tổng số người dùng"
                   description={
                     <>
                       (<strong>+15%</strong>) increase in today sales.
                     </>
                   }
                   date="updated 4 min ago"
-                  chart={sales}
+                  chart={chartData2}
                 />
               </MDBox>
             </Grid>
-            <Grid item xs={12} md={6} lg={4}>
+            {/* <Grid item xs={12} md={6} lg={4}>
               <MDBox mb={3}>
                 <ReportsLineChart
                   color="dark"
@@ -125,8 +158,8 @@ function Dashboard() {
                   date="just updated"
                   chart={tasks}
                 />
-              </MDBox>
-            </Grid>
+              </MDBox> */}
+            {/* </Grid> */}
           </Grid>
         </MDBox>
         <MDBox>

@@ -76,8 +76,6 @@ function Configurator() {
   };
   const handleFixedNavbar = () => setFixedNavbar(dispatch, !fixedNavbar);
   const handleDarkMode = () => setDarkMode(dispatch, !darkMode);
-
-  // sidenav type buttons styles
   const sidenavTypeButtonsStyles = ({
     functions: { pxToRem },
     palette: { white, dark, background },
@@ -94,8 +92,6 @@ function Configurator() {
       border: `${borderWidth[1]} solid ${darkMode ? white.main : dark.main}`,
     },
   });
-
-  // sidenav type active button styles
   const sidenavTypeActiveButtonStyles = ({
     functions: { pxToRem, linearGradient },
     palette: { white, gradients, background },

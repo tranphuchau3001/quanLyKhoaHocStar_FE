@@ -59,17 +59,22 @@ function DashboardNavbar({ absolute, light, isMini }) {
       onClose={handleClose}
     >
       {isLoggedIn ? (
-        <>
-          <MenuItem onClick={() => navigate("/profile")}>Thông tin tài khoản</MenuItem>
-          <MenuItem onClick={() => navigate("/AccountSettings")}>Cài đặt</MenuItem>
-          <MenuItem onClick={handleLogout}>Đăng xuất</MenuItem>
-        </>
+        [
+          <MenuItem key="profile" onClick={() => navigate("/profile")}>
+            Thông tin tài khoản
+          </MenuItem>,
+          <MenuItem key="settings" onClick={handleClose}>
+            Cài đặt
+          </MenuItem>,
+          <MenuItem key="logout" onClick={handleLogout}>
+            Đăng xuất
+          </MenuItem>,
+        ]
       ) : (
         <MenuItem onClick={() => navigate("/authentication/sign-in")}>Đăng nhập</MenuItem>
       )}
     </Menu>
   );
-
   useEffect(() => {
     if (fixedNavbar) {
       setNavbarType("sticky");

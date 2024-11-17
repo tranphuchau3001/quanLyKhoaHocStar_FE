@@ -1,9 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import PageLayout from "examples/LayoutContainers/PageLayout";
+import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import bgImage from "assets/images/Background/background-Profile.png";
 import imgLogo from "assets/images/logos/image.png";
 import Navbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
+import Swal from "sweetalert2";
+import { useNavigate } from "react-router-dom";
+
 import {
   Box,
   Avatar,
@@ -23,6 +27,8 @@ const ProfilePage = () => {
   const [registrationDate, setRegistrationDate] = useState("");
   const [userId, setUserId] = useState("");
   const [courses, setCourses] = useState([]);
+  const navigate = useNavigate();
+  const isNavigating = useRef(false);
 
   useEffect(() => {
     const storedName = localStorage.getItem("name");
@@ -31,17 +37,45 @@ const ProfilePage = () => {
 
     if (storedName) setName(storedName);
     if (storedRegistrationDate) setRegistrationDate(storedRegistrationDate);
-    if (storedUserId) {
-      setUserId(storedUserId);
-      fetchCourses(); // Gọi fetchCourses ở đây
-    } else {
-      console.error("userId is not available");
-    }
+
+    setTimeout(() => {
+      if (storedUserId && storedUserId !== "") {
+        setUserId(storedUserId);
+        fetchCourses(storedUserId);
+      } else {
+        navigate("/authentication/sign-in");
+      }
+    }, 500);
   }, []);
+
+  useEffect(() => {
+    const storedUserId = localStorage.getItem("userId");
+
+    if (storedUserId && storedUserId !== "") {
+      if (userId !== storedUserId) {
+        setUserId(storedUserId);
+      }
+      fetchCourses(storedUserId);
+    } else if (!isNavigating.current) {
+      console.error("userId is not available or empty");
+      Swal.fire({
+        title: "Cảnh báo",
+        text: "Bạn cần đăng nhập mới có thông tin.",
+        icon: "warning",
+        confirmButtonText: "OK",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          isNavigating.current = true;
+          navigate("/authentication/sign-in");
+        }
+      });
+    }
+  }, [userId, navigate]);
+
   const fetchCourses = async () => {
     if (!userId) {
       console.error("userId is empty, cannot fetch courses");
-      return; // Ngăn không cho gọi API nếu userId rỗng
+      return;
     }
 
     try {
@@ -64,7 +98,7 @@ const ProfilePage = () => {
   };
 
   return (
-    <PageLayout>
+    <DashboardLayout>
       <Navbar />
       <Box className="profile-page__header" textAlign="center" pb={5} mt={2}>
         <img
@@ -157,7 +191,7 @@ const ProfilePage = () => {
         </Grid>
       </Box>
       <Footer />
-    </PageLayout>
+    </DashboardLayout>
   );
 };
 

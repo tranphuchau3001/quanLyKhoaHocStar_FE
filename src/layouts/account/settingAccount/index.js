@@ -215,13 +215,13 @@ const AccountSettings = () => {
                 <Typography variant="subtitle1">Ảnh đại diện</Typography>
 
                 <Avatar
-                  src={avatar} // Sử dụng avatar đã được kiểm tra
+                  src={avatar}
                   alt="Avatar"
                   sx={{
                     width: 50,
                     height: 50,
                     cursor: "pointer",
-                    border: "1px solid #000000", // Thay đổi màu sắc border nếu cần
+                    border: "1px solid #000000",
                     borderRadius: "50%", // Đảm bảo border vẫn giữ hình tròn
                   }}
                   onDoubleClick={handleDoubleClick} // Thêm sự kiện double click

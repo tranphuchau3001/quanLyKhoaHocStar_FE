@@ -1,17 +1,20 @@
-// Material Dashboard 2 React layouts
 import Dashboard from "layouts/dashboard";
+import Home from "layouts/home";
 import Tables from "layouts/tables";
 import SignIn from "layouts/authentication/sign-in";
 import SignUp from "layouts/authentication/sign-up";
 import CourseDetail from "layouts/courses";
 import Learning from "layouts/learning";
-import Home from "layouts/home";
+import Payment from "layouts/payment";
+import Notifications from "layouts/notifications";
 import Profile from "layouts/account/profilePage";
 import AccountSettings from "layouts/account/settingAccount";
+import CourseManager from "layouts/admin/CoursesManager";
+import ModulesManager from "layouts/admin/ModulesManager";
 // @mui icons
 import Icon from "@mui/material/Icon";
 
-const routes = [
+const userRoutes = [
   {
     type: "collapse",
     name: "Trang chủ",
@@ -20,30 +23,21 @@ const routes = [
     route: "/home",
     component: <Home />,
   },
-  // {
-  //   type: "collapse",
-  //   name: "Dashboard",
-  //   key: "dashboard",
-  //   icon: <Icon fontSize="small">dashboard</Icon>,
-  //   route: "/dashboard",
-  //   component: <Dashboard />,
-  // },
   {
-    // type: "collapse",
     name: "Khóa học",
     key: "courses",
     icon: <Icon fontSize="small">info</Icon>,
     route: "/courses/:courseId",
     component: <CourseDetail />,
   },
-  // {
-  //   type: "collapse",
-  //   name: "Tables",
-  //   key: "tables",
-  //   icon: <Icon fontSize="small">table_view</Icon>,
-  //   route: "/tables",
-  //   component: <Tables />,
-  // },
+  {
+    type: "collapse",
+    name: "Tables",
+    key: "tables",
+    icon: <Icon fontSize="small">table_view</Icon>,
+    route: "/tables",
+    component: <Tables />,
+  },
   // {
   //   type: "collapse",
   //   name: "Billing",
@@ -52,6 +46,22 @@ const routes = [
   //   route: "/billing",
   //   component: <Billing />,
   // },
+  // {
+  //   type: "collapse",
+  //   name: "Tables",
+  //   key: "tables",
+  //   icon: <Icon fontSize="small">table_view</Icon>,
+  //   route: "/tables",
+  //   component: <Tables />,
+  // },
+  {
+    // type: "collapse",
+    name: "Payment",
+    key: "payment",
+    icon: <Icon fontSize="small">receipt_long</Icon>,
+    route: "/payment",
+    component: <Payment />,
+  },
   // {
   //   type: "collapse",
   //   name: "RTL",
@@ -69,7 +79,6 @@ const routes = [
   //   component: <Notifications />,
   // },
   {
-    // type: "collapse",
     name: "Đăng nhập",
     key: "sign-in",
     icon: <Icon fontSize="small">login</Icon>,
@@ -85,19 +94,16 @@ const routes = [
     component: <Profile />,
   },
   {
-    // type: "collapse",
     name: "Thông tin tài khoản",
     key: "sign-up",
-    // icon: <Icon fontSize="small">person</Icon>,
     route: "/authentication/sign-up",
     component: <SignUp />,
   },
   {
-    // type: "collapse",
     name: "Learning",
     key: "learning",
-    // icon: <Icon fontSize="small">assignment</Icon>,
-    route: "/learning",
+    icon: <Icon fontSize="small">assignment</Icon>,
+    route: "/learning/:courseId",
     component: <Learning />,
   },
   {
@@ -109,5 +115,32 @@ const routes = [
     component: <AccountSettings />,
   },
 ];
+const adminRoutes = [
+  {
+    type: "collapse",
+    name: "Dashboard",
+    key: "dashboard",
+    icon: <Icon fontSize="small">dashboard</Icon>,
+    route: "/dashboard",
+    component: <Dashboard />,
+  },
+  {
+    type: "collapse",
+    name: "Quản Lý Khóa Học",
+    key: "coursesManager",
+    icon: <Icon fontSize="small">library_books</Icon>,
+    route: "/admin/CoursesManager",
+    component: <CourseManager />,
+  },
+  {
+    type: "collapse",
+    name: "Quản Lý Bài Học",
+    key: "lessonManager",
+    icon: <Icon fontSize="small">library_books</Icon>,
+    route: "/admin/ModulesManager",
+    component: <ModulesManager />,
+  },
+];
+const routesConfig = { userRoutes, adminRoutes };
 
-export default routes;
+export default routesConfig;

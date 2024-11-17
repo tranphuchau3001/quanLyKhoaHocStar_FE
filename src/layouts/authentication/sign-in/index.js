@@ -11,81 +11,90 @@ import MDButton from "components/MDButton";
 import BasicLayout from "layouts/authentication/components/BasicLayout";
 import bgImage from "assets/images/bg-login-layout.png";
 import { Button, Stack, SvgIcon } from "@mui/material";
+
 function Basic() {
   const [checked, setChecked] = useState(false);
   const [success, setSuccess] = useState("");
-  const handleChange = (event) => {
-    setChecked(event.target.checked);
-  };
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
+
+  const handleChange = (event) => setChecked(event.target.checked);
+
   const isEmailValid = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
-  const handleSetRememberMe = () => setRememberMe(!rememberMe);
-
-  const [email, setEmail] = useState("");
-  const [passwordHash, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const navigate = useNavigate();
 
   const validateForm = () => {
     setError("");
     setSuccess("");
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email || !emailRegex.test(email)) {
+    if (!email || !isEmailValid(email)) {
       setError("Email không hợp lệ.");
       return false;
     }
 
-    if (!passwordHash) {
+    if (!password) {
       setError("Mật khẩu không được để trống.");
       return false;
     }
 
     return true;
   };
+
   const handleLogin = async () => {
-    if (!email || !passwordHash) {
-      Swal.fire("Lỗi", "Vui lòng nhập đầy đủ thông tin", "error");
+    if (!validateForm()) {
       return;
     }
-    if (!isEmailValid(email)) {
-      Swal.fire("Lỗi", "Email sai định dạng. Vui lòng nhập lại.", "warning");
-      return;
-    }
+
     try {
-      const response = await axios.post("http://localhost:3030/user-api/login", {
+      const response = await axios.post("http://localhost:3030/api/v1/auth/login", {
         email,
-        passwordHash,
+        password,
       });
-      if (response.data.success) {
-        const { userId, name, phone, email, avatarUrl, roleId, registrationDate, status } =
-          response.data.data;
 
-        console.log(response);
+      if (response.data && response.data.token && response.data.userId) {
+        const { token, userId, name, email, avatarUrl, roleId, registrationDate, status } =
+          response.data;
 
-        // Lưu thông tin vào localStorage
+        // Lưu trữ dữ liệu vào localStorage
+        localStorage.setItem("token", token);
         localStorage.setItem("userId", userId);
-        localStorage.setItem("name", name); // Sửa 'username' thành 'name'
-        localStorage.setItem("phone", phone);
+        localStorage.setItem("name", name);
         localStorage.setItem("email", email);
         localStorage.setItem("avatarUrl", avatarUrl);
         localStorage.setItem("roleId", roleId);
         localStorage.setItem("registrationDate", registrationDate);
         localStorage.setItem("status", status);
+
+        console.log("Dữ liệu đã lưu vào localStorage:", { token, userId, name, email });
+
         Swal.fire("Thành công", "Đăng nhập thành công!", "success").then(() => {
           navigate("/home");
         });
       } else {
+        console.log("Đăng nhập thất bại: Không có dữ liệu hợp lệ.");
         Swal.fire("Thất bại", "Đăng nhập thất bại. Vui lòng thử lại.", "error");
       }
     } catch (error) {
-      // Xử lý lỗi nếu API không trả về kết quả như mong muốn
-      Swal.fire("Thất bại", "Vui lòng kiểm tra email và mật khẩu.", "error");
-      console.error("Đăng nhập thất bại:", error.response ? error.response.data : error.message);
+      console.error("Lỗi khi gọi API: ", error);
+
+      if (error.response) {
+        Swal.fire(
+          "Thất bại",
+          `Đăng nhập thất bại. Lỗi: ${error.response?.data?.message || error.response.statusText}`,
+          "error"
+        );
+      } else if (error.request) {
+        Swal.fire("Thất bại", "Không thể kết nối đến server. Vui lòng thử lại.", "error");
+      } else {
+        Swal.fire("Thất bại", "Lỗi: " + error.message, "error");
+      }
     }
   };
+
   return (
     <BasicLayout image={bgImage}>
       <Card
@@ -125,22 +134,12 @@ function Basic() {
                 fullWidth
                 onChange={(e) => setEmail(e.target.value)}
                 InputLabelProps={{
-                  sx: {
-                    color: "white",
-                    fontWeight: "bold",
-                    "&.Mui-focused": { color: "white" },
-                  },
+                  sx: { color: "white", fontWeight: "bold", "&.Mui-focused": { color: "white" } },
                 }}
-                inputProps={{
-                  style: { color: "white" },
-                }}
+                inputProps={{ style: { color: "white" } }}
                 sx={{
-                  "& .MuiInput-underline:before": {
-                    borderBottomColor: "white",
-                  },
-                  "& .MuiInput-underline:after": {
-                    borderBottomColor: "white",
-                  },
+                  "& .MuiInput-underline:before": { borderBottomColor: "white" },
+                  "& .MuiInput-underline:after": { borderBottomColor: "white" },
                 }}
               />
             </MDBox>
@@ -151,22 +150,12 @@ function Basic() {
                 fullWidth
                 onChange={(e) => setPassword(e.target.value)}
                 InputLabelProps={{
-                  sx: {
-                    color: "white",
-                    fontWeight: "bold",
-                    "&.Mui-focused": { color: "white" },
-                  },
+                  sx: { color: "white", fontWeight: "bold", "&.Mui-focused": { color: "white" } },
                 }}
-                inputProps={{
-                  style: { color: "white" },
-                }}
+                inputProps={{ style: { color: "white" } }}
                 sx={{
-                  "& .MuiInput-underline:before": {
-                    borderBottomColor: "white",
-                  },
-                  "& .MuiInput-underline:after": {
-                    borderBottomColor: "white",
-                  },
+                  "& .MuiInput-underline:before": { borderBottomColor: "white" },
+                  "& .MuiInput-underline:after": { borderBottomColor: "white" },
                 }}
               />
             </MDBox>
@@ -177,7 +166,6 @@ function Basic() {
                   variant="button"
                   fontWeight="regular"
                   color="white"
-                  onClick={handleSetRememberMe}
                   sx={{ cursor: "pointer", userSelect: "none" }}
                 >
                   &nbsp;Nhớ mật khẩu

@@ -42,20 +42,26 @@ const images = [
 const Home = () => {
   const navigate = useNavigate();
 
-  const [courses, setCourses] = useState([]); // Khai báo state cho danh sách khóa học
-  const [freeCourses, setFreeCourses] = useState([]); // Mảng khóa học miễn phí
-  const [proCourses, setProCourses] = useState([]); // Mảng khóa học pro
-  const [showMoreFree, setShowMoreFree] = useState(false); // Trạng thái xem thêm cho khóa học miễn phí
-  const [showMorePro, setShowMorePro] = useState(false); // Trạng thái xem thêm cho khóa học pro
+  const [courses, setCourses] = useState([]);
+  const [freeCourses, setFreeCourses] = useState([]);
+  const [proCourses, setProCourses] = useState([]);
+  const [showMoreFree, setShowMoreFree] = useState(false);
+  const [showMorePro, setShowMorePro] = useState(false);
   useEffect(() => {
     const fetchCourses = async () => {
       try {
         const response = await axios.get("http://localhost:3030/course-api/getAllCourse");
         if (response.data.success) {
           const allCourses = response.data.data;
-          setCourses(allCourses);
-          setFreeCourses(allCourses.filter((course) => course.price === 0));
-          setProCourses(allCourses.filter((course) => course.price > 0));
+          const today = new Date();
+          const validCourses = allCourses.filter((course) => {
+            const startDate = new Date(course.startDate);
+            const endDate = new Date(course.endDate);
+            return today >= startDate && today <= endDate;
+          });
+          setCourses(validCourses);
+          setFreeCourses(validCourses.filter((course) => course.price === 0));
+          setProCourses(validCourses.filter((course) => course.price > 0));
         } else {
           console.error("Dữ liệu không thành công:", response.data.message);
         }
@@ -68,16 +74,12 @@ const Home = () => {
   }, []);
 
   const checkEnrollment = async (courseId) => {
-    const userId = localStorage.getItem("userId"); // Lấy ID người dùng từ local storage
+    const userId = localStorage.getItem("userId");
     try {
       const response = await fetch(
         `http://localhost:3030/api/v1/enrollment/getEnrollmentByCourseId?courseId=${courseId}`
       );
       const data = await response.json();
-
-      console.log("Enrollment Data:", data);
-
-      // Kiểm tra xem mảng data có chứa bản ghi nào với userId không
       const isEnrolled = data.data.some((enrollment) => enrollment.userId === Number(userId));
 
       return isEnrolled;
@@ -90,11 +92,10 @@ const Home = () => {
   const handleCourseClick = async (courseId) => {
     console.log("handleCourseClick called with courseId:", courseId);
     const isEnrolled = await checkEnrollment(courseId);
-    console.log("Is user enrolled?", isEnrolled); // In ra để kiểm tra
 
     if (isEnrolled) {
-      console.log("User is enrolled, navigating to /learning");
-      navigate("/learning");
+      console.log("User is enrolled, navigating to /learning/" + courseId);
+      navigate(`/learning/${courseId}`);
     } else {
       console.log("User is not enrolled, navigating to course detail");
       navigate(`/courses/${courseId}`);
@@ -166,7 +167,6 @@ const Home = () => {
     <DashboardLayout>
       <DashboardNavbar />
       <Container maxWidth="lg">
-        {/* Slideshow */}
         <Box sx={{ position: "relative", overflow: "hidden", width: "100%" }}>
           <Splide ref={sliderRef} options={settings}>
             {images.map((image, index) => (
@@ -184,7 +184,6 @@ const Home = () => {
                     marginBottom: "15px",
                   }}
                 >
-                  {/* Text overlay */}
                   <Box
                     sx={{
                       position: "absolute",
@@ -215,8 +214,6 @@ const Home = () => {
               </SplideSlide>
             ))}
           </Splide>
-
-          {/* Nút chuyển slide */}
           <Button
             onClick={() => sliderRef.current.splide.go("<")}
             sx={{
@@ -244,8 +241,6 @@ const Home = () => {
             <ArrowForwardIosIcon />
           </Button>
         </Box>
-
-        {/* Phần nội dung KHÓA HỌC MIỄN PHÍ */}
         <Typography variant="h5" gutterBottom>
           KHÓA HỌC MIỄN PHÍ
         </Typography>
@@ -410,6 +405,8 @@ const Home = () => {
         )}
       </Container>
       <Box className="decription" ref={descriptionRef}>
+        {" "}
+        {/* Gán ref cho thẻ Box */}
         <Box
           mt={2}
           sx={{
@@ -441,18 +438,16 @@ const Home = () => {
             paddingRight: 20,
             textAlign: "center",
           }}
-        >
-          <Typography variant="body1">
-            <strong>Star Dev</strong> là nền tảng học lập trình trực tuyến dành cho mọi đối tượng,
-            từ người mới bắt đầu đến các lập trình viên chuyên nghiệp. Với khoá học phong phú về các
-            ngôn ngữ lập trình như Python, Java, C++, JavaScript và nhiều công nghệ hiện đại khác,
-            Star Dev giúp bạn tiếp cận kiến thức dễ dàng, thực hành theo dự án thực tế và phát triển
-            kỹ năng lập trình toàn diện. Đặc biệt, nền tảng cung cấp hệ thống hỗ trợ 24/7 và cộng
-            đồng học viên năng động, giúp bạn giải đáp thắc mắc, cùng nhau tiến bộ trong hành trình
-            học tập. Hãy tham gia Star Dev ngay hôm nay để bắt đầu hành trình chinh phục lập trình
-            của bạn!
-          </Typography>
-        </Box>
+        ></Box>
+        <Typography variant="body1" sx={{ textAlign: "justify" }}>
+          <strong>Star Dev</strong> là nền tảng học lập trình trực tuyến dành cho mọi đối tượng, từ
+          người mới bắt đầu đến các lập trình viên chuyên nghiệp. Với khoá học phong phú về các ngôn
+          ngữ lập trình như Python, Java, C++, JavaScript và nhiều công nghệ hiện đại khác, Star Dev
+          giúp bạn tiếp cận kiến thức dễ dàng, thực hành theo dự án thực tế và phát triển kỹ năng
+          lập trình toàn diện. Đặc biệt, nền tảng cung cấp hệ thống hỗ trợ 24/7 và cộng đồng học
+          viên năng động, giúp bạn giải đáp thắc mắc, cùng nhau tiến bộ trong hành trình học tập.
+          Hãy tham gia Star Dev ngay hôm nay để bắt đầu hành trình chinh phục lập trình của bạn!
+        </Typography>
       </Box>
       <Footer />
     </DashboardLayout>
