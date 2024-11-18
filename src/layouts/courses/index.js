@@ -103,42 +103,99 @@ function CourseDetail() {
       return;
     }
 
-    if (course.price > 0) {
-      navigate(`/payment?courseId=${courseId}`);
-      Swal.fire({
-        title: "Đang phát triển!",
-        text: "Vui lòng quay lại sau!",
-        icon: "warning",
-      });
-      return;
-    }
-
     try {
-      const response = await axios.post("http://localhost:3030/api/v1/enrollment/addEnrollment", {
-        userId: Number(userId),
-        courseId: courseId,
-      });
+      // Kiểm tra xem người dùng đã đăng ký khóa học chưa
+      const checkEnrollmentResponse = await axios.get(
+        "http://localhost:3030/api/v1/enrollment/checkEnrollment",
+        {
+          params: { userId, courseId },
+        }
+      );
 
-      if (response.data.success) {
-        Swal.fire({
-          title: "Thành công!",
-          text: "Đăng ký thành công!",
-          icon: "success",
-        });
-        navigate(`/learning/${courseId}`);
+      if (checkEnrollmentResponse.data.success) {
+        const enrollment = checkEnrollmentResponse.data.data;
+        const enrollmentId = enrollment.enrollmentId; // Lấy enrollmentId từ phản hồi
+
+        // Nếu người dùng đã đăng ký và payment_status là "pending", chuyển đến trang thanh toán
+        if (enrollment.paymentStatus === "pending") {
+          Swal.fire({
+            title: "Đang chờ thanh toán",
+            text: "Bạn đã đăng ký khóa học này, vui lòng hoàn tất thanh toán.",
+            icon: "info",
+          });
+          navigate(
+            `/payment?courseId=${courseId}&courseName=${course.title}&price=${course.price}&enrollmentId=${enrollmentId}`
+          );
+          return;
+        } else {
+          Swal.fire({
+            title: "Bạn đã đăng ký!",
+            text: "Bạn đã đăng ký khóa học này rồi.",
+            icon: "info",
+          });
+          return;
+        }
+      }
+
+      // Nếu người dùng chưa đăng ký, tiếp tục đăng ký
+      if (course.price > 0) {
+        // Đăng ký khóa học có phí
+        const enrollmentResponse = await axios.post(
+          "http://localhost:3030/api/v1/enrollment/addEnrollment",
+          {
+            userId: Number(userId),
+            courseId: courseId,
+          }
+        );
+
+        if (enrollmentResponse.data.success) {
+          const enrollmentId = enrollmentResponse.data.data.enrollmentId; // Lấy enrollmentId từ phản hồi
+          Swal.fire({
+            title: "Thành công!",
+            text: "Đăng ký khóa học thành công! Chuyển hướng đến thanh toán.",
+            icon: "success",
+          });
+          navigate(
+            `/payment?courseId=${courseId}&courseName=${course.title}&price=${course.price}&enrollmentId=${enrollmentId}`
+          );
+        } else {
+          Swal.fire({
+            title: "Thất bại!",
+            text: "Đăng ký không thành công!",
+            icon: "error",
+          });
+        }
       } else {
-        Swal.fire({
-          title: "Thất bại!",
-          text: "Đăng ký không thành công!",
-          icon: "error",
-        });
+        // Khóa học miễn phí
+        const freeCourseResponse = await axios.post(
+          "http://localhost:3030/api/v1/enrollment/addEnrollment",
+          {
+            userId: Number(userId),
+            courseId: courseId,
+          }
+        );
+
+        if (freeCourseResponse.data.success) {
+          Swal.fire({
+            title: "Thành công!",
+            text: "Đăng ký khóa học miễn phí thành công!",
+            icon: "success",
+          });
+          navigate(`/learning/${courseId}`);
+        } else {
+          Swal.fire({
+            title: "Thất bại!",
+            text: "Đăng ký không thành công!",
+            icon: "error",
+          });
+        }
       }
     } catch (error) {
-      console.error("Error enrolling:", error);
+      console.error("Error checking enrollment or enrolling:", error);
       Swal.fire({
         icon: "error",
         title: "Oops...",
-        text: "Có lỗi xảy ra khi đăng ký học!",
+        text: "Có lỗi xảy ra khi kiểm tra hoặc đăng ký học!",
       });
     }
   };
