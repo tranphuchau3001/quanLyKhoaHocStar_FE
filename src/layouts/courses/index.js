@@ -24,7 +24,6 @@ import ExpandMore from "@mui/icons-material/ExpandMore";
 import PlayCircleOutlineIcon from "@mui/icons-material/PlayCircleOutline";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import ListIcon from "@mui/icons-material/List";
-import MoneyIcon from "@mui/icons-material/Money";
 import PaymentsIcon from "@mui/icons-material/Payments";
 
 function CourseDetail() {
@@ -90,7 +89,6 @@ function CourseDetail() {
   };
 
   const handleEnrollment = async () => {
-    // Lấy userId từ localStorage
     const userId = localStorage.getItem("userId");
 
     if (!userId) {
@@ -103,42 +101,94 @@ function CourseDetail() {
       return;
     }
 
-    if (course.price > 0) {
-      navigate(`/payment?courseId=${courseId}`);
-      Swal.fire({
-        title: "Đang phát triển!",
-        text: "Vui lòng quay lại sau!",
-        icon: "warning",
-      });
-      return;
-    }
-
     try {
-      const response = await axios.post("http://localhost:3030/api/v1/enrollment/addEnrollment", {
-        userId: Number(userId),
-        courseId: courseId,
-      });
+      const checkEnrollmentResponse = await axios.get(
+        "http://localhost:3030/api/v1/enrollment/checkEnrollment",
+        {
+          params: { userId, courseId },
+        }
+      );
+      if (checkEnrollmentResponse.data.success) {
+        const enrollment = checkEnrollmentResponse.data.data;
+        const enrollmentId = enrollment.enrollmentId;
+        console.log("paymentStatus" + enrollment.paymentStatus);
 
-      if (response.data.success) {
-        Swal.fire({
-          title: "Thành công!",
-          text: "Đăng ký thành công!",
-          icon: "success",
-        });
-        navigate(`/learning/${courseId}`);
+        if (enrollment.paymentStatus === "pending" || enrollment.paymentStatus === "failed") {
+          Swal.fire({
+            title: "Đang chờ thanh toán",
+            text: "Bạn đã đăng ký khóa học này, vui lòng hoàn tất thanh toán.",
+            icon: "info",
+          });
+          navigate(
+            `/payment?courseId=${courseId}&courseName=${course.title}&price=${course.price}&enrollmentId=${enrollmentId}`
+          );
+          return;
+        } else {
+          Swal.fire({
+            title: "Bạn đã đăng ký!",
+            text: "Bạn đã đăng ký khóa học này rồi.",
+            icon: "info",
+          });
+          return;
+        }
+      }
+
+      if (course.price > 0) {
+        const enrollmentResponse = await axios.post(
+          "http://localhost:3030/api/v1/enrollment/addEnrollment",
+          {
+            userId: Number(userId),
+            courseId: courseId,
+          }
+        );
+
+        if (enrollmentResponse.data.success) {
+          const enrollmentId = enrollmentResponse.data.data.enrollmentId;
+          Swal.fire({
+            title: "Thành công!",
+            text: "Đăng ký khóa học thành công! Chuyển hướng đến thanh toán.",
+            icon: "success",
+          });
+          navigate(
+            `/payment?courseId=${courseId}&courseName=${course.title}&price=${course.price}&enrollmentId=${enrollmentId}`
+          );
+        } else {
+          Swal.fire({
+            title: "Thất bại!",
+            text: "Đăng ký không thành công!",
+            icon: "error",
+          });
+        }
       } else {
-        Swal.fire({
-          title: "Thất bại!",
-          text: "Đăng ký không thành công!",
-          icon: "error",
-        });
+        const freeCourseResponse = await axios.post(
+          "http://localhost:3030/api/v1/enrollment/addEnrollment",
+          {
+            userId: Number(userId),
+            courseId: courseId,
+          }
+        );
+
+        if (freeCourseResponse.data.success) {
+          Swal.fire({
+            title: "Thành công!",
+            text: "Đăng ký khóa học miễn phí thành công!",
+            icon: "success",
+          });
+          navigate(`/learning/${courseId}`);
+        } else {
+          Swal.fire({
+            title: "Thất bại!",
+            text: "Đăng ký không thành công!",
+            icon: "error",
+          });
+        }
       }
     } catch (error) {
-      console.error("Error enrolling:", error);
+      console.error("Error checking enrollment or enrolling:", error);
       Swal.fire({
         icon: "error",
         title: "Oops...",
-        text: "Có lỗi xảy ra khi đăng ký học!",
+        text: "Có lỗi xảy ra khi kiểm tra hoặc đăng ký học!",
       });
     }
   };

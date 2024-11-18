@@ -84,7 +84,6 @@ function Learning() {
       setLessons(allLessons);
       setLoading(false);
 
-      // Thay đổi ở đây
       const userId = localStorage.getItem("userId");
       if (userId) {
         const completedLessonsFromApi = await fetchUserProgressByUserIdAndCourseId(
@@ -94,7 +93,6 @@ function Learning() {
         setCompletedLessons(new Set(completedLessonsFromApi));
         console.log("Các bài học đã hoàn thành:", completedLessonsFromApi);
 
-        // Gọi setNextVideo sau khi đã cập nhật completedLessons
         setNextVideo(allLessons, completedLessonsFromApi);
       }
     } catch (error) {
@@ -243,7 +241,7 @@ function Learning() {
       setProgressSaved(false);
 
       if (completedLessons.has(lesson.lessonId) && currentVideoIndex < lessons.flat().length - 1) {
-        setCanProceedToNext(true); // Cập nhật trạng thái để bài học tiếp theo có thể bấm vào
+        setCanProceedToNext(true);
       }
     }
     console.log("index:" + videoId);
@@ -257,7 +255,6 @@ function Learning() {
 
   const handleNext = () => {
     if (currentVideoIndex < lessons.flat().length - 1 && canProceedToNext) {
-      // Chuyển đến bài học tiếp theo khi bài học hiện tại đã hoàn thành 80% hoặc hơn
       handleVideoChange(lessons.flat()[currentVideoIndex + 1].lessonId);
     }
   };
@@ -267,20 +264,17 @@ function Learning() {
     const duration = event.target.getDuration();
     const progress = currentTime / duration;
 
-    // Kiểm tra nếu video đã xem được 80% và chưa lưu tiến trình
     if (progress >= 0.8 && !progressSaved) {
       setCanProceedToNext(true);
       setProgressSaved(true);
 
-      // Cập nhật danh sách bài học đã hoàn thành
       setCompletedLessons((prev) => {
         const newCompleted = new Set(prev);
-        newCompleted.add(selectedVideoId); // Đánh dấu bài học hiện tại là đã hoàn thành
+        newCompleted.add(selectedVideoId);
         console.log("selectedVideoId: " + selectedVideoId);
         return newCompleted;
       });
 
-      // Cập nhật trạng thái bài học hoàn thành trong `lessons`
       setLessons((prevLessons) =>
         prevLessons.map((moduleLessons) =>
           moduleLessons.map((lesson) =>
@@ -289,7 +283,6 @@ function Learning() {
         )
       );
 
-      // Lưu tiến trình học tập của người dùng
       saveUserProgress(selectedVideoId);
     }
   };
@@ -432,21 +425,20 @@ function Learning() {
                                     }
                                   }}
                                   disabled={
-                                    // Điều kiện disabled sửa lại để không cho phép chọn bài học chưa hoàn thành
                                     !completedLessons.has(lesson.lessonId) &&
                                     lesson.lessonId !== selectedVideoId &&
                                     !(
                                       canProceedToNext &&
                                       lessonIndex <= currentVideoIndex &&
                                       completedLessons.has(lesson.lessonId)
-                                    ) // Thêm điều kiện hoàn thành cho bài học tiếp theo
+                                    )
                                   }
                                   sx={{
                                     pl: 4,
                                     bgcolor:
                                       lesson.lessonId === selectedVideoId
                                         ? "rgba(76, 175, 80, 0.5)"
-                                        : "transparent", // Nổi bật bài học hiện tại
+                                        : "transparent",
                                     opacity:
                                       lesson.lessonId === selectedVideoId
                                         ? 1
@@ -454,7 +446,7 @@ function Learning() {
                                           (canProceedToNext &&
                                             lessonIndex === currentVideoIndex + 1)
                                         ? 1
-                                        : 0.5, // Giảm opacity cho bài học chưa hoàn thành
+                                        : 0.5,
                                   }}
                                 >
                                   <ListItemText primary={lesson.title} />
