@@ -78,9 +78,22 @@ const Home = () => {
       console.log("Enrollment Data:", data);
 
       // Kiểm tra xem mảng data có chứa bản ghi nào với userId không
-      const isEnrolled = data.data.some((enrollment) => enrollment.userId === Number(userId));
+      const enrollment = data.data.find((enrollment) => enrollment.userId === Number(userId));
 
-      return isEnrolled;
+      if (enrollment) {
+        // Kiểm tra paymentStatus
+        if (enrollment.paymentStatus === "failed") {
+          console.log("Payment failed, redirecting to payment page.");
+          return "failed";
+        }
+        if (enrollment.paymentStatus === "pending") {
+          console.log("Payment pending, waiting for confirmation.");
+          return "pending";
+        }
+        return "completed";
+      }
+
+      return false; // Người dùng chưa đăng ký khóa học
     } catch (error) {
       console.error("Lỗi khi lấy thông tin đăng ký khóa học:", error);
       return false;
@@ -89,14 +102,20 @@ const Home = () => {
 
   const handleCourseClick = async (courseId) => {
     console.log("handleCourseClick called with courseId:", courseId);
-    const isEnrolled = await checkEnrollment(courseId);
-    console.log("Is user enrolled?", isEnrolled);
+    const enrollmentStatus = await checkEnrollment(courseId);
+    console.log("Enrollment Status:", enrollmentStatus);
 
-    if (isEnrolled) {
-      console.log("User is enrolled, navigating to /learning/" + courseId);
+    if (enrollmentStatus === "failed") {
+      // Chuyển hướng đến trang thanh toán nếu thanh toán thất bại
+      navigate(`/courses/${courseId}`);
+    } else if (enrollmentStatus === "pending") {
+      // Chuyển hướng đến trang thanh toán nếu thanh toán đang chờ
+      navigate(`/courses/${courseId}`);
+    } else if (enrollmentStatus === "completed") {
+      // Nếu đã đăng ký và thanh toán thành công, chuyển đến trang học
       navigate(`/learning/${courseId}`);
     } else {
-      console.log("User is not enrolled, navigating to course detail");
+      // Nếu chưa đăng ký khóa học, chuyển đến trang chi tiết khóa học
       navigate(`/courses/${courseId}`);
     }
   };
@@ -360,6 +379,7 @@ const Home = () => {
                         transform: "scale(1.05)",
                       },
                     }}
+                    onClick={() => handleCourseClick(course.courseId)}
                   >
                     <div>
                       <img

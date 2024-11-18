@@ -111,13 +111,13 @@ function CourseDetail() {
           params: { userId, courseId },
         }
       );
-
       if (checkEnrollmentResponse.data.success) {
         const enrollment = checkEnrollmentResponse.data.data;
         const enrollmentId = enrollment.enrollmentId; // Lấy enrollmentId từ phản hồi
+        console.log("paymentStatus" + enrollment.paymentStatus);
 
-        // Nếu người dùng đã đăng ký và payment_status là "pending", chuyển đến trang thanh toán
-        if (enrollment.paymentStatus === "pending") {
+        // Nếu người dùng đã đăng ký và payment_status là "pending" hoặc "failed", chuyển đến trang thanh toán
+        if (enrollment.paymentStatus === "pending" || enrollment.paymentStatus === "failed") {
           Swal.fire({
             title: "Đang chờ thanh toán",
             text: "Bạn đã đăng ký khóa học này, vui lòng hoàn tất thanh toán.",
@@ -149,7 +149,7 @@ function CourseDetail() {
         );
 
         if (enrollmentResponse.data.success) {
-          const enrollmentId = enrollmentResponse.data.data.enrollmentId; // Lấy enrollmentId từ phản hồi
+          const enrollmentId = enrollmentResponse.data.data.enrollmentId;
           Swal.fire({
             title: "Thành công!",
             text: "Đăng ký khóa học thành công! Chuyển hướng đến thanh toán.",

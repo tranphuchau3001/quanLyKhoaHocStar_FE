@@ -39,28 +39,33 @@ const PaymentResult = () => {
       setOrderInfo(orderInfo);
       setTotalAmount(totalAmountInVND);
       setPayDate(payDate);
-      // Gọi API để cập nhật trạng thái thanh toán
-      updatePaymentStatus(txnRef, "success");
+      updatePaymentStatus(txnRef, "completed");
     } else {
       setPaymentStatus("failure");
       setMessage("Thanh toán không thành công. Vui lòng thử lại!");
+      updatePaymentStatus(txnRef, "failed");
     }
 
     setLoading(false);
   }, [location]);
 
-  const updatePaymentStatus = async (txnRef, status) => {
-    try {
-      await axios.post("http://localhost:3030/api/v1/paymentVnp/update-status", {
-        txnRef,
-        status,
+  // Hàm gọi API để cập nhật trạng thái thanh toán
+  const updatePaymentStatus = (transactionId, paymentStatus) => {
+    axios
+      .post("http://localhost:3030/api/v1/vnpay/update-status", {
+        transactionId: transactionId,
+        paymentStatus: paymentStatus,
+      })
+      .then((response) => {
+        console.log("Cập nhật thành công", response.data);
+      })
+      .catch((error) => {
+        console.error(
+          "Có lỗi xảy ra khi cập nhật trạng thái thanh toán:",
+          error.response ? error.response.data : error.message
+        );
       });
-      console.log("Payment status updated");
-    } catch (err) {
-      setError("Không thể cập nhật trạng thái thanh toán");
-    }
   };
-
   return (
     <PageLayout>
       <DefaultNavbar />

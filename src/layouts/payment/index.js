@@ -44,7 +44,7 @@ const PaymentVNPay = () => {
     try {
       const orderData = {
         amount,
-        orderInfo: `ID ${userId} thanh toan khoa hoc ${enrollmentId}`,
+        orderInfo: `ID ${userId} thanh toan khoa hoc co ID dang ky ${enrollmentId}`,
         enrollmentId,
       };
 
