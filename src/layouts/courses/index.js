@@ -24,7 +24,6 @@ import ExpandMore from "@mui/icons-material/ExpandMore";
 import PlayCircleOutlineIcon from "@mui/icons-material/PlayCircleOutline";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import ListIcon from "@mui/icons-material/List";
-import MoneyIcon from "@mui/icons-material/Money";
 import PaymentsIcon from "@mui/icons-material/Payments";
 
 function CourseDetail() {
@@ -90,7 +89,6 @@ function CourseDetail() {
   };
 
   const handleEnrollment = async () => {
-    // Lấy userId từ localStorage
     const userId = localStorage.getItem("userId");
 
     if (!userId) {
@@ -104,7 +102,6 @@ function CourseDetail() {
     }
 
     try {
-      // Kiểm tra xem người dùng đã đăng ký khóa học chưa
       const checkEnrollmentResponse = await axios.get(
         "http://localhost:3030/api/v1/enrollment/checkEnrollment",
         {
@@ -113,10 +110,9 @@ function CourseDetail() {
       );
       if (checkEnrollmentResponse.data.success) {
         const enrollment = checkEnrollmentResponse.data.data;
-        const enrollmentId = enrollment.enrollmentId; // Lấy enrollmentId từ phản hồi
+        const enrollmentId = enrollment.enrollmentId;
         console.log("paymentStatus" + enrollment.paymentStatus);
 
-        // Nếu người dùng đã đăng ký và payment_status là "pending" hoặc "failed", chuyển đến trang thanh toán
         if (enrollment.paymentStatus === "pending" || enrollment.paymentStatus === "failed") {
           Swal.fire({
             title: "Đang chờ thanh toán",
@@ -137,9 +133,7 @@ function CourseDetail() {
         }
       }
 
-      // Nếu người dùng chưa đăng ký, tiếp tục đăng ký
       if (course.price > 0) {
-        // Đăng ký khóa học có phí
         const enrollmentResponse = await axios.post(
           "http://localhost:3030/api/v1/enrollment/addEnrollment",
           {
@@ -166,7 +160,6 @@ function CourseDetail() {
           });
         }
       } else {
-        // Khóa học miễn phí
         const freeCourseResponse = await axios.post(
           "http://localhost:3030/api/v1/enrollment/addEnrollment",
           {

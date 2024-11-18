@@ -9,7 +9,7 @@ import Card from "@mui/material/Card";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
-import Swal from "sweetalert2"; // Import SweetAlert2
+import Swal from "sweetalert2";
 
 const PaymentVNPay = () => {
   const [loading, setLoading] = useState(false);
@@ -92,84 +92,93 @@ const PaymentVNPay = () => {
   return (
     <PageLayout>
       <DefaultNavbar />
-      <MDBox pt={6} pb={3}>
-        <Grid container spacing={6} pt={6}>
-          <Grid item xs={12}>
-            <Grid container spacing={6} padding={3}>
-              <Grid item xs={12} md={7}>
-                <Card>
-                  <MDBox
-                    mx={2}
-                    mt={-3}
-                    py={3}
-                    px={2}
-                    variant="gradient"
-                    bgColor="info"
-                    borderRadius="lg"
-                    coloredShadow="info"
-                  >
-                    <MDTypography variant="h5" color="white" textAlign="center">
-                      Thông tin thanh toán
+      <MDBox
+        pt={3}
+        pb={3}
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "calc(100vh - 100px)",
+        }}
+      >
+        <Grid container spacing={6} justifyContent="center">
+          <Grid item xs={12} md={6}>
+            <Card>
+              <MDBox
+                mx={2}
+                mt={-4}
+                py={3}
+                px={2}
+                variant="gradient"
+                bgColor="info"
+                borderRadius="lg"
+                coloredShadow="info"
+              >
+                <MDTypography variant="h5" color="white" textAlign="center">
+                  Thông tin thanh toán
+                </MDTypography>
+              </MDBox>
+              <CardContent>
+                <Grid container spacing={2} justifyContent="center">
+                  <Grid item xs={6}>
+                    <MDTypography sx={{ ml: 5, fontWeight: "bold" }}>Tên khóa học:</MDTypography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <MDTypography sx={{ color: "#4caf50", fontWeight: "bold" }}>
+                      {courseName}
                     </MDTypography>
-                  </MDBox>
-                  <CardContent>
-                    <Grid container spacing={2} justifyContent="center">
-                      <Grid item xs={12}>
-                        <MDTypography
-                          variant="h5"
-                          sx={{ mt: 2, mb: 2, fontWeight: "bold", textAlign: "center" }}
-                        >
-                          Tên khóa học: <span style={{ color: "#4caf50" }}>{courseName}</span>
-                        </MDTypography>
-                      </Grid>
+                  </Grid>
+                  {/* <Grid item xs={2}>
+                  <MDButton
+                    variant="outlined"
+                    color="primary"
+                    onClick={() => navigator.clipboard.writeText(amount.toLocaleString())}
+                    fullWidth
+                  >
+                    Sao chép
+                  </MDButton>
+                </Grid> */}
 
-                      <Grid item xs={4}>
-                        <MDTypography sx={{ fontWeight: "bold" }}>Số tiền:</MDTypography>
-                      </Grid>
-                      <Grid item xs={6}>
-                        <MDTypography sx={{ color: "#f44336", fontWeight: "bold" }}>
-                          {amount.toLocaleString()} VND
-                        </MDTypography>
-                      </Grid>
-                      <Grid item xs={2}>
-                        <MDButton
-                          variant="outlined"
-                          color="primary"
-                          onClick={() => navigator.clipboard.writeText(amount.toLocaleString())}
-                          fullWidth
-                        >
-                          Sao chép
-                        </MDButton>
-                      </Grid>
+                  <Grid item xs={6}>
+                    <MDTypography sx={{ ml: 5, fontWeight: "bold" }}>Số tiền:</MDTypography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <MDTypography sx={{ color: "#4caf50", fontWeight: "bold" }}>
+                      {amount.toLocaleString()} VND
+                    </MDTypography>
+                  </Grid>
+                  {/* <Grid item xs={2}>
+                  <MDButton
+                    variant="outlined"
+                    color="primary"
+                    onClick={() => navigator.clipboard.writeText(amount.toLocaleString())}
+                    fullWidth
+                  >
+                    Sao chép
+                  </MDButton>
+                </Grid> */}
 
-                      {/* Các thông tin khác */}
-                      <Grid item xs={12}>
-                        <MDButton
-                          sx={{ mt: 2 }}
-                          variant="gradient"
-                          color="primary"
-                          fullWidth
-                          onClick={handlePayment}
-                          disabled={loading}
-                        >
-                          {loading ? <CircularProgress size={24} color="inherit" /> : "Thanh toán"}
-                        </MDButton>
-                      </Grid>
-                      {error && (
-                        <MDTypography
-                          variant="caption"
-                          color="error"
-                          textAlign="center"
-                          sx={{ mt: 2 }}
-                        >
-                          {error}
-                        </MDTypography>
-                      )}
-                    </Grid>
-                  </CardContent>
-                </Card>
-              </Grid>
-            </Grid>
+                  <Grid item xs={12}>
+                    <MDButton
+                      sx={{ mt: 2 }}
+                      variant="gradient"
+                      color="primary"
+                      fullWidth
+                      onClick={handlePayment}
+                      disabled={loading}
+                    >
+                      {loading ? <CircularProgress size={24} color="inherit" /> : "Thanh toán"}
+                    </MDButton>
+                  </Grid>
+                  {error && (
+                    <MDTypography variant="caption" color="error" textAlign="center" sx={{ mt: 2 }}>
+                      {error}
+                    </MDTypography>
+                  )}
+                </Grid>
+              </CardContent>
+            </Card>
           </Grid>
         </Grid>
       </MDBox>

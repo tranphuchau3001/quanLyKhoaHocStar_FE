@@ -42,11 +42,11 @@ const images = [
 const Home = () => {
   const navigate = useNavigate();
 
-  const [courses, setCourses] = useState([]); // Khai báo state cho danh sách khóa học
-  const [freeCourses, setFreeCourses] = useState([]); // Mảng khóa học miễn phí
-  const [proCourses, setProCourses] = useState([]); // Mảng khóa học pro
-  const [showMoreFree, setShowMoreFree] = useState(false); // Trạng thái xem thêm cho khóa học miễn phí
-  const [showMorePro, setShowMorePro] = useState(false); // Trạng thái xem thêm cho khóa học pro
+  const [courses, setCourses] = useState([]);
+  const [freeCourses, setFreeCourses] = useState([]);
+  const [proCourses, setProCourses] = useState([]);
+  const [showMoreFree, setShowMoreFree] = useState(false);
+  const [showMorePro, setShowMorePro] = useState(false);
   useEffect(() => {
     const fetchCourses = async () => {
       try {
@@ -68,7 +68,7 @@ const Home = () => {
   }, []);
 
   const checkEnrollment = async (courseId) => {
-    const userId = localStorage.getItem("userId"); // Lấy ID người dùng từ local storage
+    const userId = localStorage.getItem("userId");
     try {
       const response = await fetch(
         `http://localhost:3030/api/v1/enrollment/getEnrollmentByCourseId?courseId=${courseId}`
@@ -77,11 +77,9 @@ const Home = () => {
 
       console.log("Enrollment Data:", data);
 
-      // Kiểm tra xem mảng data có chứa bản ghi nào với userId không
       const enrollment = data.data.find((enrollment) => enrollment.userId === Number(userId));
 
       if (enrollment) {
-        // Kiểm tra paymentStatus
         if (enrollment.paymentStatus === "failed") {
           console.log("Payment failed, redirecting to payment page.");
           return "failed";
@@ -93,7 +91,7 @@ const Home = () => {
         return "completed";
       }
 
-      return false; // Người dùng chưa đăng ký khóa học
+      return false;
     } catch (error) {
       console.error("Lỗi khi lấy thông tin đăng ký khóa học:", error);
       return false;
@@ -106,16 +104,12 @@ const Home = () => {
     console.log("Enrollment Status:", enrollmentStatus);
 
     if (enrollmentStatus === "failed") {
-      // Chuyển hướng đến trang thanh toán nếu thanh toán thất bại
       navigate(`/courses/${courseId}`);
     } else if (enrollmentStatus === "pending") {
-      // Chuyển hướng đến trang thanh toán nếu thanh toán đang chờ
       navigate(`/courses/${courseId}`);
     } else if (enrollmentStatus === "completed") {
-      // Nếu đã đăng ký và thanh toán thành công, chuyển đến trang học
       navigate(`/learning/${courseId}`);
     } else {
-      // Nếu chưa đăng ký khóa học, chuyển đến trang chi tiết khóa học
       navigate(`/courses/${courseId}`);
     }
   };
@@ -343,11 +337,11 @@ const Home = () => {
                 padding: "10px 20px",
                 borderRadius: "25px",
                 fontWeight: 600,
-                backgroundColor: "#FFC107", // Màu nền vàng
-                color: "#fff", // Màu chữ trắng
+                backgroundColor: "#FFC107",
+                color: "#fff",
                 transition: "background-color 0.3s, transform 0.3s",
                 "&:hover": {
-                  backgroundColor: "#FFA000", // Màu nền vàng đậm khi hover
+                  backgroundColor: "#FFA000",
                   transform: "scale(1.05)",
                 },
               }}

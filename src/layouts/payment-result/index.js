@@ -7,19 +7,19 @@ import DefaultNavbar from "examples/Navbars/DefaultNavbar";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
-import axios from "axios"; // Thêm axios để gọi API
+import axios from "axios";
 
 const PaymentResult = () => {
   const [loading, setLoading] = useState(true);
-  const [paymentStatus, setPaymentStatus] = useState(""); // Trạng thái thanh toán
-  const [transactionId, setTransactionId] = useState(""); // ID giao dịch
-  const [message, setMessage] = useState(""); // Thông báo từ hệ thống
-  const [error, setError] = useState(""); // Lỗi nếu có
-  const [orderInfo, setOrderInfo] = useState(""); // Thông tin đơn hàng
-  const [totalAmount, setTotalAmount] = useState(""); // Tổng tiền
-  const [payDate, setPayDate] = useState(""); // Thời gian thanh toán
+  const [paymentStatus, setPaymentStatus] = useState("");
+  const [transactionId, setTransactionId] = useState("");
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  const [orderInfo, setOrderInfo] = useState("");
+  const [totalAmount, setTotalAmount] = useState("");
+  const [payDate, setPayDate] = useState("");
 
-  const location = useLocation(); // Lấy tham số từ URL
+  const location = useLocation();
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -29,8 +29,20 @@ const PaymentResult = () => {
     const orderInfo = params.get("vnp_OrderInfo");
     const payDate = params.get("vnp_PayDate");
 
-    // Chuyển đổi số tiền từ cent sang VND
     const totalAmountInVND = amount ? (amount / 100).toLocaleString() : "";
+
+    let formattedPayDate = "N/A";
+    if (payDate) {
+      const year = payDate.substring(0, 4);
+      const month = payDate.substring(4, 6) - 1;
+      const day = payDate.substring(6, 8);
+      const hour = payDate.substring(8, 10);
+      const minute = payDate.substring(10, 12);
+      const second = payDate.substring(12, 14);
+
+      const dateObj = new Date(year, month, day, hour, minute, second);
+      formattedPayDate = dateObj.toLocaleString();
+    }
 
     if (responseCode === "00") {
       setPaymentStatus("success");
@@ -38,18 +50,21 @@ const PaymentResult = () => {
       setMessage(`Thanh toán thành công! Mã giao dịch: ${txnRef}`);
       setOrderInfo(orderInfo);
       setTotalAmount(totalAmountInVND);
-      setPayDate(payDate);
+      setPayDate(formattedPayDate);
       updatePaymentStatus(txnRef, "completed");
     } else {
       setPaymentStatus("failure");
+      setTransactionId(txnRef);
       setMessage("Thanh toán không thành công. Vui lòng thử lại!");
+      setOrderInfo(orderInfo);
+      setTotalAmount(totalAmountInVND);
+      setPayDate(formattedPayDate);
       updatePaymentStatus(txnRef, "failed");
     }
 
     setLoading(false);
   }, [location]);
 
-  // Hàm gọi API để cập nhật trạng thái thanh toán
   const updatePaymentStatus = (transactionId, paymentStatus) => {
     axios
       .post("http://localhost:3030/api/v1/vnpay/update-status", {
@@ -69,109 +84,207 @@ const PaymentResult = () => {
   return (
     <PageLayout>
       <DefaultNavbar />
-      <MDBox pt={6} pb={3}>
-        <Grid container spacing={6} pt={6}>
-          <Grid item xs={12}>
-            <Grid container spacing={6} padding={3}>
-              <Grid item xs={12} md={7}>
-                <Card>
-                  <MDBox
-                    mx={2}
-                    mt={-3}
-                    py={3}
-                    px={2}
-                    variant="gradient"
-                    bgColor="info"
-                    borderRadius="lg"
-                    coloredShadow="info"
-                  >
-                    <MDTypography variant="h5" color="white" textAlign="center">
-                      Kết quả thanh toán
-                    </MDTypography>
-                  </MDBox>
-                  <CardContent>
-                    <Grid container spacing={2} justifyContent="center">
-                      {loading ? (
-                        <CircularProgress />
-                      ) : (
-                        <>
-                          <Grid item xs={12}>
+      <MDBox
+        pt={6}
+        pb={3}
+        mt={6}
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="100vh"
+      >
+        <Grid container spacing={6} justifyContent="center">
+          <Grid item xs={12} md={6}>
+            <Card>
+              <MDBox
+                mx={2}
+                mt={-3}
+                py={3}
+                px={2}
+                variant="gradient"
+                bgColor="info"
+                borderRadius="lg"
+                coloredShadow="info"
+              >
+                <MDTypography variant="h5" color="white" textAlign="center">
+                  Kết quả thanh toán
+                </MDTypography>
+              </MDBox>
+              <CardContent>
+                <Grid container spacing={2}>
+                  {loading ? (
+                    <CircularProgress />
+                  ) : (
+                    <>
+                      {/* Trạng thái thanh toán */}
+                      <Grid item xs={12}>
+                        <Grid container spacing={2}>
+                          <Grid item xs={5} sx={{ ml: 4 }}>
                             <MDTypography
-                              variant="h5"
-                              sx={{ mt: 2, mb: 2, fontWeight: "bold", textAlign: "center" }}
+                              sx={{
+                                mt: 2,
+                                mb: 2,
+                                fontWeight: "bold",
+                              }}
                             >
-                              Trạng thái thanh toán:{" "}
-                              <span
-                                style={{
-                                  color: paymentStatus === "success" ? "#4caf50" : "#f44336",
-                                }}
-                              >
-                                {paymentStatus === "success" ? "Thành công" : "Thất bại"}
-                              </span>
+                              Trạng thái thanh toán:
                             </MDTypography>
                           </Grid>
-
-                          <Grid item xs={12}>
+                          <Grid item xs={5} sx={{ ml: 4 }}>
                             <MDTypography
-                              variant="h6"
-                              sx={{ mt: 2, mb: 2, fontWeight: "bold", textAlign: "center" }}
+                              sx={{
+                                mt: 2,
+                                mb: 2,
+                                fontWeight: "bold",
+                                color: paymentStatus === "success" ? "#4caf50" : "#f44336",
+                              }}
                             >
-                              Thông tin đơn hàng:{" "}
-                              <span style={{ color: "#4caf50" }}>{orderInfo}</span>
+                              {paymentStatus === "success" ? "Thành công" : "Thất bại"}
                             </MDTypography>
                           </Grid>
+                        </Grid>
+                      </Grid>
 
-                          <Grid item xs={12}>
+                      {/* Thông tin đơn hàng */}
+                      <Grid item xs={12}>
+                        <Grid container spacing={2}>
+                          <Grid item xs={5} sx={{ ml: 4 }}>
                             <MDTypography
-                              variant="h6"
-                              sx={{ mt: 2, mb: 2, fontWeight: "bold", textAlign: "center" }}
+                              sx={{
+                                mt: 2,
+                                mb: 2,
+                                fontWeight: "bold",
+                              }}
                             >
-                              Tổng tiền: <span style={{ color: "#4caf50" }}>{totalAmount} VND</span>
+                              Thông tin đơn hàng:
                             </MDTypography>
                           </Grid>
-
-                          <Grid item xs={12}>
+                          <Grid item xs={5} sx={{ ml: 4 }}>
                             <MDTypography
-                              variant="h6"
-                              sx={{ mt: 2, mb: 2, fontWeight: "bold", textAlign: "center" }}
+                              sx={{
+                                mt: 2,
+                                mb: 2,
+                                fontWeight: "bold",
+                                color: "#4caf50",
+                              }}
                             >
-                              Thời gian thanh toán:{" "}
-                              <span style={{ color: "#4caf50" }}>
-                                {payDate ? new Date(payDate).toLocaleString() : "N/A"}
-                              </span>
+                              {orderInfo}
                             </MDTypography>
                           </Grid>
+                        </Grid>
+                      </Grid>
 
-                          <Grid item xs={12}>
+                      {/* Tổng tiền */}
+                      <Grid item xs={12}>
+                        <Grid container spacing={2}>
+                          <Grid item xs={5} sx={{ ml: 4 }}>
                             <MDTypography
-                              variant="h6"
-                              sx={{ mt: 2, mb: 2, fontWeight: "bold", textAlign: "center" }}
+                              sx={{
+                                mt: 2,
+                                mb: 2,
+                                fontWeight: "bold",
+                              }}
                             >
-                              Mã giao dịch:{" "}
-                              <span style={{ color: "#4caf50" }}>{transactionId}</span>
+                              Tổng tiền:
                             </MDTypography>
                           </Grid>
-
-                          <Grid item xs={12}>
+                          <Grid item xs={5} sx={{ ml: 4 }}>
                             <MDTypography
-                              sx={{ color: "#f44336", fontWeight: "bold", textAlign: "center" }}
+                              sx={{
+                                mt: 2,
+                                mb: 2,
+                                fontWeight: "bold",
+                                color: "#4caf50",
+                              }}
                             >
-                              {message}
+                              {totalAmount} VND
                             </MDTypography>
                           </Grid>
+                        </Grid>
+                      </Grid>
 
-                          <Grid item xs={12} mt={2}>
-                            <MDButton variant="outlined" color="primary" href="/courses" fullWidth>
-                              Quay lại trang khóa học
-                            </MDButton>
+                      {/* Thời gian thanh toán */}
+                      <Grid item xs={12}>
+                        <Grid container spacing={2}>
+                          <Grid item xs={5} sx={{ ml: 4 }}>
+                            <MDTypography
+                              sx={{
+                                mt: 2,
+                                mb: 2,
+                                fontWeight: "bold",
+                              }}
+                            >
+                              Thời gian thanh toán:
+                            </MDTypography>
                           </Grid>
-                        </>
-                      )}
-                    </Grid>
-                  </CardContent>
-                </Card>
-              </Grid>
-            </Grid>
+                          <Grid item xs={5} sx={{ ml: 4 }}>
+                            <MDTypography
+                              sx={{
+                                mt: 2,
+                                mb: 2,
+                                fontWeight: "bold",
+                                color: "#4caf50",
+                              }}
+                            >
+                              {payDate ? new Date(payDate).toLocaleString() : "N/A"}
+                            </MDTypography>
+                          </Grid>
+                        </Grid>
+                      </Grid>
+
+                      {/* Mã giao dịch */}
+                      <Grid item xs={12}>
+                        <Grid container spacing={2}>
+                          <Grid item xs={5} sx={{ ml: 4 }}>
+                            <MDTypography
+                              sx={{
+                                mt: 2,
+                                mb: 2,
+                                fontWeight: "bold",
+                              }}
+                            >
+                              Mã giao dịch:
+                            </MDTypography>
+                          </Grid>
+                          <Grid item xs={5} sx={{ ml: 4 }}>
+                            <MDTypography
+                              sx={{
+                                mt: 2,
+                                mb: 2,
+                                fontWeight: "bold",
+                                color: "#4caf50",
+                              }}
+                            >
+                              {transactionId}
+                            </MDTypography>
+                          </Grid>
+                        </Grid>
+                      </Grid>
+
+                      {/* Message */}
+                      <Grid item xs={12}>
+                        <MDTypography
+                          sx={{
+                            color: "#f44336",
+                            fontWeight: "bold",
+                            textAlign: "center",
+                          }}
+                        >
+                          {message}
+                        </MDTypography>
+                      </Grid>
+
+                      {/* Nút quay lại */}
+                      <Grid item xs={12} mt={2}>
+                        <MDButton variant="outlined" color="primary" href="/home" fullWidth>
+                          Quay lại trang chủ
+                        </MDButton>
+                      </Grid>
+                    </>
+                  )}
+                </Grid>
+              </CardContent>
+            </Card>
           </Grid>
         </Grid>
       </MDBox>
