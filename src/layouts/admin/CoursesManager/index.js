@@ -141,8 +141,8 @@ const CourseManagement = () => {
       toast.warn("Vui lòng chọn một ảnh khóa học trước khi lưu.");
       return;
     }
-    const status = active ? "true" : "false";
-
+    const status = active ? true : false;
+    const instructorData = price > 0 && selectedInstructor ? selectedInstructor : null;
     const courseData = {
       imgUrl: file.name,
       title: courseName,
@@ -150,12 +150,13 @@ const CourseManagement = () => {
       startDate,
       endDate,
       price: price,
-      schedule: schedule || "",
-      meetingTime: meetingTime || "",
+      schedule: price > 0 ? schedule : null,
+      meetingTime: price > 0 ? meetingTime : null,
       status,
-      instructor: { userId: selectedInstructor || "" },
+      instructor: instructorData,
     };
     console.log("Dữ liệu gửi lên API:", courseData);
+    console.log("Dữ liệu gửi lên API:", JSON.stringify(courseData, null, 2));
 
     try {
       const response = await axios.post("http://localhost:3030/course-api/saveCourse", courseData);
@@ -240,10 +241,10 @@ const CourseManagement = () => {
       startDate,
       endDate,
       price: price,
-      schedule: schedule || "",
-      meetingTime: meetingTime || "",
+      schedule: price > 0 ? schedule : null,
+      meetingTime: price > 0 ? meetingTime : null,
       status,
-      instructor: instructorData,
+      instructor: { userId: selectedInstructor || "" },
     };
 
     console.log("Dữ liệu gửi lên API:", courseData);
@@ -261,12 +262,28 @@ const CourseManagement = () => {
 
         fetchCourses();
       } else {
+        console.error("API trả về lỗi:", response.data.error || "Không xác định");
         Swal.fire("Lỗi!", "Có lỗi xảy ra khi cập nhật khóa học. Vui lòng thử lại!", "error");
-        console.error("Lỗi khi gọi API cập nhật khóa học:", error);
       }
     } catch (error) {
-      console.error("Lỗi khi gọi API cập nhật khóa học:", error);
-      Swal.fire("Lỗi!", "Có lỗi xảy ra khi cập nhật khóa học2. Vui lòng thử lại!", "error");
+      if (error.response) {
+        console.error("Lỗi từ server:", error.response.data);
+        Swal.fire(
+          "Lỗi!",
+          `Server báo lỗi: ${error.response.data.message || "Không rõ lý do"}`,
+          "error"
+        );
+      } else if (error.request) {
+        console.error("Không nhận được phản hồi từ server:", error.request);
+        Swal.fire(
+          "Lỗi!",
+          "Không thể kết nối với server. Vui lòng kiểm tra mạng hoặc thử lại sau.",
+          "error"
+        );
+      } else {
+        console.error("Lỗi không rõ:", error.message);
+        Swal.fire("Lỗi!", `Đã xảy ra lỗi: ${error.message}`, "error");
+      }
     }
   };
 
@@ -390,13 +407,13 @@ const CourseManagement = () => {
       setPrice(courseData.price);
       setActive(courseData.status === true);
       setInactive(courseData.status === false);
-      const instructorId = courseData.instructor; // Đây là giá trị userId
+      const instructorId = courseData.instructor;
       const instructor = instructors.find((instructor) => instructor.userId === instructorId);
 
       if (instructor) {
-        setSelectedInstructor(instructor.userId); // Cập nhật giá trị selectedInstructor là userId
+        setSelectedInstructor(instructor.userId);
       } else {
-        setSelectedInstructor(""); // Nếu không tìm thấy giảng viên
+        setSelectedInstructor("");
       }
     } catch (error) {
       console.error("Lỗi khi gọi API lấy thông tin khóa học:", error);

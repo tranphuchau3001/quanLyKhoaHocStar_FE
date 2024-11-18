@@ -9,6 +9,7 @@ import Payment from "layouts/payment";
 import PaymentResult from "layouts/payment-result";
 import Notifications from "layouts/notifications";
 import Profile from "layouts/account/profilePage";
+import AccountSettings from "layouts/account/settingAccount";
 import CourseManager from "layouts/admin/CoursesManager";
 import ModulesManager from "layouts/admin/ModulesManager";
 // @mui icons
@@ -23,14 +24,6 @@ const userRoutes = [
     route: "/home",
     component: <Home />,
   },
-  // {
-  //   type: "collapse",
-  //   name: "Dashboard",
-  //   key: "dashboard",
-  //   icon: <Icon fontSize="small">dashboard</Icon>,
-  //   route: "/dashboard",
-  //   component: <Dashboard />,
-  // },
   {
     name: "Khóa học",
     key: "courses",
@@ -38,6 +31,22 @@ const userRoutes = [
     route: "/courses/:courseId",
     component: <CourseDetail />,
   },
+  {
+    type: "collapse",
+    name: "Tables",
+    key: "tables",
+    icon: <Icon fontSize="small">table_view</Icon>,
+    route: "/tables",
+    component: <Tables />,
+  },
+  // {
+  //   type: "collapse",
+  //   name: "Billing",
+  //   key: "billing",
+  //   icon: <Icon fontSize="small">receipt_long</Icon>,
+  //   route: "/billing",
+  //   component: <Billing />,
+  // },
   // {
   //   type: "collapse",
   //   name: "Tables",
@@ -107,8 +116,24 @@ const userRoutes = [
     route: "/learning/:courseId",
     component: <Learning />,
   },
+  {
+    // type: "collapse",
+    name: "Cài đặt tài khoản",
+    key: "settingAccount",
+    // icon: <Icon fontSize="small">assignment</Icon>,
+    route: "/AccountSettings",
+    component: <AccountSettings />,
+  },
 ];
 const adminRoutes = [
+  {
+    type: "collapse",
+    name: "Dashboard",
+    key: "dashboard",
+    icon: <Icon fontSize="small">dashboard</Icon>,
+    route: "/dashboard",
+    component: <Dashboard />,
+  },
   {
     type: "collapse",
     name: "Quản Lý Khóa Học",

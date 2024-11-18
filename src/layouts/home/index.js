@@ -53,9 +53,15 @@ const Home = () => {
         const response = await axios.get("http://localhost:3030/course-api/getAllCourse");
         if (response.data.success) {
           const allCourses = response.data.data;
-          setCourses(allCourses);
-          setFreeCourses(allCourses.filter((course) => course.price === 0));
-          setProCourses(allCourses.filter((course) => course.price > 0));
+          const today = new Date();
+          const validCourses = allCourses.filter((course) => {
+            const startDate = new Date(course.startDate);
+            const endDate = new Date(course.endDate);
+            return today >= startDate && today <= endDate;
+          });
+          setCourses(validCourses);
+          setFreeCourses(validCourses.filter((course) => course.price === 0));
+          setProCourses(validCourses.filter((course) => course.price > 0));
         } else {
           console.error("Dữ liệu không thành công:", response.data.message);
         }
@@ -179,7 +185,6 @@ const Home = () => {
     <DashboardLayout>
       <DashboardNavbar />
       <Container maxWidth="lg">
-        {/* Slideshow */}
         <Box sx={{ position: "relative", overflow: "hidden", width: "100%" }}>
           <Splide ref={sliderRef} options={settings}>
             {images.map((image, index) => (
@@ -197,7 +202,6 @@ const Home = () => {
                     marginBottom: "15px",
                   }}
                 >
-                  {/* Text overlay */}
                   <Box
                     sx={{
                       position: "absolute",
@@ -228,8 +232,6 @@ const Home = () => {
               </SplideSlide>
             ))}
           </Splide>
-
-          {/* Nút chuyển slide */}
           <Button
             onClick={() => sliderRef.current.splide.go("<")}
             sx={{
@@ -257,8 +259,6 @@ const Home = () => {
             <ArrowForwardIosIcon />
           </Button>
         </Box>
-
-        {/* Phần nội dung KHÓA HỌC MIỄN PHÍ */}
         <Typography variant="h5" gutterBottom>
           KHÓA HỌC MIỄN PHÍ
         </Typography>

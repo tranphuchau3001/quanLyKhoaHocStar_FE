@@ -25,11 +25,14 @@ import {
 } from "@mui/material";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
+import dayjs from "dayjs";
 
 function ModulesManagement() {
   const [tab, setTab] = useState(0);
   const [courses, setCourses] = useState([]);
   const [modules, setModules] = useState([]);
+  const [lessons, setLessons] = useState([]);
+  const [customOrderNumber, setCustomOrderNumber] = useState("");
   const [formData, setFormData] = useState({
     maKhoaHoc: "",
     tenKhoaHoc: "",
@@ -40,6 +43,7 @@ function ModulesManagement() {
   const [lessonData, setLessonData] = useState({
     maBaiHoc: "",
     maKhoaHoc: "",
+    chuong: "",
     soChuong: "",
     tenBaiHoc: "",
     noiDungBaiHoc: "",
@@ -48,7 +52,6 @@ function ModulesManagement() {
     lessonOrder: "",
     trangThai: "Chưa hoàn thành",
   });
-  const [lessons, setLessons] = useState([]);
   const handleTabChange = (event, newValue) => {
     setTab(newValue);
   };
@@ -79,24 +82,6 @@ function ModulesManagement() {
       newChuongOrderNumber: "",
     });
   };
-  const handleLessionChange = (event) => {
-    const selectedCourseId = event.target.value;
-    const selectedCourse = courses.find((course) => course.courseId === parseInt(selectedCourseId));
-
-    setLessonData({
-      ...lessonData,
-      maKhoaHoc: selectedCourseId,
-      lessonId: "",
-      moduleOrder: "",
-      lessonName: "",
-      lessonContent: "",
-      videoLink: "",
-      videoLength: "",
-      lessonOrder: "",
-      status: "Chưa hoàn thành",
-    });
-  };
-
   useEffect(() => {
     const fetchModules = async () => {
       try {
@@ -174,7 +159,7 @@ function ModulesManagement() {
         moduleData
       );
       Swal.fire("Thành công", "Thêm thành công", "success");
-      etModules([...modules, response.data.data]);
+      setModules([...modules, response.data.data]);
     } catch (error) {
       console.error("Error adding module:", error);
     }
@@ -244,46 +229,406 @@ function ModulesManagement() {
     }
   };
 
-  const handleModulesDataChange = (event) => {
+  const handleCourseChangeForLesson = (event) => {
     const selectedCourseId = event.target.value;
-    const selectedCourse = courses.find((course) => course.courseId === parseInt(selectedCourseId));
+
     setLessonData({
       ...lessonData,
       maKhoaHoc: selectedCourseId,
-      soChuong: "",
+      maChuong: "",
+      tenBaiHoc: "",
+      noiDungBaiHoc: "",
+      linkVideo: "",
+      trangThai: "Chưa hoàn thành",
     });
   };
-  const handleModuleChangeByModulesId = (event) => {
-    const selectedModuleId = event.target.value;
-    setLessonData((prevData) => ({
-      ...prevData,
-      soChuong: selectedModuleId,
-    }));
-    fetch(`http://localhost:3030/api/v1/lesson/getLessonsByModuleId?moduleId=${selectedModuleId}`)
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.success) {
-          setLessons(data.data);
+  useEffect(() => {
+    const fetchModulesLession = async () => {
+      try {
+        const response = await axios.get(
+          `http://localhost:3030/api/v1/module/getModulesByCourseId?courseId=${lessonData.maKhoaHoc}`
+        );
+        const data = response.data.data;
+
+        if (!data || data.length === 0) {
+          setModules([]);
         } else {
-          console.error(data.message);
+          setModules(Array.isArray(data) ? data : [data]);
         }
-      })
-      .catch((error) => console.error("Error fetching lessons:", error));
+      } catch (error) {
+        console.error("Error fetching modules:", error);
+      }
+    };
+
+    if (lessonData.maKhoaHoc) {
+      fetchModulesLession();
+    } else {
+      setModules([]);
+    }
+  }, [lessonData.maKhoaHoc]);
+  useEffect(() => {
+    const fetchLessonsByModule = async () => {
+      if (!lessonData.chuong || lessonData.chuong === "new") {
+        setLessons([]);
+        return;
+      }
+
+      try {
+        const response = await axios.get(
+          `http://localhost:3030/api/v1/lesson/getLessonsByModuleId?moduleId=${lessonData.chuong}`
+        );
+        const data = response.data.data;
+        if (!data || data.length === 0) {
+          setLessons([]);
+        } else {
+          setLessons(Array.isArray(data) ? data : [data]);
+        }
+      } catch (error) {
+        console.error("Error fetching modules:", error);
+      }
+    };
+
+    if (lessonData.chuong) {
+      fetchLessonsByModule();
+    } else {
+      setLessons([]);
+    }
+  }, [lessonData.chuong]);
+  const fetchLessonData = async (maBaiHoc) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:3030/api/v1/lesson/getLessonById?lessonId=${maBaiHoc}`
+      );
+      const { success, message, data } = response.data;
+      setLessonData({
+        ...lessonData,
+        maBaiHoc: data.lessonId || "",
+        tenBaiHoc: data.title || "",
+        noiDungBaiHoc: data.content || "",
+        linkVideo: data.videoUrl || "",
+        lessonOrder: data.orderNumber || "",
+        doDaiVideo: data.duration || "",
+        chuong: data.module || "",
+      });
+    } catch (error) {
+      console.error("Error fetching lesson data:", error);
+    }
   };
+
+  useEffect(() => {
+    if (lessonData.lessonOrder) {
+      fetchLessonData(lessonData.lessonOrder);
+    }
+  }, [lessonData.lessonOrder]);
+  const handleModuleLessionChange = (event) => {
+    const selectedValue = event.target.value;
+
+    if (selectedValue === "new") {
+      setLessonData({
+        ...lessonData,
+        chuong: selectedValue,
+        soChuong: "",
+        lessonOrder: "",
+      });
+    } else {
+      const selectedModule = modules.find((module) => module.moduleId === parseInt(selectedValue));
+      if (selectedModule) {
+        setLessonData({
+          ...lessonData,
+          chuong: selectedValue,
+          tenChuong: selectedModule.title,
+          soChuong: selectedModule.orderNumber,
+        });
+      }
+    }
+  };
+  const handleLessionChange = (event) => {
+    const selectedValue = event.target.value;
+
+    if (selectedValue === "new") {
+      setLessonData({
+        ...lessonData,
+        maBaiHoc: selectedValue,
+      });
+    } else {
+      const selectedModule = modules.find((module) => module.moduleId === parseInt(selectedValue));
+      if (selectedModule) {
+        setLessonData({
+          ...lessonData,
+          maBaiHoc: selectedValue,
+        });
+      }
+    }
+  };
+
+  useEffect(() => {
+    const fetchLessonsByModule = async () => {
+      if (!lessonData.chuong || lessonData.chuong === "new") {
+        setLessons([]);
+        return;
+      }
+
+      try {
+        const response = await axios.get(
+          `http://localhost:3030/api/v1/lesson/getLessonsByModuleId?moduleId=${lessonData.chuong}`
+        );
+        const data = response.data.data;
+        if (!data || data.length === 0) {
+          setLessons([]);
+        } else {
+          setLessons(Array.isArray(data) ? data : [data]);
+        }
+      } catch (error) {
+        console.error("Error fetching lessons:", error);
+      }
+    };
+
+    if (lessonData.chuong) {
+      fetchLessonsByModule();
+    } else {
+      setLessons([]);
+    }
+  }, [lessonData.chuong]);
+
+  const handleAddLesson = async (e) => {
+    if (!lessonData.tenBaiHoc) {
+      toast.error("Tên bài học không được để trống.");
+      return;
+    }
+
+    if (!lessonData.noiDungBaiHoc) {
+      toast.error("Nội dung bài học không được để trống.");
+      return;
+    }
+
+    if (!lessonData.linkVideo) {
+      toast.error("Link video không được để trống.");
+      return;
+    }
+
+    if (!lessonData.doDaiVideo || Number(lessonData.doDaiVideo) <= 0) {
+      toast.error("Độ dài video phải lớn hơn 0.");
+      return;
+    }
+
+    if (
+      !lessonData.lessonOrder ||
+      (lessonData.lessonOrder === "custom" && Number(customOrderNumber) <= 0) ||
+      (lessonData.lessonOrder !== "custom" && Number(lessonData.lessonOrder) <= 0)
+    ) {
+      toast.error("Thứ tự bài học phải lớn hơn 0.");
+      return;
+    }
+    if (!lessonData.lessonOrder) {
+      toast.error("Thứ tự bài học không hợp lệ.");
+      return;
+    }
+
+    const isOrderDuplicate = lessons.some(
+      (lesson) => Number(lesson.orderNumber) === Number(lessonData.lessonOrder)
+    );
+
+    if (isOrderDuplicate && lessonData.lessonOrder !== "custom") {
+      toast.error("Thứ tự này đã tồn tại, vui lòng chọn thứ tự khác hoặc thêm thứ tự mới.");
+      return;
+    }
+    const newOrder = e.target.value;
+    setCustomOrderNumber(newOrder);
+
+    const isOrderDuplicate2 = lessons.some((lesson) => lesson.orderNumber === newOrder);
+
+    if (isOrderDuplicate2) {
+      toast.error("Thứ tự này đã tồn tại, vui lòng chọn thứ tự khác.");
+    }
+    try {
+      const newLesson = {
+        module: lessonData.chuong,
+        title: lessonData.tenBaiHoc,
+        content: lessonData.noiDungBaiHoc,
+        videoUrl: lessonData.linkVideo,
+        duration: lessonData.doDaiVideo,
+        status: "not_completed",
+        orderNumber:
+          lessonData.lessonOrder === "custom" ? Number(customOrderNumber) : lessonData.lessonOrder,
+
+        createdAt: dayjs().format("YYYY-MM-DDTHH:mm:ss"),
+      };
+      const response = await axios.post("http://localhost:3030/api/v1/lesson/addLesson", newLesson);
+      Swal.fire("Thành công", "Thêm bài học thành công!", "success");
+      setLessons([...lessons, response.data.data]);
+    } catch (error) {
+      console.error("Error adding lesson:", error);
+    }
+  };
+
+  const handleDeleteLesson = async () => {
+    if (!lessonData.maBaiHoc) {
+      toast.error("Vui lòng chọn bài học cần xóa.");
+      return;
+    }
+
+    const result = await Swal.fire({
+      title: "Bạn có chắc chắn?",
+      text: `Bạn có muốn xóa bài học: ${lessonData.maBaiHoc} - ${lessonData.tenBaiHoc}`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Xóa",
+      cancelButtonText: "Hủy",
+    });
+    if (!result.isConfirmed) {
+      return;
+    }
+
+    try {
+      const response = await axios.delete(
+        `http://localhost:3030/api/v1/lesson/deleteLesson?lessonId=${lessonData.maBaiHoc}`
+      );
+
+      if (response.status === 200 || response.data.success) {
+        toast.success("Xóa bài học thành công.");
+
+        setLessons((prevLessons) =>
+          prevLessons.filter((lesson) => lesson.lessonId !== lessonData.lessonId)
+        );
+        setLessonData({
+          maBaiHoc: "",
+          chuong: "",
+          tenBaiHoc: "",
+          noiDungBaiHoc: "",
+          linkVideo: "",
+          doDaiVideo: "",
+          lessonOrder: "",
+        });
+      } else {
+        toast.error("Không thể xóa bài học. Vui lòng thử lại.");
+      }
+    } catch (error) {
+      console.error("Error deleting lesson:", error);
+      toast.error("Đã xảy ra lỗi khi xóa bài học. Vui lòng thử lại.");
+    }
+  };
+  const updateLesson = async (lessonId, lessonData) => {
+    // console.log("Lesson data trước khi cập nhật: ", lessonData);
+    // if (!lessonData.tenBaiHoc) {
+    //   toast.error("Tên bài học không được để trống.");
+    //   return;
+    // }
+
+    // if (!lessonData.noiDungBaiHoc) {
+    //   toast.error("Nội dung bài học không được để trống.");
+    //   return;
+    // }
+
+    // if (!lessonData.linkVideo) {
+    //   toast.error("Link video không được để trống.");
+    //   return;
+    // }
+
+    // if (!lessonData.doDaiVideo || Number(lessonData.doDaiVideo) <= 0) {
+    //   toast.error("Độ dài video phải lớn hơn 0.");
+    //   return;
+    // }
+    const isOrderDuplicate = lessons.some(
+      (lesson) => lesson.orderNumber === lessonData.lessonOrder && lesson.lessonId !== lessonId // Tránh trùng với bài học hiện tại
+    );
+
+    if (isOrderDuplicate) {
+      toast.error("Thứ tự này đã tồn tại, vui lòng chọn thứ tự khác.");
+      return;
+    }
+
+    try {
+      const response = await axios.put(
+        `http://localhost:3030/api/v1/lesson/updateLesson`,
+        lessonData,
+        { params: { lessonId } }
+      );
+
+      if (response.data.success) {
+        toast.success("Cập nhật bài học thành công!");
+        setLessons(
+          lessons.map((lesson) =>
+            lesson.lessonId === lessonId ? { ...lesson, ...lessonData } : lesson
+          )
+        );
+        return response.data.data;
+      } else {
+        toast.error(`Cập nhật thất bại: ${response.data.message}`);
+      }
+    } catch (error) {
+      toast.error(`Lỗi khi cập nhật bài học: ${error.response?.data || error.message}`);
+      console.error("Error updating lesson:", error);
+    }
+  };
+
+  const handleUpdateLesson = async () => {
+    if (!lessonData.tenBaiHoc || lessonData.tenBaiHoc.trim() === "") {
+      toast.error("Tên bài học không được để trống.");
+      return;
+    }
+    if (!lessonData.maBaiHoc) {
+      toast.error("Mã bài học không được để trống!");
+      return;
+    }
+
+    const updatedLesson = {
+      module: lessonData.chuong,
+      title: lessonData.tenBaiHoc,
+      content: lessonData.noiDungBaiHoc,
+      videoUrl: lessonData.linkVideo,
+      duration: lessonData.doDaiVideo,
+      status: lessonData.status || "not_completed",
+      orderNumber: lessonData.lessonOrder === "custom" ? customOrderNumber : lessonData.lessonOrder,
+      createdAt: lessonData.createdAt || new Date().toISOString(),
+    };
+    console.log("Updated lesson data: ", updatedLesson);
+    try {
+      const response = await updateLesson(lessonData.maBaiHoc, updatedLesson);
+
+      if (response) {
+        toast.success("Cập nhật bài học thành công!");
+        setLessons(
+          lessons.map((lesson) =>
+            lesson.lessonId === lessonData.maBaiHoc ? { ...lesson, ...updatedLesson } : lesson
+          )
+        );
+      } else {
+        toast.error("Lỗi khi cập nhật bài học.");
+      }
+    } catch (error) {
+      toast.error(error.message || "Lỗi kết nối API khi cập nhật bài học!");
+    }
+  };
+
+  const handleOrderChange = (event) => {
+    const value = event.target.value;
+    setLessonData({ ...lessonData, lessonOrder: value });
+    if (value !== "custom") {
+      setCustomOrderNumber("");
+    }
+  };
+
   const renderLessonForm = () => (
     <>
-      <Grid container spacing={2}>
+      <Grid container>
         <Grid item xs={5}>
           <Grid container spacing={2}>
             <Grid item xs={6}>
               <TextField
                 label="Mã bài học"
                 name="maBaiHoc"
-                value={formData.maBaiHoc}
-                onChange={(event) => handleChange(event)}
+                value={lessonData.maBaiHoc}
                 fullWidth
                 variant="outlined"
                 margin="normal"
+                disabled
+                InputProps={{
+                  sx: {
+                    fontWeight: "bold",
+                  },
+                }}
               />
             </Grid>
             <Grid item xs={6}>
@@ -291,7 +636,7 @@ function ModulesManagement() {
                 label="Khóa học"
                 name="maKhoaHoc"
                 value={lessonData.maKhoaHoc}
-                onChange={handleModulesDataChange}
+                onChange={handleCourseChangeForLesson}
                 select
                 variant="outlined"
                 fullWidth
@@ -313,8 +658,8 @@ function ModulesManagement() {
               <TextField
                 label="Chương"
                 name="chuong"
-                value={lessonData.soChuong || ""}
-                onChange={handleModuleChangeByModulesId}
+                value={lessonData.chuong || ""}
+                onChange={handleModuleLessionChange}
                 select
                 variant="outlined"
                 fullWidth
@@ -336,7 +681,8 @@ function ModulesManagement() {
               <TextField
                 label="Tên bài học"
                 name="tenBaiHoc"
-                value={lessonData.tenBaiHoc}
+                value={lessonData.tenBaiHoc || ""}
+                onChange={(e) => setLessonData({ ...lessonData, tenBaiHoc: e.target.value })}
                 fullWidth
                 variant="outlined"
                 margin="normal"
@@ -346,7 +692,8 @@ function ModulesManagement() {
               <TextField
                 label="Nội dung bài học"
                 name="noiDungBaiHoc"
-                value={lessonData.noiDungBaiHoc}
+                value={lessonData.noiDungBaiHoc || ""}
+                onChange={(e) => setLessonData({ ...lessonData, noiDungBaiHoc: e.target.value })}
                 fullWidth
                 variant="outlined"
                 margin="normal"
@@ -356,7 +703,8 @@ function ModulesManagement() {
               <TextField
                 label="Link video"
                 name="linkVideo"
-                value={lessonData.linkVideo}
+                value={lessonData.linkVideo || ""}
+                onChange={(e) => setLessonData({ ...lessonData, linkVideo: e.target.value })}
                 fullWidth
                 variant="outlined"
                 margin="normal"
@@ -366,18 +714,20 @@ function ModulesManagement() {
               <TextField
                 label="Độ dài video"
                 name="doDaiVideo"
-                value={lessonData.doDaiVideo}
+                value={lessonData.doDaiVideo || ""}
+                onChange={(e) => setLessonData({ ...lessonData, doDaiVideo: e.target.value })}
                 fullWidth
                 variant="outlined"
                 margin="normal"
               />
             </Grid>
+
             <Grid item xs={6}>
               <TextField
                 label="Thứ tự"
                 name="thuTu"
-                value={lessonData.lessonOrder}
-                onChange={handleLessionChange}
+                value={lessonData.lessonOrder || ""}
+                onChange={handleOrderChange}
                 select
                 variant="outlined"
                 fullWidth
@@ -393,24 +743,33 @@ function ModulesManagement() {
                     {lesson.orderNumber}
                   </MenuItem>
                 ))}
+                <MenuItem value="custom">Thêm thứ tự</MenuItem>
               </TextField>
             </Grid>
           </Grid>
-
-          <Typography sx={{ mt: 2 }}>Trạng thái:</Typography>
-          <RadioGroup name="trangThai" value={lessonData.trangThai} row>
-            <FormControlLabel value="Đã hoàn thành" control={<Radio />} label="Đã hoàn thành" />
-            <FormControlLabel value="Chưa hoàn thành" control={<Radio />} label="Chưa hoàn thành" />
-          </RadioGroup>
+          {lessonData.lessonOrder === "custom" && (
+            <Grid item xs={6}>
+              <TextField
+                label="Thứ tự mới"
+                name="thutumoi"
+                type="number"
+                value={customOrderNumber}
+                onChange={(e) => setCustomOrderNumber(e.target.value)}
+                variant="outlined"
+                fullWidth
+                margin="normal"
+              />
+            </Grid>
+          )}
 
           <Grid container spacing={2} sx={{ mt: 2 }}>
             <Grid item>
-              <Button variant="contained" color="primary">
+              <Button variant="contained" color="primary" onClick={handleAddLesson}>
                 Thêm
               </Button>
             </Grid>
             <Grid item>
-              <Button variant="contained" color="secondary">
+              <Button variant="contained" color="secondary" onClick={handleUpdateLesson}>
                 Sửa
               </Button>
             </Grid>
@@ -418,7 +777,7 @@ function ModulesManagement() {
               <Button variant="contained">Mới</Button>
             </Grid>
             <Grid item>
-              <Button variant="contained" color="error">
+              <Button variant="contained" color="error" onClick={handleDeleteLesson}>
                 Xóa
               </Button>
             </Grid>
@@ -426,26 +785,32 @@ function ModulesManagement() {
         </Grid>
         <Grid item xs={7}>
           <TableContainer component={Paper}>
-            <Table>
+            <Table style={{ tableLayout: "fixed" }}>
               <TableHead>
                 <TableRow>
                   <TableCell>STT</TableCell>
-                  <TableCell>Khóa học</TableCell>
                   <TableCell>Chương học</TableCell>
                   <TableCell>Tên bài học</TableCell>
+                  <TableCell>Nội dung bài học</TableCell>
                   <TableCell>Thứ tự bài học</TableCell>
-                  <TableCell>Trạng thái</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                <TableRow>
-                  <TableCell>1</TableCell>
-                  <TableCell>Khóa 1</TableCell>
-                  <TableCell>Chương 1</TableCell>
-                  <TableCell>Bài học 1</TableCell>
-                  <TableCell>1</TableCell>
-                  <TableCell>Đã hoàn thành</TableCell>
-                </TableRow>
+                {lessons.map((lesson, index) => (
+                  <TableRow
+                    key={lesson.lessonId}
+                    onDoubleClick={() => fetchLessonData(lesson.lessonId)}
+                  >
+                    <TableCell>{index + 1}</TableCell>
+                    <TableCell>{lesson.module}</TableCell>
+                    <TableCell>{lesson.title}</TableCell>
+                    <TableCell>{lesson.content}</TableCell>
+                    <TableCell>{lesson.orderNumber}</TableCell>
+                    <TableCell>
+                      {lesson.status === "completed" ? "Đã hoàn thành" : "Chưa hoàn thành"}
+                    </TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           </TableContainer>
