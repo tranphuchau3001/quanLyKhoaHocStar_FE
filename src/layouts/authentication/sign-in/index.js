@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { jwtDecode } from "jwt-decode";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -11,6 +12,7 @@ import MDButton from "components/MDButton";
 import BasicLayout from "layouts/authentication/components/BasicLayout";
 import bgImage from "assets/images/bg-login-layout.png";
 import { Button, Stack, SvgIcon } from "@mui/material";
+import { checkTokenExpiration } from "../authUtils";
 
 function Basic() {
   const [checked, setChecked] = useState(false);
@@ -56,8 +58,11 @@ function Basic() {
       });
 
       if (response.data && response.data.token && response.data.userId) {
-        const { token, userId, name, email, avatarUrl, roleId, registrationDate, status } =
+        const { token, userId, name, email, avatarUrl, roleId, registrationDate, status, exp } =
           response.data;
+
+        // Giải mã token và lấy thời gian hết hạn từ trường "exp" nếu có
+        const expirationTime = exp * 1000 || jwtDecode(token).exp * 1000; // Sử dụng thời gian hết hạn từ BE hoặc token
 
         // Lưu trữ dữ liệu vào localStorage
         localStorage.setItem("token", token);
@@ -68,30 +73,27 @@ function Basic() {
         localStorage.setItem("roleId", roleId);
         localStorage.setItem("registrationDate", registrationDate);
         localStorage.setItem("status", status);
+        localStorage.setItem("jwtExpirationTime", expirationTime);
 
         console.log("Dữ liệu đã lưu vào localStorage:", { token, userId, name, email });
+
+        // Kiểm tra token đã hết hạn chưa
+        if (!checkTokenExpiration()) {
+          // Nếu token hết hạn, yêu cầu đăng nhập lại
+          Swal.fire("Thất bại", "Token đã hết hạn. Vui lòng đăng nhập lại.", "error");
+          navigate("/authentication/sign-in");
+          return;
+        }
 
         Swal.fire("Thành công", "Đăng nhập thành công!", "success").then(() => {
           navigate("/home");
         });
       } else {
-        console.log("Đăng nhập thất bại: Không có dữ liệu hợp lệ.");
         Swal.fire("Thất bại", "Đăng nhập thất bại. Vui lòng thử lại.", "error");
       }
     } catch (error) {
       console.error("Lỗi khi gọi API: ", error);
-
-      if (error.response) {
-        Swal.fire(
-          "Thất bại",
-          `Đăng nhập thất bại. Lỗi: ${error.response?.data?.message || error.response.statusText}`,
-          "error"
-        );
-      } else if (error.request) {
-        Swal.fire("Thất bại", "Không thể kết nối đến server. Vui lòng thử lại.", "error");
-      } else {
-        Swal.fire("Thất bại", "Lỗi: " + error.message, "error");
-      }
+      Swal.fire("Thất bại", "Lỗi: " + (error.response?.data?.message || error.message), "error");
     }
   };
 

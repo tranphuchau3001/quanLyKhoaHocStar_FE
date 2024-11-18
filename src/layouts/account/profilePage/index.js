@@ -1,5 +1,4 @@
 import React, { useRef, useState, useEffect } from "react";
-import PageLayout from "examples/LayoutContainers/PageLayout";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import bgImage from "assets/images/Background/background-Profile.png";
 import imgLogo from "assets/images/logos/image.png";
@@ -97,6 +96,10 @@ const ProfilePage = () => {
     }
   };
 
+  const handleCourseClick = async (courseId) => {
+    navigate(`/learning/${courseId}`);
+  };
+
   return (
     <DashboardLayout>
       <Navbar />
@@ -171,6 +174,7 @@ const ProfilePage = () => {
                           }}
                           image={imagePath}
                           alt="Course"
+                          onClick={() => handleCourseClick(course.courseId)}
                         />
                       </Grid>
                       <Grid item xs={8}>

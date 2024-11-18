@@ -6,6 +6,7 @@ import SignUp from "layouts/authentication/sign-up";
 import CourseDetail from "layouts/courses";
 import Learning from "layouts/learning";
 import Payment from "layouts/payment";
+import PaymentResult from "layouts/payment-result";
 import Notifications from "layouts/notifications";
 import Profile from "layouts/account/profilePage";
 import AccountSettings from "layouts/account/settingAccount";
@@ -61,6 +62,15 @@ const userRoutes = [
     icon: <Icon fontSize="small">receipt_long</Icon>,
     route: "/payment",
     component: <Payment />,
+  },
+
+  {
+    // type: "collapse",
+    name: "PaymentResult",
+    key: "payment-return",
+    icon: <Icon fontSize="small">receipt_long</Icon>,
+    route: "/payment-return",
+    component: <PaymentResult />,
   },
   // {
   //   type: "collapse",
