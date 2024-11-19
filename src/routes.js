@@ -128,7 +128,7 @@ const userRoutes = [
 const adminRoutes = [
   {
     type: "collapse",
-    name: "Dashboard",
+    name: "Thống kê",
     key: "dashboard",
     icon: <Icon fontSize="small">dashboard</Icon>,
     route: "/dashboard",

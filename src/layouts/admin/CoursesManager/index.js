@@ -156,7 +156,6 @@ const CourseManagement = () => {
       instructor: instructorData,
     };
     console.log("Dữ liệu gửi lên API:", courseData);
-    console.log("Dữ liệu gửi lên API:", JSON.stringify(courseData, null, 2));
 
     try {
       const response = await axios.post("http://localhost:3030/course-api/saveCourse", courseData);
@@ -244,7 +243,7 @@ const CourseManagement = () => {
       schedule: price > 0 ? schedule : null,
       meetingTime: price > 0 ? meetingTime : null,
       status,
-      instructor: { userId: selectedInstructor || "" },
+      instructor: instructorData,
     };
 
     console.log("Dữ liệu gửi lên API:", courseData);
@@ -292,7 +291,7 @@ const CourseManagement = () => {
     formData.append("file", file);
 
     try {
-      const response = await axios.post("http://localhost:3030/upload-api/upload", formData, {
+      const response = await axios.post("http://localhost:3030/api/v1/upload/upload", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },

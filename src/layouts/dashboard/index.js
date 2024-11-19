@@ -60,7 +60,7 @@ function Dashboard() {
     <DashboardLayout>
       <DashboardNavbar />
       <MDBox py={3}>
-        <Grid container spacing={3}>
+        {/* <Grid container spacing={3}>
           <Grid item xs={12} md={6} lg={3}>
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
@@ -120,7 +120,7 @@ function Dashboard() {
               />
             </MDBox>
           </Grid>
-        </Grid>
+        </Grid> */}
         <MDBox mt={4.5}>
           <Grid container spacing={3}>
             <Grid item xs={12} md={6} lg={6}>
@@ -128,8 +128,8 @@ function Dashboard() {
                 <ReportsBarChart
                   color="info"
                   title="Thống kê doanh thu"
-                  description="Last Campaign Performance"
-                  date="campaign sent 2 days ago"
+                  // description="Last Campaign Performance"
+                  date="Cập nhật 2 ngày trước"
                   chart={chartData}
                 />
               </MDBox>
@@ -139,12 +139,12 @@ function Dashboard() {
                 <ReportsLineChart
                   color="success"
                   title="Tổng số người dùng"
-                  description={
-                    <>
-                      (<strong>+15%</strong>) increase in today sales.
-                    </>
-                  }
-                  date="updated 4 min ago"
+                  // description={
+                  //   <>
+                  //     (<strong>+15%</strong>) increase in today sales.
+                  //   </>
+                  // }
+                  date="Cập nhật 2 ngày trước"
                   chart={chartData2}
                 />
               </MDBox>
@@ -162,7 +162,7 @@ function Dashboard() {
             {/* </Grid> */}
           </Grid>
         </MDBox>
-        <MDBox>
+        {/* <MDBox>
           <Grid container spacing={3}>
             <Grid item xs={12} md={6} lg={8}>
               <Projects />
@@ -171,9 +171,9 @@ function Dashboard() {
               <OrdersOverview />
             </Grid>
           </Grid>
-        </MDBox>
+        </MDBox> */}
       </MDBox>
-      <Footer />
+      {/* <Footer /> */}
     </DashboardLayout>
   );
 }
