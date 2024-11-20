@@ -138,7 +138,7 @@ function Dashboard() {
               <MDBox mb={3}>
                 <ReportsLineChart
                   color="success"
-                  title="Tổng số người dùng"
+                  title="Tổng số học viên"
                   // description={
                   //   <>
                   //     (<strong>+15%</strong>) increase in today sales.
@@ -173,7 +173,7 @@ function Dashboard() {
           </Grid>
         </MDBox> */}
       </MDBox>
-      {/* <Footer /> */}
+      <Footer />
     </DashboardLayout>
   );
 }
