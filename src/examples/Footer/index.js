@@ -57,7 +57,6 @@ function Footer({ company, links }) {
             &nbsp;{name}&nbsp;
           </MDTypography>
         </Link>
-        for a better web.
       </MDBox>
       <MDBox
         component="ul"
@@ -68,8 +67,9 @@ function Footer({ company, links }) {
           justifyContent: "center",
           listStyle: "none",
           mt: 3,
-          mb: 0,
-          p: 0,
+          mb: 2,
+          p: 1,
+          mr: 6,
 
           [breakpoints.up("lg")]: {
             mt: 0,
@@ -84,9 +84,9 @@ function Footer({ company, links }) {
 
 // Setting default values for the props of Footer
 Footer.defaultProps = {
-  company: { href: "#", name: "Creative Tim" },
+  company: { href: "#", name: "Star Dev" },
   links: [
-    { href: "#", name: "Creative Tim" },
+    { href: "#", name: "Star Dev" },
     { href: "#", name: "About Us" },
     { href: "#", name: "Blog" },
     { href: "#", name: "License" },

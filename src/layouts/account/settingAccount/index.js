@@ -22,6 +22,8 @@ import SecurityPopup from "./securityPopup";
 import "./settingAccount.scss";
 import { Password } from "@mui/icons-material";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
+import DefaultNavbar from "examples/Navbars/DefaultNavbar";
+import MDBox from "components/MDBox";
 const AccountSettings = () => {
   const [userInfo, setUserInfo] = useState({
     name: null,
@@ -123,173 +125,175 @@ const AccountSettings = () => {
 
   return (
     <PageLayout>
-      <Navbar />
-      <Box className="account-settings">
-        <Box className="sidebar">
-          <Typography variant="h3">Cài đặt tài khoản</Typography>
-          <Typography variant="body2" color="textSecondary">
-            Quản lý cài đặt tài khoản của bạn như thông tin cá nhân, cài đặt bảo mật, quản lý thông
-            báo, v.v.
-          </Typography>
-          <List>
-            <ListItem
-              button
-              onClick={() => setCurrentTab("info")}
-              sx={{
-                backgroundColor: currentTab === "info" ? "#000" : "transparent",
-                color: currentTab === "info" ? "#fff" : "inherit",
-                "&:hover": {
-                  backgroundColor: "#d3d3d3",
-                  color: "#000",
-                },
-              }}
-            >
-              <ListItemIcon sx={{ color: currentTab === "info" ? "#fff" : "inherit" }}>
-                <PersonIcon />
-              </ListItemIcon>
-              <ListItemText primary="Thông tin tài khoản" />
-            </ListItem>
-            <ListItem
-              button
-              onClick={() => {
-                setCurrentTab("security");
-                handleOpenPopup();
-              }}
-              sx={{
-                backgroundColor: currentTab === "security" ? "#000" : "transparent",
-                color: currentTab === "security" ? "#fff" : "inherit",
-                "&:hover": {
-                  backgroundColor: "#d3d3d3",
-                  color: "#000",
-                },
-              }}
-            >
-              <ListItemIcon sx={{ color: currentTab === "security" ? "#fff" : "inherit" }}>
-                <SecurityIcon />
-              </ListItemIcon>
-              <ListItemText primary="Mật khẩu và bảo mật" />
-            </ListItem>
-            <ListItem
-              button
-              onClick={() => setCurrentTab("courses")}
-              sx={{
-                backgroundColor: currentTab === "courses" ? "#000" : "transparent",
-                color: currentTab === "courses" ? "#fff" : "inherit",
-                "&:hover": {
-                  backgroundColor: "#d3d3d3",
-                  color: "#000",
-                },
-              }}
-            >
-              <ListItemIcon sx={{ color: currentTab === "calendar" ? "#fff" : "inherit" }}>
-                <CalendarMonthIcon />
-              </ListItemIcon>
-              <ListItemText primary="Khóa học và lịch học" />
-            </ListItem>
-          </List>
-        </Box>
+      <DefaultNavbar />
+      <MDBox pt={6} pb={3}>
+        <Box className="account-settings" container spacing={6} pt={6}>
+          <Box className="sidebar">
+            <Typography variant="h3">Cài đặt tài khoản</Typography>
+            <Typography variant="body2" color="textSecondary">
+              Quản lý cài đặt tài khoản của bạn như thông tin cá nhân, cài đặt bảo mật, quản lý
+              thông báo, v.v.
+            </Typography>
+            <List>
+              <ListItem
+                button
+                onClick={() => setCurrentTab("info")}
+                sx={{
+                  backgroundColor: currentTab === "info" ? "#000" : "transparent",
+                  color: currentTab === "info" ? "#fff" : "inherit",
+                  "&:hover": {
+                    backgroundColor: "#d3d3d3",
+                    color: "#000",
+                  },
+                }}
+              >
+                <ListItemIcon sx={{ color: currentTab === "info" ? "#fff" : "inherit" }}>
+                  <PersonIcon />
+                </ListItemIcon>
+                <ListItemText primary="Thông tin tài khoản" />
+              </ListItem>
+              <ListItem
+                button
+                onClick={() => {
+                  setCurrentTab("security");
+                  handleOpenPopup();
+                }}
+                sx={{
+                  backgroundColor: currentTab === "security" ? "#000" : "transparent",
+                  color: currentTab === "security" ? "#fff" : "inherit",
+                  "&:hover": {
+                    backgroundColor: "#d3d3d3",
+                    color: "#000",
+                  },
+                }}
+              >
+                <ListItemIcon sx={{ color: currentTab === "security" ? "#fff" : "inherit" }}>
+                  <SecurityIcon />
+                </ListItemIcon>
+                <ListItemText primary="Mật khẩu và bảo mật" />
+              </ListItem>
+              <ListItem
+                button
+                onClick={() => setCurrentTab("courses")}
+                sx={{
+                  backgroundColor: currentTab === "courses" ? "#000" : "transparent",
+                  color: currentTab === "courses" ? "#fff" : "inherit",
+                  "&:hover": {
+                    backgroundColor: "#d3d3d3",
+                    color: "#000",
+                  },
+                }}
+              >
+                <ListItemIcon sx={{ color: currentTab === "calendar" ? "#fff" : "inherit" }}>
+                  <CalendarMonthIcon />
+                </ListItemIcon>
+                <ListItemText primary="Khóa học và lịch học" />
+              </ListItem>
+            </List>
+          </Box>
 
-        <Divider orientation="vertical" flexItem />
-        <Box className="content">
-          {currentTab === "info" && (
-            <>
-              <Typography variant="h3">Thông tin cá nhân</Typography>
-              <Typography variant="body2" color="textSecondary">
-                Quản lý thông tin cá nhân của bạn
-              </Typography>
+          <Divider orientation="vertical" flexItem />
+          <Box className="content">
+            {currentTab === "info" && (
+              <>
+                <Typography variant="h3">Thông tin cá nhân</Typography>
+                <Typography variant="body2" color="textSecondary">
+                  Quản lý thông tin cá nhân của bạn
+                </Typography>
 
-              <Box className="info-section">
-                <ListItemText>
-                  <Typography variant="subtitle1">Họ và tên</Typography>
+                <Box className="info-section">
+                  <ListItemText>
+                    <Typography variant="subtitle1">Họ và tên</Typography>
+                    <TextField
+                      value={userInfo.name}
+                      placeholder="Chưa cập nhật tên"
+                      fullWidth
+                      variant="outlined"
+                      onChange={(e) => setUserInfo({ ...userInfo, name: e.target.value })}
+                    />
+                  </ListItemText>
+                </Box>
+
+                <Box className="info-section">
+                  <Typography variant="subtitle1">Ảnh đại diện</Typography>
+
+                  <Avatar
+                    src={avatar}
+                    alt="Avatar"
+                    sx={{
+                      width: 50,
+                      height: 50,
+                      cursor: "pointer",
+                      border: "1px solid #000000",
+                      borderRadius: "50%", // Đảm bảo border vẫn giữ hình tròn
+                    }}
+                    onDoubleClick={handleDoubleClick} // Thêm sự kiện double click
+                  />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    style={{ display: "none" }}
+                    ref={inputFileRef}
+                    onChange={handleFileChange}
+                  />
+                </Box>
+
+                <Box className="info-section">
+                  <Typography variant="subtitle1">Số điện thoại</Typography>
                   <TextField
-                    value={userInfo.name}
-                    placeholder="Chưa cập nhật tên"
+                    value={userInfo.phone}
+                    placeholder="Chưa cập nhật số điện thoại"
                     fullWidth
                     variant="outlined"
-                    onChange={(e) => setUserInfo({ ...userInfo, name: e.target.value })}
+                    onChange={(e) => setUserInfo({ ...userInfo, phone: e.target.value })}
                   />
-                </ListItemText>
-              </Box>
+                </Box>
 
-              <Box className="info-section">
-                <Typography variant="subtitle1">Ảnh đại diện</Typography>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  className="save-button"
+                  onClick={handleSave}
+                >
+                  Lưu lại
+                </Button>
+              </>
+            )}
 
-                <Avatar
-                  src={avatar}
-                  alt="Avatar"
-                  sx={{
-                    width: 50,
-                    height: 50,
-                    cursor: "pointer",
-                    border: "1px solid #000000",
-                    borderRadius: "50%", // Đảm bảo border vẫn giữ hình tròn
-                  }}
-                  onDoubleClick={handleDoubleClick} // Thêm sự kiện double click
-                />
-                <input
-                  type="file"
-                  accept="image/*"
-                  style={{ display: "none" }}
-                  ref={inputFileRef}
-                  onChange={handleFileChange}
-                />
-              </Box>
-
-              <Box className="info-section">
-                <Typography variant="subtitle1">Số điện thoại</Typography>
-                <TextField
-                  value={userInfo.phone}
-                  placeholder="Chưa cập nhật số điện thoại"
-                  fullWidth
-                  variant="outlined"
-                  onChange={(e) => setUserInfo({ ...userInfo, phone: e.target.value })}
-                />
-              </Box>
-
-              <Button
-                variant="contained"
-                color="primary"
-                className="save-button"
-                onClick={handleSave}
-              >
-                Lưu lại
-              </Button>
-            </>
-          )}
-
-          {currentTab === "courses" && (
-            <>
-              <Typography variant="h3">Khóa học đang quản lý</Typography>
-              <Typography variant="body2" color="textSecondary">
-                Quản lý khóa học bạn đang quản lý và có thể thêm lịch học cho khóa học này
-              </Typography>
-              <Box className="course-list">
-                {courses.map((course, index) => (
-                  <Box key={index} className="course-item">
-                    <img
-                      src={course.imageUrl || "default-image.png"}
-                      alt="Khóa học"
-                      className="course-image"
-                    />
-                    <Box className="course-details">
-                      <Typography variant="h6">{course.title}</Typography>
-                      <Typography variant="body2">{course.description}</Typography>
-                      <Box className="course-buttons">
-                        <Button variant="contained" className="schedule-button">
-                          Lịch học
-                        </Button>
-                        <Button variant="contained" className="students-button">
-                          Học viên
-                        </Button>
+            {currentTab === "courses" && (
+              <>
+                <Typography variant="h3">Khóa học đang quản lý</Typography>
+                <Typography variant="body2" color="textSecondary">
+                  Quản lý khóa học bạn đang quản lý và có thể thêm lịch học cho khóa học này
+                </Typography>
+                <Box className="course-list">
+                  {courses.map((course, index) => (
+                    <Box key={index} className="course-item">
+                      <img
+                        src={course.imageUrl || "default-image.png"}
+                        alt="Khóa học"
+                        className="course-image"
+                      />
+                      <Box className="course-details">
+                        <Typography variant="h6">{course.title}</Typography>
+                        <Typography variant="body2">{course.description}</Typography>
+                        <Box className="course-buttons">
+                          <Button variant="contained" className="schedule-button">
+                            Lịch học
+                          </Button>
+                          <Button variant="contained" className="students-button">
+                            Học viên
+                          </Button>
+                        </Box>
                       </Box>
                     </Box>
-                  </Box>
-                ))}
-              </Box>
-            </>
-          )}
+                  ))}
+                </Box>
+              </>
+            )}
+          </Box>
         </Box>
-      </Box>
+      </MDBox>
       <SecurityPopup open={isPopupOpen} onClose={handleClosePopup} />
     </PageLayout>
   );

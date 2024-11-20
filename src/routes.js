@@ -31,14 +31,14 @@ const userRoutes = [
     route: "/courses/:courseId",
     component: <CourseDetail />,
   },
-  {
-    type: "collapse",
-    name: "Tables",
-    key: "tables",
-    icon: <Icon fontSize="small">table_view</Icon>,
-    route: "/tables",
-    component: <Tables />,
-  },
+  // {
+  //   type: "collapse",
+  //   name: "Tables",
+  //   key: "tables",
+  //   icon: <Icon fontSize="small">table_view</Icon>,
+  //   route: "/tables",
+  //   component: <Tables />,
+  // },
   // {
   //   type: "collapse",
   //   name: "Billing",
@@ -98,7 +98,7 @@ const userRoutes = [
   {
     type: "collapse",
     name: "Thông tin tài khoản",
-    key: "sign-up",
+    key: "profile",
     icon: <Icon fontSize="small">person</Icon>,
     route: "/profile",
     component: <Profile />,
@@ -128,7 +128,7 @@ const userRoutes = [
 const adminRoutes = [
   {
     type: "collapse",
-    name: "Dashboard",
+    name: "Thống kê",
     key: "dashboard",
     icon: <Icon fontSize="small">dashboard</Icon>,
     route: "/dashboard",
@@ -137,17 +137,17 @@ const adminRoutes = [
   {
     type: "collapse",
     name: "Quản Lý Khóa Học",
-    key: "coursesManager",
+    key: "courses-manager",
     icon: <Icon fontSize="small">library_books</Icon>,
-    route: "/admin/CoursesManager",
+    route: "/courses-manager",
     component: <CourseManager />,
   },
   {
     type: "collapse",
     name: "Quản Lý Bài Học",
-    key: "lessonManager",
+    key: "lesson-manager",
     icon: <Icon fontSize="small">library_books</Icon>,
-    route: "/admin/ModulesManager",
+    route: "/lesson-manager",
     component: <ModulesManager />,
   },
 ];

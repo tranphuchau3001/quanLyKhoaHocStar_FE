@@ -1,25 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
-import { Link } from "react-router-dom";
-
 import axios from "axios";
-
 import Swal from "sweetalert2";
-
-// @mui material components
 import Card from "@mui/material/Card";
-
-// Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDInput from "components/MDInput";
 import MDButton from "components/MDButton";
-
-// Authentication layout components
 import CoverLayout from "layouts/authentication/components/CoverLayout";
-
-// Images
 import bgImage from "assets/images/bg-login-layout.png";
 import { Grid } from "@mui/material";
 
@@ -45,12 +33,29 @@ function Cover() {
 
   const validateForm = () => {
     const { email, phone, otp } = formData;
+    if (!email || email.trim() === "") {
+      Swal.fire({
+        icon: "error",
+        title: "Email không được để trống",
+        text: "Vui lòng nhập email của bạn.",
+      });
+      return false;
+    }
 
     if (!emailRegex.test(email)) {
       Swal.fire({
         icon: "error",
         title: "Email không hợp lệ",
         text: "Vui lòng nhập email đúng định dạng.",
+      });
+      return false;
+    }
+
+    if (!phone || phone.trim() === "") {
+      Swal.fire({
+        icon: "error",
+        title: "Số điện thoại không được để trống",
+        text: "Vui lòng nhập số điện thoại của bạn.",
       });
       return false;
     }
@@ -80,6 +85,14 @@ function Cover() {
     if (!validateForm()) {
       return;
     }
+    if (!formData.password) {
+      Swal.fire({
+        icon: "error",
+        title: "Vui lòng điền mật khẩu",
+        text: "Mật khẩu không được để trống.",
+      });
+      return false;
+    }
 
     console.log("Dữ liệu gửi đi:", {
       email: formData.email,
@@ -91,12 +104,22 @@ function Cover() {
         email: formData.email,
         otp: formData.otp,
       });
-      Swal.fire({
-        icon: "success",
-        title: "Đăng ký thành công",
-        text: "Bạn đã đăng ký thành công!",
-      });
-      navigate("/authentication/sign-in");
+      if (response.data.success) {
+        // OTP hợp lệ
+        Swal.fire({
+          icon: "success",
+          title: "Đăng ký thành công",
+          text: "Bạn đã đăng ký thành công!",
+        });
+        navigate("/authentication/sign-in");
+      } else {
+        // OTP không hợp lệ
+        Swal.fire({
+          icon: "error",
+          title: "Mã OTP không hợp lệ",
+          text: "Vui lòng kiểm tra lại mã OTP.",
+        });
+      }
     } catch (error) {
       Swal.fire({
         icon: "error",
@@ -164,7 +187,7 @@ function Cover() {
         <Card
           sx={{
             borderRadius: "15px",
-            backgroundColor: "rgba(0, 0, 0, 0.2)",
+            backgroundColor: "rgba(255, 255, 255)",
             backdropFilter: "blur(1px)",
             boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)",
             border: "1px solid rgba(255, 255, 255, 0.6)",
@@ -172,7 +195,7 @@ function Cover() {
             maxWidth: "400px",
           }}
         >
-          <MDTypography textAlign="center" variant="h4" fontWeight="bold" color="white" mt={2}>
+          <MDTypography textAlign="center" variant="h4" fontWeight="bold" color="black" mt={2}>
             Đăng ký
           </MDTypography>
           <MDBox pb={3} px={3}>
@@ -188,11 +211,11 @@ function Cover() {
                   onChange={handleChange}
                   InputLabelProps={{
                     sx: {
-                      color: "white",
+                      color: "black",
                     },
                   }}
                   inputProps={{
-                    style: { color: "white" },
+                    style: { color: "black" },
                   }}
                 />
 
@@ -205,11 +228,11 @@ function Cover() {
                   onChange={handleChange}
                   InputLabelProps={{
                     sx: {
-                      color: "white",
+                      color: "black",
                     },
                   }}
                   inputProps={{
-                    style: { color: "white" },
+                    style: { color: "black" },
                   }}
                 />
 
@@ -222,11 +245,11 @@ function Cover() {
                   onChange={handleChange}
                   InputLabelProps={{
                     sx: {
-                      color: "white",
+                      color: "black",
                     },
                   }}
                   inputProps={{
-                    style: { color: "white" },
+                    style: { color: "black" },
                   }}
                 />
 
@@ -239,18 +262,17 @@ function Cover() {
                   onChange={handleChange}
                   InputLabelProps={{
                     sx: {
-                      color: "white",
+                      color: "black",
                     },
                   }}
                   inputProps={{
-                    style: { color: "white" },
+                    style: { color: "black" },
                   }}
                 />
               </MDBox>
 
               <MDBox mb={2}>
                 <Grid container spacing={1} alignItems="center">
-                  {/* Phần nhập OTP chiếm 8 phần */}
                   <Grid item xs={8}>
                     <MDInput
                       name="otp"
@@ -261,15 +283,14 @@ function Cover() {
                       onChange={handleChange}
                       InputLabelProps={{
                         sx: {
-                          color: "white",
+                          color: "black",
                         },
                       }}
                       inputProps={{
-                        style: { color: "white" },
+                        style: { color: "black" },
                       }}
                     />
                   </Grid>
-                  {/* Nút gửi OTP chiếm 4 phần */}
                   <Grid item xs={4}>
                     <MDButton
                       variant="gradient"
@@ -298,19 +319,19 @@ function Cover() {
                   color="black"
                   fullWidth
                   onClick={handleRegister}
-                  sx={{ color: "#111b2a" }}
+                  sx={{ color: "white", backgroundColor: "#00ff00" }}
                 >
                   Đăng ký
                 </MDButton>
               </MDBox>
               <MDBox mt={3} mb={1} textAlign="center">
-                <MDTypography variant="button" color="white">
+                <MDTypography variant="button" color="black">
                   Bạn đã có tài khoản?{" "}
                   <MDTypography
                     component="a"
                     href="/authentication/sign-in"
                     variant="button"
-                    color="white"
+                    color="black"
                     fontWeight="medium"
                   >
                     Đăng nhập

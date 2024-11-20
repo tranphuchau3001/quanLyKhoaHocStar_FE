@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import Footer from "examples/Footer";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { ToastContainer, toast } from "react-toastify";
@@ -159,7 +160,7 @@ function ModulesManagement() {
         moduleData
       );
       Swal.fire("Thành công", "Thêm thành công", "success");
-      setModules([...modules, response.data.data]);
+      etModules([...modules, response.data.data]);
     } catch (error) {
       console.error("Error adding module:", error);
     }
@@ -764,20 +765,53 @@ function ModulesManagement() {
 
           <Grid container spacing={2} sx={{ mt: 2 }}>
             <Grid item>
-              <Button variant="contained" color="primary" onClick={handleAddLesson}>
+              <Button
+                variant="contained"
+                sx={{
+                  backgroundColor: "green",
+                  color: "#ffffff",
+                  "&:hover": { backgroundColor: "darkgreen" },
+                }}
+                onClick={handleAddLesson}
+              >
                 Thêm
               </Button>
             </Grid>
             <Grid item>
-              <Button variant="contained" color="secondary" onClick={handleUpdateLesson}>
+              <Button
+                variant="contained"
+                sx={{
+                  backgroundColor: "blue",
+                  color: "#ffffff",
+                  "&:hover": { backgroundColor: "darkblue" },
+                }}
+                onClick={handleUpdateLesson}
+              >
                 Sửa
               </Button>
             </Grid>
             <Grid item>
-              <Button variant="contained">Mới</Button>
+              <Button
+                variant="contained"
+                sx={{
+                  backgroundColor: "gray",
+                  color: "#ffffff",
+                  "&:hover": { backgroundColor: "darkgray" },
+                }}
+              >
+                Mới
+              </Button>
             </Grid>
             <Grid item>
-              <Button variant="contained" color="error" onClick={handleDeleteLesson}>
+              <Button
+                variant="contained"
+                sx={{
+                  backgroundColor: "red",
+                  color: "#ffffff",
+                  "&:hover": { backgroundColor: "darkred" },
+                }}
+                onClick={handleDeleteLesson}
+              >
                 Xóa
               </Button>
             </Grid>
@@ -992,6 +1026,7 @@ function ModulesManagement() {
           {/* {tab === 2 && renderExerciseForm()} */}
         </Grid>
       </Box>
+      <Footer />
     </DashboardLayout>
   );
 }
