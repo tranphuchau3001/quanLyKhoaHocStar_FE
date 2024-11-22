@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import Swal from "sweetalert2";
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
 import MDBox from "components/MDBox";
@@ -37,6 +38,10 @@ function Learning() {
   const videoRef = useRef(null);
   const { courseId } = useParams();
   const [progressSaved, setProgressSaved] = useState(false);
+  const [totalLessons, setTotalLessons] = useState(0);
+  const navigate = useNavigate();
+
+  const completionPercentage = (completedLessons.size / totalLessons) * 100;
 
   const fetchUserProgress = async (moduleId) => {
     try {
@@ -83,6 +88,9 @@ function Learning() {
       );
       setLessons(allLessons);
       setLoading(false);
+
+      const total = allLessons.reduce((sum, moduleLessons) => sum + moduleLessons.length, 0);
+      setTotalLessons(total);
 
       const userId = localStorage.getItem("userId");
       if (userId) {
@@ -165,6 +173,57 @@ function Learning() {
     // setNextVideo(lessons, completedLessonsFromApi);
   };
 
+  const fetchCheckEnrollment = async () => {
+    const userId = localStorage.getItem("userId");
+    try {
+      const checkEnrollment = await axios.get(
+        "http://localhost:3030/api/v1/enrollment/get-enrollment-by-user-id-and-course-id",
+        {
+          params: { userId, courseId },
+        }
+      );
+
+      if (checkEnrollment.data.success) {
+        const enrollment = checkEnrollment.data.data;
+        const enrollmentId = enrollment.enrollmentId;
+        console.log("enrollmentId" + enrollmentId);
+        Swal.fire({
+          title: "Thành công!",
+          text: "enrollmentId: " + enrollmentId,
+          icon: "success",
+        });
+        const saveEnrollmentStatus = await axios.put(
+          "http://localhost:3030/api/v1/enrollment/update-enrollment-status",
+          {
+            enrollmentId: enrollmentId,
+            status: "completed",
+          }
+        );
+
+        if (saveEnrollmentStatus.data.success) {
+          Swal.fire({
+            title: "Thành công!",
+            text: "Đã cấp chứng nhận hoàn thành khóa học: " + course.title + ". Kiểm tra ở ...",
+            icon: "success",
+          });
+        } else {
+          Swal.fire({
+            title: "Thất bại!",
+            text: "Cấp chứng chỉ không thành công!",
+            icon: "error",
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error checking enrollment or enrolling:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "Có lỗi xảy ra khi kiểm tra đăng ký học!",
+      });
+    }
+  };
+
   const setNextVideo = async (allLessons, completedLessons) => {
     console.log("All Lessons:", allLessons);
     console.log("Completed Lessons:", completedLessons);
@@ -218,6 +277,26 @@ function Learning() {
     const initializeData = async () => {
       await fetchCourse();
       await fetchProgress();
+
+      const userId = localStorage.getItem("userId");
+      if (!userId) {
+        Swal.fire({
+          title: "Bạn chưa đăng nhập!",
+          text: "Vui lòng đăng nhập để tiếp tục. Bạn có muốn đăng nhập không?",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonText: "Có",
+          cancelButtonText: "Không",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            navigate("/authentication/sign-in");
+          } else if (result.isDismissed) {
+            navigate("/home");
+            console.log("Người dùng đã từ chối đăng nhập.");
+          }
+        });
+        return;
+      }
     };
 
     initializeData();
@@ -257,6 +336,10 @@ function Learning() {
     if (currentVideoIndex < lessons.flat().length - 1 && canProceedToNext) {
       handleVideoChange(lessons.flat()[currentVideoIndex + 1].lessonId);
     }
+  };
+
+  const handleReceiveCertificate = () => {
+    fetchCheckEnrollment();
   };
 
   const handleVideoStateChange = (event) => {
@@ -356,10 +439,20 @@ function Learning() {
                       disabled={
                         !canProceedToNext || currentVideoIndex === lessons.flat().length - 1
                       }
-                      sx={{ padding: "10px 20px" }}
+                      sx={{ marginRight: 2, padding: "10px 20px" }}
                     >
                       Bài tiếp theo <ArrowCircleRightOutlinedIcon sx={{ marginLeft: 1 }} />
                     </MDButton>
+                    {completionPercentage === 100 && (
+                      <MDButton
+                        variant="contained"
+                        color="success"
+                        onClick={handleReceiveCertificate}
+                        sx={{ padding: "10px 20px" }}
+                      >
+                        Nhận chứng nhận
+                      </MDButton>
+                    )}
                   </MDBox>
                 </Card>
               </Grid>
@@ -375,11 +468,22 @@ function Learning() {
                     borderRadius="lg"
                     coloredShadow="info"
                   >
-                    <MDTypography variant="h5" color="white" textAlign="center">
+                    <MDTypography variant="h5" color="light" textAlign="center">
                       Khóa Học: {course.title}
                     </MDTypography>
                   </MDBox>
-                  <MDTypography sx={{ mt: 2, ml: 3, mb: 3 }}>{course.description}</MDTypography>
+                  <MDTypography color="success" sx={{ mt: 2, ml: 3 }}>
+                    {course.description}
+                  </MDTypography>
+                  <MDTypography variant="body1" color="dark" sx={{ mt: 3, ml: 3 }}>
+                    Tổng số bài học: {totalLessons}
+                  </MDTypography>
+                  <MDTypography variant="body1" color="dark" sx={{ ml: 3 }}>
+                    Số bài học đã hoàn thành: {completedLessons.size} / {totalLessons}
+                  </MDTypography>
+                  <MDTypography variant="body1" color="dark" sx={{ ml: 3 }}>
+                    Tiến độ hoàn thành: {completionPercentage.toFixed(0)} %
+                  </MDTypography>
                   <List
                     component="nav"
                     aria-labelledby="nested-list-subheader"

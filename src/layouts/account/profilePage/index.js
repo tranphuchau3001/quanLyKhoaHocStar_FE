@@ -122,29 +122,75 @@ const ProfilePage = () => {
           {name || "Tên chưa được cập nhật"}
         </Typography>
       </Box>
+
+      <Grid container spacing={2} justifyContent="center">
+        <Grid item xs={12} md={6}>
+          <Typography variant="h6" sx={{ ml: 4 }} gutterBottom>
+            Giới thiệu
+          </Typography>
+          <Typography variant="body2" color="textSecondary" sx={{ ml: 4 }}>
+            <AccessTimeIcon fontSize="small" sx={{ mr: 1 }} />
+            Thành viên của Start Dev từ ngày{" "}
+            {registrationDate
+              ? new Intl.DateTimeFormat("vi-VN", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                }).format(new Date(registrationDate))
+              : "Ngày chưa được cập nhật"}
+          </Typography>
+        </Grid>
+
+        <Grid item xs={12} md={6}></Grid>
+      </Grid>
       <Box className="profile-page__content" display="flex" justifyContent="center" p={3}>
         <Grid container spacing={2} justifyContent="center">
           <Grid item xs={12} md={6}>
             <Paper elevation={3} sx={{ padding: 2 }}>
-              <Typography variant="h6" gutterBottom>
-                Giới thiệu
+              <Typography variant="h6" mb={2}>
+                Các khóa học đang học
               </Typography>
-              <Typography variant="body2" color="textSecondary">
-                <AccessTimeIcon fontSize="small" sx={{ mr: 1 }} />
-                Thành viên của Start Dev vào{" "}
-                {new Date(registrationDate).toLocaleDateString() || "Ngày chưa được cập nhật"}
-              </Typography>
-              <Divider sx={{ my: 2 }} />
-              <Typography variant="h6">Hoạt động gần đây</Typography>
-              <Typography variant="body2" color="textSecondary">
-                Chưa có hoạt động gần đây
-              </Typography>
+              {courses.map((course, index) => {
+                const imagePath = require(`assets/images/Background/background-course/${course.imgUrl}`);
+                return (
+                  <Card sx={{ display: "flex", alignItems: "center", mb: 2 }} key={index}>
+                    <Grid container alignItems="center">
+                      <Grid item xs={4} padding={1}>
+                        {" "}
+                        <CardMedia
+                          component="img"
+                          sx={{
+                            width: "100%",
+                            height: 80,
+                            borderRadius: 2,
+                            height: 100,
+                            marginTop: 0,
+                            marginBottom: 1,
+                          }}
+                          image={imagePath}
+                          alt="Course"
+                          onClick={() => handleCourseClick(course.courseId)}
+                        />
+                      </Grid>
+                      <Grid item xs={8}>
+                        {" "}
+                        <CardContent sx={{ paddingLeft: "16px" }}>
+                          <Typography variant="h6">{course.courseName}</Typography>
+                          <Typography variant="body2" color="textSecondary">
+                            {course.description}
+                          </Typography>
+                        </CardContent>
+                      </Grid>
+                    </Grid>
+                  </Card>
+                );
+              })}
             </Paper>
           </Grid>
           <Grid item xs={12} md={6}>
             <Paper elevation={3} sx={{ padding: 2 }}>
               <Typography variant="h6" mb={2}>
-                Các khóa học đã tham gia
+                Các khóa học đã hoàn thành
               </Typography>
               {courses.map((course, index) => {
                 const imagePath = require(`assets/images/Background/background-course/${course.imgUrl}`);
