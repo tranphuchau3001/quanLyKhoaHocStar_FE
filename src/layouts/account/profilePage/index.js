@@ -37,35 +37,26 @@ const ProfilePage = () => {
     if (storedName) setName(storedName);
     if (storedRegistrationDate) setRegistrationDate(storedRegistrationDate);
 
-    setTimeout(() => {
-      if (storedUserId && storedUserId !== "") {
-        setUserId(storedUserId);
-        fetchCourses(storedUserId);
-      } else {
-        navigate("/authentication/sign-in");
-      }
-    }, 500);
-  }, []);
-
-  useEffect(() => {
-    const storedUserId = localStorage.getItem("userId");
-
     if (storedUserId && storedUserId !== "") {
       if (userId !== storedUserId) {
         setUserId(storedUserId);
       }
       fetchCourses(storedUserId);
     } else if (!isNavigating.current) {
-      console.error("userId is not available or empty");
+      console.error("Không có userId");
       Swal.fire({
-        title: "Cảnh báo",
-        text: "Bạn cần đăng nhập mới có thông tin.",
+        title: "Bạn chưa đăng nhập",
+        text: "Bạn cần đăng nhập mới có thông tin. Bạn có muốn đăng nhập không?",
         icon: "warning",
-        confirmButtonText: "OK",
+        showCancelButton: true,
+        confirmButtonText: "Có",
+        cancelButtonText: "Không",
       }).then((result) => {
         if (result.isConfirmed) {
           isNavigating.current = true;
           navigate("/authentication/sign-in");
+        } else if (result.isDismissed) {
+          console.log("Người dùng đã từ chối đăng nhập.");
         }
       });
     }
