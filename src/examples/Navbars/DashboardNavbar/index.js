@@ -114,7 +114,6 @@ function DashboardNavbar({ absolute, light, isMini }) {
     </Menu>
   );
 
-  // Styles for the navbar icons
   const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => ({
     color: () => {
       let colorValue = light || darkMode ? white.main : dark.main;
@@ -149,21 +148,23 @@ function DashboardNavbar({ absolute, light, isMini }) {
         {isMini ? null : (
           <MDBox sx={(theme) => navbarRow(theme, { isMini })}>
             <MDBox pr={1}>
-              <MDInput label="Search here" />
+              <MDInput label="Tìm kiếm" />
             </MDBox>
-            <IconButton
-              size="small"
-              disableRipple
-              color="inherit"
-              sx={navbarIconButton}
-              aria-controls="notification-menu"
-              aria-haspopup="true"
-              variant="contained"
-              onClick={handleOpenMenu}
-            >
-              <Icon sx={iconsStyle}>notifications</Icon>
-            </IconButton>
-            <div>
+            <MDBox color={light ? "white" : "inherit"}>
+              {/* <IconButton
+                size="small"
+                disableRipple
+                color="inherit"
+                sx={navbarIconButton}
+                aria-controls="notification-menu"
+                aria-haspopup="true"
+                variant="contained"
+                onClick={handleOpenMenu}
+              >
+                <Icon sx={iconsStyle}>notifications</Icon>
+              </IconButton>
+              {renderMenu()} */}
+
               <IconButton
                 onClick={handleClick}
                 size="small"
@@ -177,8 +178,29 @@ function DashboardNavbar({ absolute, light, isMini }) {
                 <Icon sx={iconsStyle}>account_circle</Icon>
               </IconButton>
               {renderAccountMenu()}
-            </div>
-            {renderMenu()}
+
+              <IconButton
+                size="small"
+                disableRipple
+                color="inherit"
+                sx={navbarIconButton}
+                onClick={handleConfiguratorOpen}
+              >
+                <Icon sx={iconsStyle}>settings</Icon>
+              </IconButton>
+
+              <IconButton
+                size="small"
+                disableRipple
+                color="inherit"
+                sx={navbarMobileMenu}
+                onClick={handleMiniSidenav}
+              >
+                <Icon sx={iconsStyle} fontSize="medium">
+                  {miniSidenav ? "menu_open" : "menu"}
+                </Icon>
+              </IconButton>
+            </MDBox>
           </MDBox>
         )}
       </Toolbar>
@@ -186,14 +208,12 @@ function DashboardNavbar({ absolute, light, isMini }) {
   );
 }
 
-// Setting default values for the props of DashboardNavbar
 DashboardNavbar.defaultProps = {
   absolute: false,
   light: false,
   isMini: false,
 };
 
-// Typechecking props for the DashboardNavbar
 DashboardNavbar.propTypes = {
   absolute: PropTypes.bool,
   light: PropTypes.bool,
