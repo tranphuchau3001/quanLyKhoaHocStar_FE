@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from "react";
 import Grid from "@mui/material/Grid";
+import MenuItem from "@mui/material/MenuItem";
+import Select from "@mui/material/Select";
+import InputLabel from "@mui/material/InputLabel";
+import FormControl from "@mui/material/FormControl";
 import fetchBarChartData from "../dashboard/data/reportsBarChartData";
 import fetchReportsLineChartData from "../dashboard/data/reportsLineChartData";
 // Material Dashboard 2 React components
@@ -19,8 +23,10 @@ import ComplexStatisticsCard from "examples/Cards/StatisticsCards/ComplexStatist
 // Dashboard components
 import Projects from "layouts/dashboard/components/Projects";
 import OrdersOverview from "layouts/dashboard/components/OrdersOverview";
+import { Typography } from "@mui/material";
 
 function Dashboard() {
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [chartData, setChartData] = useState({
     labels: [],
     datasets: {
@@ -35,6 +41,23 @@ function Dashboard() {
       data: [],
     },
   });
+  const handleYearChange = async (event) => {
+    const year = event.target.value;
+    setSelectedYear(year);
+    await fetchChartData(year);
+  };
+
+  const fetchChartData = async (year) => {
+    const barData = await fetchBarChartData(year); // Truyền năm làm tham số
+    const lineData = await fetchReportsLineChartData(year);
+    setChartData(barData);
+    setChartData2(lineData);
+  };
+
+  useEffect(() => {
+    fetchChartData(selectedYear);
+  }, [selectedYear]);
+
   useEffect(() => {
     const fetchData = async () => {
       const data = await fetchBarChartData();
@@ -52,16 +75,13 @@ function Dashboard() {
 
     loadData();
   }, []);
-  // if (!chartData) {
-  //   return <p>Loading...</p>; // Hiển thị khi đang tải dữ liệu
-  // // }
 
   return (
     <DashboardLayout>
       <DashboardNavbar />
       <MDBox py={3}>
-        {/* <Grid container spacing={3}>
-          <Grid item xs={12} md={6} lg={3}>
+        <Grid container spacing={3}>
+          {/* <Grid item xs={12} md={6} lg={3}>
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
                 color="dark"
@@ -75,12 +95,12 @@ function Dashboard() {
                 }}
               />
             </MDBox>
-          </Grid>
+          </Grid> */}
           <Grid item xs={12} md={6} lg={3}>
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
                 icon="leaderboard"
-                title="Today's Users"
+                title="Doanh thu tháng này"
                 count="2,300"
                 percentage={{
                   color: "success",
@@ -95,7 +115,7 @@ function Dashboard() {
               <ComplexStatisticsCard
                 color="success"
                 icon="store"
-                title="Revenue"
+                title="Tổng số người dùng"
                 count="34k"
                 percentage={{
                   color: "success",
@@ -105,7 +125,7 @@ function Dashboard() {
               />
             </MDBox>
           </Grid>
-          <Grid item xs={12} md={6} lg={3}>
+          {/* <Grid item xs={12} md={6} lg={3}>
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
                 color="primary"
@@ -119,8 +139,8 @@ function Dashboard() {
                 }}
               />
             </MDBox>
-          </Grid>
-        </Grid> */}
+          </Grid> */}
+        </Grid>
         <MDBox mt={4.5}>
           <Grid container spacing={3}>
             <Grid item xs={12} md={6} lg={6}>
