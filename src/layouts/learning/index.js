@@ -482,7 +482,7 @@ function Learning() {
                     Số bài học đã hoàn thành: {completedLessons.size} / {totalLessons}
                   </MDTypography>
                   <MDTypography variant="body1" color="dark" sx={{ ml: 3 }}>
-                    Tiến độ hoàn thành: {completionPercentage.toFixed(0)} %
+                    Tiến độ hoàn thành: {completionPercentage.toFixed(0)}%
                   </MDTypography>
                   <List
                     component="nav"
