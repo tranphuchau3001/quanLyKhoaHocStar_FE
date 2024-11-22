@@ -94,10 +94,18 @@ function CourseDetail() {
     if (!userId) {
       Swal.fire({
         title: "Bạn chưa đăng nhập!",
-        text: "Vui lòng đăng nhập để đăng ký khóa học!",
+        text: "Vui lòng đăng nhập để đăng ký khóa học. Bạn có muốn đăng nhập không?",
         icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Có",
+        cancelButtonText: "Không",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          navigate("/authentication/sign-in");
+        } else if (result.isDismissed) {
+          console.log("Người dùng đã từ chối đăng nhập.");
+        }
       });
-      navigate("/authentication/sign-in");
       return;
     }
 

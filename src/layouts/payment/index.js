@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import { CardContent, CircularProgress } from "@mui/material";
 import Footer from "examples/Footer";
 import PageLayout from "examples/LayoutContainers/PageLayout";
@@ -18,12 +19,32 @@ const PaymentVNPay = () => {
   const [amount, setAmount] = useState(0);
   const [enrollmentId, setEnrollmentId] = useState("");
   const [userId, setUserId] = useState(localStorage.getItem("userId"));
+  const navigate = useNavigate();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const name = params.get("courseName");
     const price = params.get("price");
     const enrollmentId = params.get("enrollmentId");
+
+    if (!userId) {
+      Swal.fire({
+        title: "Bạn chưa đăng nhập!",
+        text: "Vui lòng đăng nhập để tiếp tục. Bạn có muốn đăng nhập không?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Có",
+        cancelButtonText: "Không",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          navigate("/authentication/sign-in");
+        } else if (result.isDismissed) {
+          navigate("/home");
+          console.log("Người dùng đã từ chối đăng nhập.");
+        }
+      });
+      return;
+    }
 
     if (name && price) {
       setCourseName(decodeURIComponent(name));
