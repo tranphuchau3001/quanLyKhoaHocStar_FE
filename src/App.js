@@ -1,5 +1,12 @@
-import { useState, useEffect, useMemo } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { useState, useEffect, useMemo, useRef } from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import Icon from "@mui/material/Icon";
@@ -12,12 +19,12 @@ import themeDark from "assets/theme-dark";
 import themeDarkRTL from "assets/theme-dark/theme-rtl";
 import { CacheProvider } from "@emotion/react";
 import createCache from "@emotion/cache";
-import routes from "routes";
 import { useMaterialUIController, setMiniSidenav, setOpenConfigurator } from "context";
 import brandWhite from "assets/images/logos/image.png";
 import brandDark from "assets/images/logos/image.png";
 
 import routesConfig from "./routes";
+import Swal from "sweetalert2";
 
 export default function App() {
   const [controller, dispatch] = useMaterialUIController();
@@ -37,12 +44,16 @@ export default function App() {
 
   const userRole = localStorage.getItem("roleId");
   let routes;
+
+  const navigate = useNavigate();
+  const logoutTimerRef = useRef(null);
+
   if (userRole === "1") {
-    routes = [...routesConfig.userRoutes, ...routesConfig.adminRoutes];
+    routes = [...routesConfig.userRoutesLoggedIn, ...routesConfig.adminRoutes];
   } else if (userRole === null) {
     routes = routesConfig.userRoutes;
   } else {
-    routes = routesConfig.userRoutes;
+    routes = routesConfig.userRoutesLoggedIn;
   }
 
   useMemo(() => {
@@ -73,6 +84,48 @@ export default function App() {
     document.documentElement.scrollTop = 0;
     document.scrollingElement.scrollTop = 0;
   }, [pathname]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    const timeoutDuration = 1000 * 60 * 60 * 24;
+
+    const startLogoutTimer = () => {
+      if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
+
+      logoutTimerRef.current = setTimeout(() => {
+        localStorage.clear();
+        Swal.fire({
+          title: "Đăng nhập hết hạn!",
+          text: "Bạn có muốn đăng nhập lại không?",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonText: "Có",
+          cancelButtonText: "Không",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            navigate("/authentication/sign-in");
+          }
+        });
+      }, timeoutDuration);
+    };
+
+    startLogoutTimer();
+
+    const resetLogoutTimer = () => {
+      startLogoutTimer();
+    };
+
+    window.addEventListener("mousemove", resetLogoutTimer);
+    window.addEventListener("keydown", resetLogoutTimer);
+
+    return () => {
+      if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
+      window.removeEventListener("mousemove", resetLogoutTimer);
+      window.removeEventListener("keydown", resetLogoutTimer);
+    };
+  }, [navigate]);
 
   const getRoutes = (Routes) =>
     Routes.map((route) => {
@@ -119,7 +172,7 @@ export default function App() {
             <Sidenav
               color={sidenavColor}
               brand={(transparentSidenav && !darkMode) || whiteSidenav ? brandDark : brandWhite}
-              brandName="Material Dashboard 2"
+              brandName="Lập trình cùng Star Dev"
               routes={routes}
               onMouseEnter={handleOnMouseEnter}
               onMouseLeave={handleOnMouseLeave}

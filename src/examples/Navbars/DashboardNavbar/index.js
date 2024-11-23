@@ -44,6 +44,10 @@ function DashboardNavbar({ absolute, light, isMini }) {
     setIsLoggedIn(!!userId);
   }, []);
 
+  useEffect(() => {
+    console.log("isLoggedIn:", isLoggedIn);
+  }, [isLoggedIn]);
+
   const handleLogout = () => {
     localStorage.clear();
     setIsLoggedIn(false);
@@ -81,6 +85,7 @@ function DashboardNavbar({ absolute, light, isMini }) {
     } else {
       setNavbarType("static");
     }
+    console.log("isLoggedIn: " + isLoggedIn);
 
     function handleTransparentNavbar() {
       setTransparentNavbar(dispatch, (fixedNavbar && window.scrollY === 0) || !fixedNavbar);

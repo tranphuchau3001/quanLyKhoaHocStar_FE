@@ -219,7 +219,7 @@ function Learning() {
       Swal.fire({
         icon: "error",
         title: "Oops...",
-        text: "Có lỗi xảy ra khi kiểm tra đăng ký học!",
+        text: "Có lỗi xảy ra khi cấp chứng nhận!",
       });
     }
   };
