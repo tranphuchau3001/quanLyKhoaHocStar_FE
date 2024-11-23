@@ -45,7 +45,7 @@ const ProfilePage = () => {
       }
       fetchCourses(storedUserId);
     } else if (!isNavigating.current) {
-      console.error("Không có userId");
+      // console.error("Không có userId");
       Swal.fire({
         title: "Bạn chưa đăng nhập",
         text: "Bạn cần đăng nhập mới có thông tin. Bạn có muốn đăng nhập không?",
