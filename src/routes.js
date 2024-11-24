@@ -12,6 +12,7 @@ import Profile from "layouts/account/profilePage";
 import AccountSettings from "layouts/account/settingAccount";
 import CourseManager from "layouts/admin/CoursesManager";
 import ModulesManager from "layouts/admin/ModulesManager";
+import AdminAccountManager from "layouts/admin/admin-account-manager";
 // @mui icons
 import Icon from "@mui/material/Icon";
 
@@ -188,7 +189,7 @@ const adminRoutes = [
   },
   {
     type: "collapse",
-    name: "Quản Lý Khóa Học",
+    name: "Quản lý khóa học",
     key: "courses-manager",
     icon: <Icon fontSize="small">library_books</Icon>,
     route: "/courses-manager",
@@ -196,11 +197,19 @@ const adminRoutes = [
   },
   {
     type: "collapse",
-    name: "Quản Lý Bài Học",
+    name: "Quản lý bài học",
     key: "lesson-manager",
     icon: <Icon fontSize="small">library_books</Icon>,
     route: "/lesson-manager",
     component: <ModulesManager />,
+  },
+  {
+    type: "collapse",
+    name: "Quản lý tài khoản",
+    key: "account-manager",
+    icon: <Icon fontSize="small">library_books</Icon>,
+    route: "/account-manager",
+    component: <AdminAccountManager />,
   },
 ];
 // const routesConfig = { userRoutes, adminRoutes };
