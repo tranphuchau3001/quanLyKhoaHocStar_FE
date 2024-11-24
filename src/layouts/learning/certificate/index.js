@@ -1,11 +1,10 @@
-import React, { useRef, useState } from "react";
+import React, { useRef } from "react";
 import { toPng } from "html-to-image";
 import PropTypes from "prop-types"; // Đảm bảo đã import
 import { Box, Typography } from "@mui/material";
 
 function Certificate({ onGenerateCertificateImage }) {
   const certificateRef = useRef();
-  const [certificateImage, setCertificateImage] = useState(null);
 
   const generateCertificateImage = async () => {
     try {
@@ -67,19 +66,6 @@ function Certificate({ onGenerateCertificateImage }) {
           Ngày hoàn thành: <strong>26 tháng 02, 2024</strong>
         </Typography>
       </Box>
-      {/* Hiển thị ảnh đã tạo */}
-      {certificateImage && (
-        <Box mt={3} textAlign="center">
-          <Typography variant="h6" mb={2}>
-            Đây là ảnh chứng nhận của bạn:
-          </Typography>
-          <img
-            src={certificateImage}
-            alt="Chứng nhận"
-            style={{ maxWidth: "100%", height: "auto" }}
-          />
-        </Box>
-      )}
     </Box>
   );
 }

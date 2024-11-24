@@ -23,7 +23,6 @@ import ArrowCircleRightOutlinedIcon from "@mui/icons-material/ArrowCircleRightOu
 import DefaultNavbar from "examples/Navbars/DefaultNavbar";
 import YouTube from "react-youtube";
 import Certificate from "./certificate";
-import { Box, Typography } from "@mui/material";
 
 function Learning() {
   const [open, setOpen] = useState([]);
@@ -179,7 +178,7 @@ function Learning() {
   };
 
   const handleGenerateCertificateImage = (generateImage) => {
-    setCertificateImage(() => generateImage);
+    setGenerateImageFn(() => generateImage);
   };
 
   const handleReceiveCertificate = async () => {
@@ -466,18 +465,6 @@ function Learning() {
 
   return (
     <PageLayout>
-      {certificateImage && (
-        <Box mt={3} textAlign="center">
-          <Typography variant="h6" mb={2}>
-            Đây là ảnh chứng nhận của bạn:
-          </Typography>
-          <img
-            src={certificateImage}
-            alt="Chứng nhận"
-            style={{ maxWidth: "100%", height: "auto" }}
-          />
-        </Box>
-      )}
       <div style={{ display: "none", justifyContent: "center", marginTop: "20px" }}>
         <Certificate onGenerateCertificateImage={handleGenerateCertificateImage} />
       </div>
