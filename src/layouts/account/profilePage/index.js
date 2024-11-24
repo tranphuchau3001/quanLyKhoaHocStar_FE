@@ -6,18 +6,10 @@ import Navbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
+import MDTypography from "components/MDTypography";
+import MDBox from "components/MDBox";
 
-import {
-  Box,
-  Avatar,
-  Typography,
-  Card,
-  CardContent,
-  CardMedia,
-  Grid,
-  Paper,
-  Divider,
-} from "@mui/material";
+import { Avatar, Card, CardContent, CardMedia, Grid, Paper, Divider } from "@mui/material";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import "./profille.scss";
 
@@ -138,7 +130,7 @@ const ProfilePage = () => {
   return (
     <DashboardLayout>
       <Navbar />
-      <Box className="profile-page__header" textAlign="center" pb={5} mt={2}>
+      <MDBox className="profile-page__header" textAlign="center" pb={5} mt={2}>
         <img
           src={bgImage}
           alt="Background"
@@ -162,17 +154,17 @@ const ProfilePage = () => {
             mt: -7,
           }}
         />
-        <Typography variant="h5" className="profile-page__name" mt={2}>
+        <MDTypography variant="h5" className="profile-page__name" mt={2}>
           {name || "Tên chưa được cập nhật"}
-        </Typography>
-      </Box>
+        </MDTypography>
+      </MDBox>
 
       <Grid container spacing={2} justifyContent="center">
         <Grid item xs={12} md={6}>
-          <Typography variant="h6" sx={{ ml: 4 }} gutterBottom>
+          <MDTypography variant="h6" sx={{ ml: 4 }} gutterBottom>
             Giới thiệu
-          </Typography>
-          <Typography variant="body2" color="textSecondary" sx={{ ml: 4 }}>
+          </MDTypography>
+          <MDTypography variant="body2" color="secondary" sx={{ ml: 4 }}>
             <AccessTimeIcon fontSize="small" sx={{ mr: 1 }} />
             Thành viên của Start Dev từ ngày{" "}
             {registrationDate
@@ -182,19 +174,19 @@ const ProfilePage = () => {
                   year: "numeric",
                 }).format(new Date(registrationDate))
               : "Ngày chưa được cập nhật"}
-          </Typography>
+          </MDTypography>
         </Grid>
 
         <Grid item xs={12} md={6}></Grid>
       </Grid>
-      <Box className="profile-page__content" display="flex" justifyContent="center" p={3}>
+      <MDBox className="profile-page__content" display="flex" justifyContent="center" p={3}>
         <Grid container spacing={2} justifyContent="center">
           {/* Các khóa học đang học */}
           <Grid item xs={12} md={6}>
             <Paper elevation={3} sx={{ padding: 2 }}>
-              <Typography variant="h6" mb={2}>
+              <MDTypography variant="h6" mb={2}>
                 Các khóa học đang học
-              </Typography>
+              </MDTypography>
               {inProgressCourses.length > 0 ? (
                 inProgressCourses.map((course, index) => {
                   const imagePath = require(`assets/images/Background/background-course/${course.imgUrl}`);
@@ -219,10 +211,10 @@ const ProfilePage = () => {
                         </Grid>
                         <Grid item xs={8}>
                           <CardContent sx={{ paddingLeft: "16px" }}>
-                            <Typography variant="h6">{course.courseName}</Typography>
-                            <Typography variant="body2" color="textSecondary">
+                            <MDTypography variant="h6">{course.courseName}</MDTypography>
+                            <MDTypography variant="body2" color="secondary">
                               {course.description}
-                            </Typography>
+                            </MDTypography>
                           </CardContent>
                         </Grid>
                       </Grid>
@@ -230,9 +222,9 @@ const ProfilePage = () => {
                   );
                 })
               ) : (
-                <Typography variant="body2" color="textSecondary">
+                <MDTypography variant="body2" color="secondary">
                   Bạn chưa đăng ký khóa học nào.
-                </Typography>
+                </MDTypography>
               )}
             </Paper>
           </Grid>
@@ -240,9 +232,9 @@ const ProfilePage = () => {
           {/* Các khóa học đã hoàn thành */}
           <Grid item xs={12} md={6}>
             <Paper elevation={3} sx={{ padding: 2 }}>
-              <Typography variant="h6" mb={2}>
+              <MDTypography variant="h6" mb={2}>
                 Các khóa học đã hoàn thành
-              </Typography>
+              </MDTypography>
               {completedCourses.length > 0 ? (
                 completedCourses.map((course, index) => {
                   const imagePath = require(`assets/images/Background/background-course/${course.imgUrl}`);
@@ -267,10 +259,10 @@ const ProfilePage = () => {
                         </Grid>
                         <Grid item xs={8}>
                           <CardContent sx={{ paddingLeft: "16px" }}>
-                            <Typography variant="h6">{course.courseName}</Typography>
-                            <Typography variant="body2" color="textSecondary">
+                            <MDTypography variant="h6">{course.courseName}</MDTypography>
+                            <MDTypography variant="body2" color="secondary">
                               {course.description}
-                            </Typography>
+                            </MDTypography>
                           </CardContent>
                         </Grid>
                       </Grid>
@@ -278,14 +270,14 @@ const ProfilePage = () => {
                   );
                 })
               ) : (
-                <Typography variant="body2" color="textSecondary">
+                <MDTypography variant="body2" color="secondary">
                   Bạn chưa hoàn thành khóa học nào.
-                </Typography>
+                </MDTypography>
               )}
             </Paper>
           </Grid>
         </Grid>
-      </Box>
+      </MDBox>
       <Footer />
     </DashboardLayout>
   );

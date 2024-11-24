@@ -407,8 +407,9 @@ function Learning() {
                         width: "100%",
                         height: "100%",
                         playerVars: {
-                          rel: 0,
                           autoplay: 0,
+                          rel: 0,
+                          modestbranding: 1,
                         },
                       }}
                       style={{
@@ -417,6 +418,11 @@ function Learning() {
                         left: 0,
                         width: "100%",
                         height: "100%",
+                      }}
+                      iframeProps={{
+                        allow:
+                          "accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture",
+                        sandbox: "allow-scripts allow-same-origin",
                       }}
                     />
                   </MDBox>
