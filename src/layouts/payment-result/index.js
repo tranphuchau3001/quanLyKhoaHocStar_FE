@@ -52,6 +52,7 @@ const PaymentResult = () => {
       setTotalAmount(totalAmountInVND);
       setPayDate(formattedPayDate);
       updatePaymentStatus(txnRef, "completed");
+      sendPaymentSuccessEmail(txnRef, "completed");
     } else {
       setPaymentStatus("failure");
       setTransactionId(txnRef);
@@ -81,6 +82,24 @@ const PaymentResult = () => {
         );
       });
   };
+
+  const sendPaymentSuccessEmail = (transactionId, paymentStatus) => {
+    axios
+      .post("http://localhost:3030/api/v1/vnpay/send-payment-success-email", {
+        transactionId: transactionId,
+        paymentStatus: paymentStatus,
+      })
+      .then((response) => {
+        console.log("Gửi maill thành công", response.data);
+      })
+      .catch((error) => {
+        console.error(
+          "Có lỗi xảy ra khi gửi mail:",
+          error.response ? error.response.data : error.message
+        );
+      });
+  };
+
   return (
     <PageLayout>
       <DefaultNavbar />

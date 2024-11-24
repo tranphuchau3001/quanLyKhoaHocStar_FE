@@ -45,7 +45,7 @@ function DashboardNavbar({ absolute, light, isMini }) {
   }, []);
 
   useEffect(() => {
-    console.log("isLoggedIn:", isLoggedIn);
+    // console.log("isLoggedIn:", isLoggedIn);
   }, [isLoggedIn]);
 
   const handleLogout = () => {
@@ -85,7 +85,6 @@ function DashboardNavbar({ absolute, light, isMini }) {
     } else {
       setNavbarType("static");
     }
-    console.log("isLoggedIn: " + isLoggedIn);
 
     function handleTransparentNavbar() {
       setTransparentNavbar(dispatch, (fixedNavbar && window.scrollY === 0) || !fixedNavbar);

@@ -117,9 +117,9 @@ function Configurator() {
         px={3}
       >
         <MDBox>
-          <MDTypography variant="h5">Material UI Configurator</MDTypography>
+          <MDTypography variant="h5">Cấu hình</MDTypography>
           <MDTypography variant="body2" color="text">
-            See our dashboard options.
+            Các tùy chọn bảng điều khiển.
           </MDTypography>
         </MDBox>
 
@@ -142,7 +142,7 @@ function Configurator() {
 
       <MDBox pt={0.5} pb={3} px={3}>
         <MDBox>
-          <MDTypography variant="h6">Sidenav Colors</MDTypography>
+          <MDTypography variant="h6">Màu sắc Sidenav</MDTypography>
 
           <MDBox mb={0.5}>
             {sidenavColors.map((color) => (
@@ -188,9 +188,9 @@ function Configurator() {
         </MDBox>
 
         <MDBox mt={3} lineHeight={1}>
-          <MDTypography variant="h6">Sidenav Type</MDTypography>
+          <MDTypography variant="h6">Loại Sidenav</MDTypography>
           <MDTypography variant="button" color="text">
-            Choose between different sidenav types.
+            Chọn giữa các loại sidenav khác nhau.
           </MDTypography>
 
           <MDBox
@@ -253,18 +253,18 @@ function Configurator() {
           mt={3}
           lineHeight={1}
         >
-          <MDTypography variant="h6">Navbar Fixed</MDTypography>
+          <MDTypography variant="h6">Navbar cố định</MDTypography>
 
           <Switch checked={fixedNavbar} onChange={handleFixedNavbar} />
         </MDBox>
         <Divider />
-        <MDBox display="flex" justifyContent="space-between" alignItems="center" lineHeight={1}>
-          <MDTypography variant="h6">Light / Dark</MDTypography>
+        {/* <MDBox display="flex" justifyContent="space-between" alignItems="center" lineHeight={1}>
+          <MDTypography variant="h6">Sáng / Tối</MDTypography>
 
           <Switch checked={darkMode} onChange={handleDarkMode} />
         </MDBox>
-        <Divider />
-        <MDBox mt={3} mb={2}>
+        <Divider /> */}
+        {/* <MDBox mt={3} mb={2}>
           <MDButton
             component={Link}
             href="https://www.creative-tim.com/learning-lab/react/quick-start/material-dashboard/"
@@ -276,8 +276,8 @@ function Configurator() {
           >
             view documentation
           </MDButton>
-        </MDBox>
-        <MDBox display="flex" justifyContent="center">
+        </MDBox> */}
+        {/* <MDBox display="flex" justifyContent="center">
           <GitHubButton
             href="https://github.com/creativetimofficial/material-dashboard-react"
             data-icon="octicon-star"
@@ -317,7 +317,7 @@ function Configurator() {
               &nbsp; Share
             </MDButton>
           </MDBox>
-        </MDBox>
+        </MDBox> */}
       </MDBox>
     </ConfiguratorRoot>
   );
