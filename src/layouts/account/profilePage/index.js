@@ -26,6 +26,8 @@ const ProfilePage = () => {
   const [registrationDate, setRegistrationDate] = useState("");
   const [userId, setUserId] = useState("");
   const [courses, setCourses] = useState([]);
+  const [inProgressCourses, setInProgressCourses] = useState([]);
+  const [completedCourses, setCompletedCourses] = useState([]);
   const navigate = useNavigate();
   const isNavigating = useRef(false);
 
@@ -37,41 +39,33 @@ const ProfilePage = () => {
     if (storedName) setName(storedName);
     if (storedRegistrationDate) setRegistrationDate(storedRegistrationDate);
 
-    setTimeout(() => {
-      if (storedUserId && storedUserId !== "") {
-        setUserId(storedUserId);
-        fetchCourses(storedUserId);
-      } else {
-        navigate("/authentication/sign-in");
-      }
-    }, 500);
-  }, []);
-
-  useEffect(() => {
-    const storedUserId = localStorage.getItem("userId");
-
     if (storedUserId && storedUserId !== "") {
       if (userId !== storedUserId) {
         setUserId(storedUserId);
       }
       fetchCourses(storedUserId);
     } else if (!isNavigating.current) {
-      console.error("userId is not available or empty");
+      console.error("Không có userId");
       Swal.fire({
-        title: "Cảnh báo",
-        text: "Bạn cần đăng nhập mới có thông tin.",
+        title: "Bạn chưa đăng nhập",
+        text: "Bạn cần đăng nhập mới có thông tin. Bạn có muốn đăng nhập không?",
         icon: "warning",
-        confirmButtonText: "OK",
+        showCancelButton: true,
+        confirmButtonText: "Có",
+        cancelButtonText: "Không",
       }).then((result) => {
         if (result.isConfirmed) {
           isNavigating.current = true;
           navigate("/authentication/sign-in");
+        } else if (result.isDismissed) {
+          console.log("Người dùng đã từ chối đăng nhập.");
         }
       });
     }
   }, [userId, navigate]);
 
   const fetchCourses = async () => {
+    const userId = localStorage.getItem("userId");
     if (!userId) {
       console.error("userId is empty, cannot fetch courses");
       return;
@@ -81,20 +75,61 @@ const ProfilePage = () => {
       const response = await fetch(
         `http://localhost:3030/api/v1/enrollment/getEnrollmentByUserId?userId=${userId}`
       );
+
       if (!response.ok) {
         console.error("Network response was not ok:", response.status);
         return;
       }
 
       const result = await response.json();
-      console.log(result.data);
+
       if (result.success) {
-        setCourses(result.data);
+        const enrollments = result.data;
+
+        const inProgress = enrollments.filter((enrollment) => enrollment.status === "in_progress");
+        const completed = enrollments.filter((enrollment) => enrollment.status === "completed");
+
+        setInProgressCourses(inProgress);
+        setCompletedCourses(completed);
       }
     } catch (error) {
       console.error("Error fetching courses:", error);
     }
   };
+
+  // const fetchCourses = async () => {
+  //   const userId = localStorage.getItem("userId");
+  //   if (!userId) {
+  //     console.error("userId is empty, cannot fetch courses");
+  //     return;
+  //   }
+
+  //   try {
+  //     const response = await fetch(
+  //       `http://localhost:3030/api/v1/enrollment/getEnrollmentByUserId?userId=${userId}`
+  //     );
+
+  //     if (!response.ok) {
+  //       console.error("Network response was not ok:", response.status);
+  //       return;
+  //     }
+
+  //     const result = await response.json();
+  //     console.log(result.data);
+
+  //     if (result.success) {
+  //       setCourses(result.data);
+  //       const enrollments = result.data;
+  //       const statuses = enrollments.map((enrollment) => enrollment.status);
+  //       console.log("Statuses:", statuses);
+  //       statuses.forEach((status, index) => {
+  //         console.log(`Status for course ${index + 1}: ${status}`);
+  //       });
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching courses:", error);
+  //   }
+  // };
 
   const handleCourseClick = async (courseId) => {
     navigate(`/learning/${courseId}`);
@@ -131,65 +166,122 @@ const ProfilePage = () => {
           {name || "Tên chưa được cập nhật"}
         </Typography>
       </Box>
+
+      <Grid container spacing={2} justifyContent="center">
+        <Grid item xs={12} md={6}>
+          <Typography variant="h6" sx={{ ml: 4 }} gutterBottom>
+            Giới thiệu
+          </Typography>
+          <Typography variant="body2" color="textSecondary" sx={{ ml: 4 }}>
+            <AccessTimeIcon fontSize="small" sx={{ mr: 1 }} />
+            Thành viên của Start Dev từ ngày{" "}
+            {registrationDate
+              ? new Intl.DateTimeFormat("vi-VN", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                }).format(new Date(registrationDate))
+              : "Ngày chưa được cập nhật"}
+          </Typography>
+        </Grid>
+
+        <Grid item xs={12} md={6}></Grid>
+      </Grid>
       <Box className="profile-page__content" display="flex" justifyContent="center" p={3}>
         <Grid container spacing={2} justifyContent="center">
-          <Grid item xs={12} md={6}>
-            <Paper elevation={3} sx={{ padding: 2 }}>
-              <Typography variant="h6" gutterBottom>
-                Giới thiệu
-              </Typography>
-              <Typography variant="body2" color="textSecondary">
-                <AccessTimeIcon fontSize="small" sx={{ mr: 1 }} />
-                Thành viên của Start Dev vào{" "}
-                {new Date(registrationDate).toLocaleDateString() || "Ngày chưa được cập nhật"}
-              </Typography>
-              <Divider sx={{ my: 2 }} />
-              <Typography variant="h6">Hoạt động gần đây</Typography>
-              <Typography variant="body2" color="textSecondary">
-                Chưa có hoạt động gần đây
-              </Typography>
-            </Paper>
-          </Grid>
+          {/* Các khóa học đang học */}
           <Grid item xs={12} md={6}>
             <Paper elevation={3} sx={{ padding: 2 }}>
               <Typography variant="h6" mb={2}>
-                Các khóa học đã tham gia
+                Các khóa học đang học
               </Typography>
-              {courses.map((course, index) => {
-                const imagePath = require(`assets/images/Background/background-course/${course.imgUrl}`);
-                return (
-                  <Card sx={{ display: "flex", alignItems: "center", mb: 2 }} key={index}>
-                    <Grid container alignItems="center">
-                      <Grid item xs={4} padding={1}>
-                        {" "}
-                        <CardMedia
-                          component="img"
-                          sx={{
-                            width: "100%",
-                            height: 80,
-                            borderRadius: 2,
-                            height: 100,
-                            marginTop: 0,
-                            marginBottom: 1,
-                          }}
-                          image={imagePath}
-                          alt="Course"
-                          onClick={() => handleCourseClick(course.courseId)}
-                        />
+              {inProgressCourses.length > 0 ? (
+                inProgressCourses.map((course, index) => {
+                  const imagePath = require(`assets/images/Background/background-course/${course.imgUrl}`);
+                  return (
+                    <Card sx={{ display: "flex", alignItems: "center", mb: 2 }} key={index}>
+                      <Grid container alignItems="center">
+                        <Grid item xs={4} padding={1}>
+                          <CardMedia
+                            component="img"
+                            sx={{
+                              width: "100%",
+                              height: 80,
+                              borderRadius: 2,
+                              height: 100,
+                              marginTop: 0,
+                              marginBottom: 1,
+                            }}
+                            image={imagePath}
+                            alt="Course"
+                            onClick={() => handleCourseClick(course.courseId)}
+                          />
+                        </Grid>
+                        <Grid item xs={8}>
+                          <CardContent sx={{ paddingLeft: "16px" }}>
+                            <Typography variant="h6">{course.courseName}</Typography>
+                            <Typography variant="body2" color="textSecondary">
+                              {course.description}
+                            </Typography>
+                          </CardContent>
+                        </Grid>
                       </Grid>
-                      <Grid item xs={8}>
-                        {" "}
-                        <CardContent sx={{ paddingLeft: "16px" }}>
-                          <Typography variant="h6">{course.courseName}</Typography>
-                          <Typography variant="body2" color="textSecondary">
-                            {course.description}
-                          </Typography>
-                        </CardContent>
+                    </Card>
+                  );
+                })
+              ) : (
+                <Typography variant="body2" color="textSecondary">
+                  Bạn chưa đăng ký khóa học nào.
+                </Typography>
+              )}
+            </Paper>
+          </Grid>
+
+          {/* Các khóa học đã hoàn thành */}
+          <Grid item xs={12} md={6}>
+            <Paper elevation={3} sx={{ padding: 2 }}>
+              <Typography variant="h6" mb={2}>
+                Các khóa học đã hoàn thành
+              </Typography>
+              {completedCourses.length > 0 ? (
+                completedCourses.map((course, index) => {
+                  const imagePath = require(`assets/images/Background/background-course/${course.imgUrl}`);
+                  return (
+                    <Card sx={{ display: "flex", alignItems: "center", mb: 2 }} key={index}>
+                      <Grid container alignItems="center">
+                        <Grid item xs={4} padding={1}>
+                          <CardMedia
+                            component="img"
+                            sx={{
+                              width: "100%",
+                              height: 80,
+                              borderRadius: 2,
+                              height: 100,
+                              marginTop: 0,
+                              marginBottom: 1,
+                            }}
+                            image={imagePath}
+                            alt="Course"
+                            onClick={() => handleCourseClick(course.courseId)}
+                          />
+                        </Grid>
+                        <Grid item xs={8}>
+                          <CardContent sx={{ paddingLeft: "16px" }}>
+                            <Typography variant="h6">{course.courseName}</Typography>
+                            <Typography variant="body2" color="textSecondary">
+                              {course.description}
+                            </Typography>
+                          </CardContent>
+                        </Grid>
                       </Grid>
-                    </Grid>
-                  </Card>
-                );
-              })}
+                    </Card>
+                  );
+                })
+              ) : (
+                <Typography variant="body2" color="textSecondary">
+                  Bạn chưa hoàn thành khóa học nào.
+                </Typography>
+              )}
             </Paper>
           </Grid>
         </Grid>

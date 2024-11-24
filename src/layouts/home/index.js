@@ -221,12 +221,12 @@ const Home = () => {
                     <Typography variant="body1" sx={{ mt: 2 }}>
                       {image.description}
                     </Typography>
-                    <Button
+                    {/* <Button
                       variant="contained"
                       sx={{ mt: 3, backgroundColor: "#f8b400", color: "#fff" }}
                     >
                       Xem chi tiết
-                    </Button>
+                    </Button> */}
                   </Box>
                 </Box>
               </SplideSlide>

@@ -20,6 +20,7 @@ const SecurityPopup = ({ open, onClose }) => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const userId = localStorage.getItem("userId");
+  const roleId = localStorage.getItem("roleId");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -46,6 +47,7 @@ const SecurityPopup = ({ open, onClose }) => {
         currentPassword: currentPassword || undefined,
         newPassword: newPassword || undefined,
         confirmPassword: confirmPassword || undefined,
+        roleId: roleId,
       });
 
       if (response.data.success) {

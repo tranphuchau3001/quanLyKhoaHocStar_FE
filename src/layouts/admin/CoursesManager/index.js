@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import Footer from "examples/Footer";
 import axios from "axios";
 import moment from "moment";
 import {
@@ -917,6 +918,7 @@ const CourseManagement = () => {
           </Grid>
         </Grid>
       </Container>
+      <Footer />
     </DashboardLayout>
   );
 };

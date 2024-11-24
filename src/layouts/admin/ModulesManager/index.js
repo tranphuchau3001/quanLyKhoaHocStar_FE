@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import Footer from "examples/Footer";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { ToastContainer, toast } from "react-toastify";
@@ -1025,6 +1026,7 @@ function ModulesManagement() {
           {/* {tab === 2 && renderExerciseForm()} */}
         </Grid>
       </Box>
+      <Footer />
     </DashboardLayout>
   );
 }
