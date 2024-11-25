@@ -8,6 +8,7 @@ import Icon from "@mui/material/Icon";
 
 // Images
 import avt from "assets/images/favicon.png";
+import PopupComponent from "../popup";
 
 export default function data() {
   const [users, setUsers] = useState({
@@ -15,6 +16,9 @@ export default function data() {
     lecturer: [],
     student: [],
   });
+
+  const [open, setOpen] = useState(false); // Trạng thái mở/đóng popup
+  const [selectedAccount, setSelectedAccount] = useState(null); // Tài khoản được chỉnh sửa
 
   const fetchGetAllUser = async () => {
     try {
@@ -38,6 +42,24 @@ export default function data() {
   useEffect(() => {
     fetchGetAllUser();
   }, []);
+
+  const handleEdit = (users) => {
+    setSelectedAccount(users); // Gán tài khoản cần chỉnh sửa
+    setOpen(true); // Mở popup
+  };
+
+  // Hàm đóng popup
+  const handleClose = () => {
+    setOpen(false);
+    setSelectedAccount(null); // Xóa dữ liệu sau khi đóng popup
+  };
+
+  // Hàm lưu thay đổi (từ popup)
+  const handleSave = (updatedAccount) => {
+    console.log("Tài khoản đã cập nhật:", updatedAccount);
+    // Thay đổi danh sách tài khoản (nếu cần)
+    setOpen(false); // Đóng popup
+  };
 
   // eslint-disable-next-line react/prop-types
   const Author = ({ image, name, email }) => (
@@ -96,7 +118,7 @@ export default function data() {
               variant="contained"
               color="info"
               size="small"
-              onClick={() => console.log("Chỉnh sửa:", user)}
+              onClick={() => handleEdit(user)}
             >
               Chỉnh sửa
             </MDButton>
@@ -119,6 +141,13 @@ export default function data() {
             >
               {user.status ? "Khóa tài khoản" : "Mở lại tài khoản"}
             </MDButton> */}
+            <PopupComponent
+              open={open}
+              onClose={handleClose}
+              account={selectedAccount} // Truyền selectedAccount thay vì users
+              onSave={handleSave}
+              fetchUsers={fetchGetAllUser}
+            />
           </MDBox>
         ),
       })),
