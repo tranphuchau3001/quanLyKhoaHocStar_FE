@@ -22,8 +22,6 @@ import ArrowCircleLeftOutlinedIcon from "@mui/icons-material/ArrowCircleLeftOutl
 import ArrowCircleRightOutlinedIcon from "@mui/icons-material/ArrowCircleRightOutlined";
 import DefaultNavbar from "examples/Navbars/DefaultNavbar";
 import YouTube from "react-youtube";
-import Certificate from "./certificate";
-import { Box, Typography } from "@mui/material";
 
 function Learning() {
   const [open, setOpen] = useState([]);
@@ -43,9 +41,6 @@ function Learning() {
   const [totalLessons, setTotalLessons] = useState(0);
   const navigate = useNavigate();
 
-  const [certificateImage, setCertificateImage] = useState(null);
-  const [generateImageFn, setGenerateImageFn] = useState(null);
-
   const completionPercentage = (completedLessons.size / totalLessons) * 100;
 
   const fetchUserProgress = async (moduleId) => {
@@ -53,7 +48,7 @@ function Learning() {
       const response = await axios.get(
         "http://localhost:3030/api/v1/user-progress/getAllUserProgress"
       );
-      console.log("Call API getAllUserProgress OK");
+      // console.log("Call API getAllUserProgress OK");
       return response.data.success ? response.data.data : [];
     } catch (error) {
       console.error("Error fetching lessons:", error);
@@ -104,7 +99,7 @@ function Learning() {
           courseId
         );
         setCompletedLessons(new Set(completedLessonsFromApi));
-        console.log("Các bài học đã hoàn thành:", completedLessonsFromApi);
+        // console.log("Các bài học đã hoàn thành:", completedLessonsFromApi);
 
         setNextVideo(allLessons, completedLessonsFromApi);
       }
@@ -124,7 +119,7 @@ function Learning() {
       return;
     }
 
-    console.log("Đang lưu tiến trình cho:", { userId, courseId, lessonId, status });
+    // console.log("Đang lưu tiến trình cho:", { userId, courseId, lessonId, status });
 
     try {
       const response = await axios.post(
@@ -138,10 +133,10 @@ function Learning() {
       );
 
       if (response.data.success) {
-        console.log("Tiến trình học tập đã được lưu thành công.");
+        // console.log("Tiến trình học tập đã được lưu thành công.");
         setCompletedLessons((prev) => new Set(prev).add(lessonId));
       } else {
-        console.error("Không thể lưu tiến trình học tập:", response.data.message);
+        console.log("Tiến trình đã lưu:", response.data.message);
       }
     } catch (error) {
       console.error("Lỗi khi lưu tiến trình học tập:", error);
@@ -178,83 +173,6 @@ function Learning() {
     // setNextVideo(lessons, completedLessonsFromApi);
   };
 
-  const handleGenerateCertificateImage = (generateImage) => {
-    setCertificateImage(() => generateImage);
-  };
-
-  const handleReceiveCertificate = async () => {
-    if (!generateImageFn) return;
-
-    try {
-      const image = await generateImageFn();
-      if (image) {
-        setCertificateImage(image);
-        console.log("Đã tạo ảnh chứng nhận:", image);
-        await sendCertificateEmail(image);
-      } else {
-        Swal.fire({
-          icon: "error",
-          title: "Lỗi",
-          text: "Không thể tạo ảnh chứng nhận!",
-        });
-      }
-    } catch (error) {
-      console.error("Có lỗi khi tạo chứng nhận:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Oops...",
-        text: "Có lỗi xảy ra khi nhận chứng nhận!",
-      });
-    }
-  };
-  const sendCertificateEmail = async (image) => {
-    const userName = localStorage.getItem("name");
-    const email = localStorage.getItem("email");
-    const courseTitle = course.title; // Lấy tên khóa học từ props hoặc state
-    const certificateImage = image; // Dữ liệu ảnh (chuỗi base64 hoặc URL)
-    // Kiểm tra nếu thiếu dữ liệu
-    if (!certificateImage) {
-      Swal.fire({
-        icon: "error",
-        title: "Lỗi",
-        text: "Không thể tạo ảnh chứng nhận!",
-      });
-      return;
-    }
-
-    try {
-      const response = await axios.post("http://localhost:3030/api/v1/certificate/send", null, {
-        params: {
-          toEmail: "letientung104@gmail.com",
-          userName: userName,
-          courseTitle: courseTitle,
-          certificateImage: certificateImage,
-        },
-      });
-      console.log(response.data);
-
-      if (response.data.success) {
-        Swal.fire({
-          title: "Thành công!",
-          text: "Chứng nhận đã được gửi qua email.",
-          icon: "success",
-        });
-      } else {
-        Swal.fire({
-          title: "Thất bại!",
-          text: "Có lỗi khi gửi chứng nhận qua email.",
-          icon: "error",
-        });
-      }
-    } catch (error) {
-      console.error("Có lỗi khi gửi chứng nhận qua email:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Oops...",
-        text: "Có lỗi xảy ra khi gửi chứng nhận qua email!",
-      });
-    }
-  };
   const fetchCheckEnrollment = async () => {
     const userId = localStorage.getItem("userId");
     try {
@@ -268,17 +186,15 @@ function Learning() {
       if (checkEnrollment.data.success) {
         const enrollment = checkEnrollment.data.data;
         const enrollmentId = enrollment.enrollmentId;
-        console.log("enrollmentId" + enrollmentId);
-        Swal.fire({
-          title: "Thành công!",
-          text: "enrollmentId: " + enrollmentId,
-          icon: "success",
-        });
+        const certificateUrl = "certificate_" + enrollmentId + ".pdf";
         const saveEnrollmentStatus = await axios.put(
-          "http://localhost:3030/api/v1/enrollment/update-enrollment-status",
+          "http://localhost:3030/api/v1/enrollment/completeCourse",
+          null,
           {
-            enrollmentId: enrollmentId,
-            status: "completed",
+            params: {
+              enrollmentId,
+              certificateUrl,
+            },
           }
         );
 
@@ -290,9 +206,9 @@ function Learning() {
           });
         } else {
           Swal.fire({
-            title: "Thất bại!",
-            text: "Cấp chứng chỉ không thành công!",
-            icon: "error",
+            title: "Chứng nhận đã được cấp!",
+            text: "Vui lòng kiểm tra ở ...",
+            icon: "warning",
           });
         }
       }
@@ -301,7 +217,7 @@ function Learning() {
       Swal.fire({
         icon: "error",
         title: "Oops...",
-        text: "Có lỗi xảy ra khi kiểm tra đăng ký học!",
+        text: "Có lỗi xảy ra khi cấp chứng nhận!",
       });
     }
   };
@@ -316,7 +232,7 @@ function Learning() {
         .flat()
         .filter((lesson) => completedLessonIds.includes(lesson.lessonId));
 
-      console.log("Bài học đã hoàn thành:", completedLessonsList);
+      // console.log("Bài học đã hoàn thành:", completedLessonsList);
 
       if (completedLessonsList.length > 0) {
         const lastCompletedLessonIndex = allLessons
@@ -328,20 +244,20 @@ function Learning() {
 
         if (lastCompletedLessonIndex + 1 < allLessons.flat().length) {
           const nextLesson = allLessons.flat()[lastCompletedLessonIndex + 1];
-          console.log("Bài học tiếp theo:", nextLesson);
+          // console.log("Bài học tiếp theo:", nextLesson);
           setCurrentVideo(nextLesson.videoUrl);
           setSelectedVideoId(nextLesson.lessonId);
           setCurrentVideoIndex(lastCompletedLessonIndex + 1);
         } else {
           const firstLesson = allLessons[0][0];
-          console.log("Tất cả các bài học đã hoàn thành. Mở bài học đầu tiên:", firstLesson);
+          // console.log("Tất cả các bài học đã hoàn thành. Mở bài học đầu tiên:", firstLesson);
           setCurrentVideo(firstLesson.videoUrl);
           setSelectedVideoId(firstLesson.lessonId);
           setCurrentVideoIndex(0);
         }
       } else {
         const firstLesson = allLessons[0][0];
-        console.log("Không có bài học hoàn thành. Mở bài học đầu tiên:", firstLesson);
+        // console.log("Không có bài học hoàn thành. Mở bài học đầu tiên:", firstLesson);
         setCurrentVideo(firstLesson.videoUrl);
         setSelectedVideoId(firstLesson.lessonId);
         setCurrentVideoIndex(0);
@@ -405,7 +321,7 @@ function Learning() {
         setCanProceedToNext(true);
       }
     }
-    console.log("index:" + videoId);
+    // console.log("index:" + videoId);
   };
 
   const handlePrevious = () => {
@@ -420,9 +336,9 @@ function Learning() {
     }
   };
 
-  // const handleReceiveCertificate = () => {
-  //   fetchCheckEnrollment();
-  // };
+  const handleReceiveCertificate = () => {
+    fetchCheckEnrollment();
+  };
 
   const handleVideoStateChange = (event) => {
     const currentTime = event.target.getCurrentTime();
@@ -436,7 +352,7 @@ function Learning() {
       setCompletedLessons((prev) => {
         const newCompleted = new Set(prev);
         newCompleted.add(selectedVideoId);
-        console.log("selectedVideoId: " + selectedVideoId);
+        // console.log("selectedVideoId: " + selectedVideoId);
         return newCompleted;
       });
 
@@ -466,21 +382,6 @@ function Learning() {
 
   return (
     <PageLayout>
-      {certificateImage && (
-        <Box mt={3} textAlign="center">
-          <Typography variant="h6" mb={2}>
-            Đây là ảnh chứng nhận của bạn:
-          </Typography>
-          <img
-            src={certificateImage}
-            alt="Chứng nhận"
-            style={{ maxWidth: "100%", height: "auto" }}
-          />
-        </Box>
-      )}
-      <div style={{ display: "none", justifyContent: "center", marginTop: "20px" }}>
-        <Certificate onGenerateCertificateImage={handleGenerateCertificateImage} />
-      </div>
       <DefaultNavbar />
       <MDBox pt={6} pb={3}>
         <Grid container spacing={6} pt={6}>
@@ -606,11 +507,11 @@ function Learning() {
                                 <ListItemButton
                                   key={lesson.lessonId}
                                   onClick={() => {
-                                    console.log("Selected Video ID:", selectedVideoId);
-                                    console.log("Completed Lessons:", completedLessons);
-                                    console.log("Can Proceed to Next:", canProceedToNext);
-                                    console.log("Current Video Index:", currentVideoIndex);
-                                    console.log("Lesson Index:", lessonIndex);
+                                    // console.log("Selected Video ID:", selectedVideoId);
+                                    // console.log("Completed Lessons:", completedLessons);
+                                    // console.log("Can Proceed to Next:", canProceedToNext);
+                                    // console.log("Current Video Index:", currentVideoIndex);
+                                    // console.log("Lesson Index:", lessonIndex);
 
                                     const canClick =
                                       lesson.lessonId === selectedVideoId ||
@@ -619,7 +520,7 @@ function Learning() {
                                         lessonIndex === currentVideoIndex + 1 &&
                                         completedLessons.has(lesson.lessonId));
 
-                                    console.log("Can Click:", canClick);
+                                    // console.log("Can Click:", canClick);
 
                                     if (canClick) {
                                       handleVideoChange(lesson.lessonId);

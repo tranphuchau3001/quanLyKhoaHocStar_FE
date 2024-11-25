@@ -44,6 +44,10 @@ function DashboardNavbar({ absolute, light, isMini }) {
     setIsLoggedIn(!!userId);
   }, []);
 
+  useEffect(() => {
+    // console.log("isLoggedIn:", isLoggedIn);
+  }, [isLoggedIn]);
+
   const handleLogout = () => {
     localStorage.clear();
     setIsLoggedIn(false);

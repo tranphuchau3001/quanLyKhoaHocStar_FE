@@ -195,7 +195,7 @@ function Cover() {
             maxWidth: "400px",
           }}
         >
-          <MDTypography textAlign="center" variant="h4" fontWeight="bold" color="black" mt={2}>
+          <MDTypography textAlign="center" variant="h4" fontWeight="bold" color="dark" mt={2}>
             Đăng ký
           </MDTypography>
           <MDBox pb={3} px={3}>
@@ -211,11 +211,11 @@ function Cover() {
                   onChange={handleChange}
                   InputLabelProps={{
                     sx: {
-                      color: "black",
+                      color: "dark",
                     },
                   }}
                   inputProps={{
-                    style: { color: "black" },
+                    style: { color: "dark" },
                   }}
                 />
 
@@ -228,11 +228,11 @@ function Cover() {
                   onChange={handleChange}
                   InputLabelProps={{
                     sx: {
-                      color: "black",
+                      color: "dark",
                     },
                   }}
                   inputProps={{
-                    style: { color: "black" },
+                    style: { color: "dark" },
                   }}
                 />
 
@@ -245,11 +245,11 @@ function Cover() {
                   onChange={handleChange}
                   InputLabelProps={{
                     sx: {
-                      color: "black",
+                      color: "dark",
                     },
                   }}
                   inputProps={{
-                    style: { color: "black" },
+                    style: { color: "dark" },
                   }}
                 />
 
@@ -262,11 +262,11 @@ function Cover() {
                   onChange={handleChange}
                   InputLabelProps={{
                     sx: {
-                      color: "black",
+                      color: "dark",
                     },
                   }}
                   inputProps={{
-                    style: { color: "black" },
+                    style: { color: "dark" },
                   }}
                 />
               </MDBox>
@@ -283,11 +283,11 @@ function Cover() {
                       onChange={handleChange}
                       InputLabelProps={{
                         sx: {
-                          color: "black",
+                          color: "dark",
                         },
                       }}
                       inputProps={{
-                        style: { color: "black" },
+                        style: { color: "dark" },
                       }}
                     />
                   </Grid>
@@ -316,7 +316,7 @@ function Cover() {
               <MDBox mt={4}>
                 <MDButton
                   variant="gradient"
-                  color="black"
+                  // color="dark"
                   fullWidth
                   onClick={handleRegister}
                   sx={{ color: "white", backgroundColor: "#00ff00" }}
@@ -325,13 +325,13 @@ function Cover() {
                 </MDButton>
               </MDBox>
               <MDBox mt={3} mb={1} textAlign="center">
-                <MDTypography variant="button" color="black">
+                <MDTypography variant="button" color="dark">
                   Bạn đã có tài khoản?{" "}
                   <MDTypography
                     component="a"
                     href="/authentication/sign-in"
                     variant="button"
-                    color="black"
+                    color="dark"
                     fontWeight="medium"
                   >
                     Đăng nhập
