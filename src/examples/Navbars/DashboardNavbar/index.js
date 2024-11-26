@@ -68,7 +68,7 @@ function DashboardNavbar({ absolute, light, isMini }) {
             Thông tin tài khoản
           </MenuItem>,
           <MenuItem key="settings" onClick={() => navigate("/AccountSettings")}>
-            Cài đặt
+            Cài đặt tài khoản
           </MenuItem>,
           <MenuItem key="logout" onClick={handleLogout}>
             Đăng xuất
