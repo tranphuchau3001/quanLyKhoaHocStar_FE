@@ -22,6 +22,7 @@ import ArrowCircleLeftOutlinedIcon from "@mui/icons-material/ArrowCircleLeftOutl
 import ArrowCircleRightOutlinedIcon from "@mui/icons-material/ArrowCircleRightOutlined";
 import DefaultNavbar from "examples/Navbars/DefaultNavbar";
 import YouTube from "react-youtube";
+import Certificate from "./certificate";
 
 function Learning() {
   const [open, setOpen] = useState([]);
@@ -40,6 +41,9 @@ function Learning() {
   const [progressSaved, setProgressSaved] = useState(false);
   const [totalLessons, setTotalLessons] = useState(0);
   const navigate = useNavigate();
+
+  const [certificateImage, setCertificateImage] = useState(null);
+  const [generateImageFn, setGenerateImageFn] = useState(null);
 
   const completionPercentage = (completedLessons.size / totalLessons) * 100;
 
@@ -173,6 +177,83 @@ function Learning() {
     // setNextVideo(lessons, completedLessonsFromApi);
   };
 
+  const handleGenerateCertificateImage = (generateImage) => {
+    setGenerateImageFn(() => generateImage);
+  };
+
+  const handleReceiveCertificate = async () => {
+    if (!generateImageFn) return;
+
+    try {
+      const image = await generateImageFn();
+      if (image) {
+        setCertificateImage(image);
+        console.log("Đã tạo ảnh chứng nhận:", image);
+        await sendCertificateEmail(image);
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Lỗi",
+          text: "Không thể tạo ảnh chứng nhận!",
+        });
+      }
+    } catch (error) {
+      console.error("Có lỗi khi tạo chứng nhận:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "Có lỗi xảy ra khi nhận chứng nhận!",
+      });
+    }
+  };
+  const sendCertificateEmail = async (image) => {
+    const userName = localStorage.getItem("name");
+    const email = localStorage.getItem("email");
+    const courseTitle = course.title; // Lấy tên khóa học từ props hoặc state
+    const certificateImage = image; // Dữ liệu ảnh (chuỗi base64 hoặc URL)
+    // Kiểm tra nếu thiếu dữ liệu
+    if (!certificateImage) {
+      Swal.fire({
+        icon: "error",
+        title: "Lỗi",
+        text: "Không thể tạo ảnh chứng nhận!",
+      });
+      return;
+    }
+
+    try {
+      const response = await axios.post("http://localhost:3030/api/v1/certificate/send", null, {
+        params: {
+          toEmail: "letientung104@gmail.com",
+          userName: userName,
+          courseTitle: courseTitle,
+          certificateImage: certificateImage,
+        },
+      });
+      console.log(response.data);
+
+      if (response.data.success) {
+        Swal.fire({
+          title: "Thành công!",
+          text: "Chứng nhận đã được gửi qua email.",
+          icon: "success",
+        });
+      } else {
+        Swal.fire({
+          title: "Thất bại!",
+          text: "Có lỗi khi gửi chứng nhận qua email.",
+          icon: "error",
+        });
+      }
+    } catch (error) {
+      console.error("Có lỗi khi gửi chứng nhận qua email:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "Có lỗi xảy ra khi gửi chứng nhận qua email!",
+      });
+    }
+  };
   const fetchCheckEnrollment = async () => {
     const userId = localStorage.getItem("userId");
     try {
@@ -338,9 +419,9 @@ function Learning() {
     }
   };
 
-  const handleReceiveCertificate = () => {
-    fetchCheckEnrollment();
-  };
+  // const handleReceiveCertificate = () => {
+  //   fetchCheckEnrollment();
+  // };
 
   const handleVideoStateChange = (event) => {
     const currentTime = event.target.getCurrentTime();
@@ -384,6 +465,9 @@ function Learning() {
 
   return (
     <PageLayout>
+      <div style={{ display: "none", justifyContent: "center", marginTop: "20px" }}>
+        <Certificate onGenerateCertificateImage={handleGenerateCertificateImage} />
+      </div>
       <DefaultNavbar />
       <MDBox pt={6} pb={3}>
         <Grid container spacing={6} pt={6}>

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 // porp-types is a library for typechecking of props
 import PropTypes from "prop-types";
@@ -28,6 +28,7 @@ import MDTypography from "components/MDTypography";
 
 // ReportsLineChart configurations
 import configs from "examples/Charts/LineCharts/ReportsLineChart/configs";
+import { FormControl, Grid, MenuItem, Select } from "@mui/material";
 
 ChartJS.register(
   CategoryScale,
@@ -42,6 +43,10 @@ ChartJS.register(
 
 function ReportsLineChart({ color, title, description, date, chart }) {
   const { data, options } = configs(chart.labels || [], chart.datasets || {});
+  const [selectedYear, setSelectedYear] = useState(2024);
+  const handleYearChange = (event) => {
+    setSelectedYear(event.target.value);
+  };
 
   return (
     <Card sx={{ height: "100%" }}>
@@ -64,21 +69,56 @@ function ReportsLineChart({ color, title, description, date, chart }) {
           [chart, color]
         )}
         <MDBox pt={3} pb={1} px={1}>
-          <MDTypography variant="h6" textTransform="capitalize">
-            {title}
-          </MDTypography>
-          <MDTypography component="div" variant="button" color="text" fontWeight="light">
-            {description}
-          </MDTypography>
-          <Divider />
-          <MDBox display="flex" alignItems="center">
-            <MDTypography variant="button" color="text" lineHeight={1} sx={{ mt: 0.15, mr: 0.5 }}>
-              <Icon>schedule</Icon>
-            </MDTypography>
-            <MDTypography variant="button" color="text" fontWeight="light">
-              {date}
-            </MDTypography>
-          </MDBox>
+          <Grid container alignItems="center">
+            <Grid item xs={6}>
+              <MDTypography variant="h6" textTransform="capitalize">
+                {title}
+              </MDTypography>
+              <MDTypography component="div" variant="button" color="text" fontWeight="light" mb={1}>
+                {description}
+              </MDTypography>
+              <MDBox display="flex" alignItems="center">
+                <MDTypography
+                  variant="button"
+                  color="text"
+                  lineHeight={1}
+                  sx={{ mt: 0.15, mr: 0.5 }}
+                >
+                  <Icon>schedule</Icon>
+                </MDTypography>
+                <MDTypography variant="button" color="text" fontWeight="light">
+                  {date}
+                </MDTypography>
+              </MDBox>
+            </Grid>
+            <Grid item xs={6} textAlign="center">
+              <FormControl variant="outlined" size="small" sx={{ minWidth: 120 }}>
+                <Select
+                  value={selectedYear}
+                  onChange={handleYearChange}
+                  displayEmptyxx
+                  sx={{
+                    borderRadius: "6px",
+                    backgroundColor: "#fff",
+                    "& .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "#d1d9e6",
+                    },
+                    "&:hover .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "#5e72e4",
+                    },
+                    height: "30px",
+                    width: "200px",
+                  }}
+                >
+                  {[2022, 2023, 2024, 2025].map((year) => (
+                    <MenuItem key={year} value={year}>
+                      {year}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+          </Grid>
         </MDBox>
       </MDBox>
     </Card>

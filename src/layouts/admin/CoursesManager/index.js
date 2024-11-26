@@ -26,6 +26,7 @@ import {
   Tabs,
   Tab,
   Box,
+  Card,
 } from "@mui/material";
 
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -36,6 +37,12 @@ import "react-toastify/dist/ReactToastify.css";
 import PropTypes from "prop-types";
 import "./coursesManager.scss";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
+import MDBox from "components/MDBox";
+import DataTable from "examples/Tables/DataTable";
+
+// Data
+import authorsTableData from "layouts/tables/data/authorsTableData";
+import CourseTables from "layouts/admin/CoursesManager/data/projectsTableData";
 
 const defaultImage = "https://via.placeholder.com/150";
 
@@ -60,6 +67,10 @@ const CourseManagement = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [value, setValue] = useState(0);
   const [coursesPerPage, setCoursesPerPage] = useState(5);
+
+  const [tabIndex, setTabIndex] = useState(0);
+  const { columns, rows } = authorsTableData();
+  const [selectedCourse, setSelectedCourse] = useState(null);
 
   const handleActiveChange = () => {
     setActive(true);
@@ -164,7 +175,7 @@ const CourseManagement = () => {
         Swal.fire("Thành công!", "Khóa học đã được thêm.", "success");
         if (file) {
           const uploadedFileName = await handleUpload(file);
-          await updateCourseImage(response.data.courseId, uploadedFileName);
+          updateCourseImage(response.data.courseId, uploadedFileName);
         }
         fetchCourses();
         resetForm();
@@ -257,7 +268,7 @@ const CourseManagement = () => {
 
         if (file) {
           const uploadedFileName = await handleUpload(file);
-          await updateCourseImage(response.data.courseId, uploadedFileName);
+          updateCourseImage(response.data.courseId, uploadedFileName);
         }
 
         fetchCourses();
@@ -292,14 +303,23 @@ const CourseManagement = () => {
     formData.append("file", file);
 
     try {
-      const response = await axios.post("http://localhost:3030/api/v1/upload/upload", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      updateCourseImage(response.data.fileName);
-      console.log(response.data);
-      return response.data;
+      const response = await axios.post(
+        "http://localhost:3030/api/v1/upload/upload-background",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      if (response.data && response.data.fileName) {
+        updateCourseImage(response.data.fileName);
+        // console.log("File uploaded successfully:", response.data);
+        return response.data;
+      } else {
+        throw new Error("Invalid response from the server.");
+      }
     } catch (error) {
       console.error("Error uploading file:", error);
       return null;
@@ -378,51 +398,9 @@ const CourseManagement = () => {
   useEffect(() => {
     fetchCourses();
   }, []);
-  const handleChange = (event, newValue) => {
-    setValue(newValue);
-  };
-
-  const handleRowDoubleClick = async (courseId) => {
-    console.log("courseId nhận được:", courseId);
-    if (!courseId) {
-      console.error("Course ID không hợp lệ:", courseId);
-      Swal.fire("Lỗi!", "ID khóa học không hợp lệ.", "error");
-      return;
-    }
-    try {
-      const response = await axios.get(
-        `http://localhost:3030/course-api/getCourseById?courseId=${courseId}`
-      );
-      const courseData = response.data.data;
-
-      console.log(courseData);
-
-      setCourseCode(courseData.courseId);
-      setCourseName(courseData.title);
-      setDescription(courseData.description);
-      setStartDate(courseData.startDate);
-      setEndDate(courseData.endDate);
-      setSchedule(courseData.schedule);
-      setMeetingTime(courseData.meetingTime);
-      setPrice(courseData.price);
-      setActive(courseData.status === true);
-      setInactive(courseData.status === false);
-      const instructorId = courseData.instructor;
-      const instructor = instructors.find((instructor) => instructor.userId === instructorId);
-
-      if (instructor) {
-        setSelectedInstructor(instructor.userId);
-      } else {
-        setSelectedInstructor("");
-      }
-    } catch (error) {
-      console.error("Lỗi khi gọi API lấy thông tin khóa học:", error);
-      if (error.response) {
-        console.error("Chi tiết lỗi:", error.response.data);
-      }
-      Swal.fire("Lỗi!", "Không thể tải thông tin khóa học.", "error");
-    }
-  };
+  // const handleChange = (event, newValue) => {
+  //   setValue(newValue);
+  // };
 
   const handleDelete = async (courseId) => {
     if (!courseId) {
@@ -478,42 +456,63 @@ const CourseManagement = () => {
   const indexOfLastCourse = currentPage * coursesPerPage;
   const indexOfFirstCourse = indexOfLastCourse - coursesPerPage;
 
-  const [currentPagePaid, setCurrentPagePaid] = useState(1);
-  const [currentPageFree, setCurrentPageFree] = useState(1);
-  const [currentPageExpired, setCurrentPageExpired] = useState(1);
+  const handleRowDoubleClick = async (courseId) => {
+    console.log("courseId nhận được:", courseId);
+    if (!courseId) {
+      console.error("Course ID không hợp lệ:", courseId);
+      Swal.fire("Lỗi!", "ID khóa học không hợp lệ.", "error");
+      return;
+    }
+    try {
+      const response = await axios.get(
+        `http://localhost:3030/course-api/getCourseById?courseId=${courseId}`
+      );
+      const courseData = response.data.data;
 
-  const totalPaidPages = Math.ceil(paidCourses.length / coursesPerPage);
-  const totalFreePages = Math.ceil(freeCourses.length / coursesPerPage);
-  const totalExpiredPages = Math.ceil(expiredCourses.length / coursesPerPage);
+      console.log(courseData);
 
-  const getCurrentCourses = (courses, currentPage, coursesPerPage) => {
-    const startIndex = (currentPage - 1) * coursesPerPage;
-    return courses.slice(startIndex, startIndex + coursesPerPage);
+      setCourseCode(courseData.courseId);
+      setCourseName(courseData.title);
+      setDescription(courseData.description);
+      setStartDate(courseData.startDate);
+      setEndDate(courseData.endDate);
+      setSchedule(courseData.schedule);
+      setMeetingTime(courseData.meetingTime);
+      setPrice(courseData.price);
+      setActive(courseData.status === true);
+      setInactive(courseData.status === false);
+      if (courseData.imgUrl) {
+        // Tạo đường dẫn ảnh từ API trả về
+        const imagePath = `/background-course/${courseData.imgUrl}`;
+        setFileUrl(imagePath);
+      } else {
+        setFileUrl(null);
+      }
+      const instructorId = courseData.instructor;
+      const instructor = instructors.find((instructor) => instructor.userId === instructorId);
+
+      if (instructor) {
+        setSelectedInstructor(instructor.userId);
+      } else {
+        setSelectedInstructor("");
+      }
+    } catch (error) {
+      console.error("Lỗi khi gọi API lấy thông tin khóa học:", error);
+      if (error.response) {
+        console.error("Chi tiết lỗi:", error.response.data);
+      }
+      Swal.fire("Lỗi!", "Không thể tải thông tin khóa học.", "error");
+    }
   };
 
-  const handleNextPagePaid = () => {
-    setCurrentPagePaid((prevPage) => (prevPage < totalPaidPages ? prevPage + 1 : prevPage));
+  const handleChange = (event, newTabIndex) => {
+    setTabIndex(newTabIndex);
   };
 
-  const handlePrevPagePaid = () => {
-    setCurrentPagePaid((prevPage) => (prevPage > 1 ? prevPage - 1 : 1));
-  };
+  const expiredTable = CourseTables({ handleRowDoubleClick, handleDelete }).expiredTable;
+  const paidTable = CourseTables({ handleRowDoubleClick, handleDelete }).paidTable;
+  const freeTable = CourseTables({ handleRowDoubleClick, handleDelete }).freeTable;
 
-  const handleNextPageFree = () => {
-    setCurrentPageFree((prevPage) => (prevPage < totalFreePages ? prevPage + 1 : prevPage));
-  };
-
-  const handlePrevPageFree = () => {
-    setCurrentPageFree((prevPage) => (prevPage > 1 ? prevPage - 1 : 1));
-  };
-
-  const handleNextPageExpired = () => {
-    setCurrentPageExpired((prevPage) => (prevPage < totalExpiredPages ? prevPage + 1 : prevPage));
-  };
-
-  const handlePrevPageExpired = () => {
-    setCurrentPageExpired((prevPage) => (prevPage > 1 ? prevPage - 1 : 1));
-  };
   return (
     <DashboardLayout>
       <DashboardNavbar />
@@ -702,6 +701,31 @@ const CourseManagement = () => {
           </Grid>
 
           <Grid item xs={12} md={7}>
+            <MDBox>
+              <Tabs
+                value={tabIndex}
+                onChange={handleChange}
+                indicatorColor="primary"
+                textColor="primary"
+                centered
+              >
+                <Tab label="Khóa học hết hạn" />
+                <Tab label="Khóa học có phí" />
+                <Tab label="Khóa học miễn phí" />
+              </Tabs>
+              <TabPanel value={tabIndex} index={0}>
+                <DataTable table={expiredTable} />
+              </TabPanel>
+              <TabPanel value={tabIndex} index={1}>
+                <DataTable table={paidTable} />
+              </TabPanel>
+              <TabPanel value={tabIndex} index={2}>
+                <DataTable table={freeTable} />
+              </TabPanel>
+            </MDBox>
+          </Grid>
+
+          {/* <Grid item xs={12} md={12}>
             <Paper>
               <Tabs value={value} onChange={handleChange} aria-label="course tabs">
                 <Tab label="Khóa học Có phí" />
@@ -915,7 +939,7 @@ const CourseManagement = () => {
                 </TableContainer>
               </TabPanel>
             </Paper>
-          </Grid>
+          </Grid> */}
         </Grid>
       </Container>
       <Footer />
