@@ -165,7 +165,7 @@ const AccountSettings = () => {
           <Grid item xs={12} md={6}>
             <MDBox className="sidebar">
               <MDTypography variant="h3">Cài đặt tài khoản</MDTypography>
-              <MDTypography variant="body2" color="textSecondary">
+              <MDTypography variant="body2" color="secondary">
                 Quản lý cài đặt tài khoản của bạn như thông tin cá nhân, cài đặt bảo mật, quản lý
                 thông báo, v.v.
               </MDTypography>
@@ -244,7 +244,7 @@ const AccountSettings = () => {
               {currentTab === "info" && (
                 <>
                   <MDTypography variant="h3">Thông tin cá nhân</MDTypography>
-                  <MDTypography variant="body2" color="textSecondary">
+                  <MDTypography variant="body2" color="secondary">
                     Quản lý thông tin cá nhân của bạn
                   </MDTypography>
 
@@ -317,7 +317,7 @@ const AccountSettings = () => {
               {currentTab === "courses" && (
                 <>
                   <MDTypography variant="h3">Khóa học đang quản lý</MDTypography>
-                  <MDTypography variant="body2" color="textSecondary">
+                  <MDTypography variant="body2" color="secondary">
                     Quản lý khóa học bạn đang quản lý và có thể thêm lịch học cho khóa học này
                   </MDTypography>
                   <MDBox className="course-list">
