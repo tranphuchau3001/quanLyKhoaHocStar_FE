@@ -1,3 +1,5 @@
+import React, { useState, useEffect } from "react";
+
 // @mui material components
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
@@ -14,22 +16,48 @@ import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 import DataTable from "examples/Tables/DataTable";
 
-// Data
-import adminTableData from "layouts/admin/admin-account-manager/data/adminTableData";
-import lecturerTableData from "layouts/admin/admin-account-manager/data/lecturerTableData";
-import userTableData from "layouts/admin/admin-account-manager/data/userTableData";
-import { useState } from "react";
-
+// Custom Data Fetch and Row Generation
+import { fetchData } from "layouts/admin/admin-account-manager/data/fetchData/fetchData";
+import { generateRows } from "layouts/admin/admin-account-manager/data/generateRows";
+import avt from "assets/images/favicon.png";
 function AdminAccountManager() {
-  const { columns, rows } = adminTableData();
-  const { columns: lColumns, rows: lRows } = lecturerTableData();
-  const { columns: pColumns, rows: pRows } = userTableData();
-
+  const [users, setUsers] = useState({ admin: [], lecturer: [], student: [] });
   const [activeTab, setActiveTab] = useState(0);
+  const [open, setOpen] = useState(false);
+  const [selectedAccount, setSelectedAccount] = useState(null);
+
+  useEffect(() => {
+    fetchData(setUsers);
+  }, []);
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
   };
+
+  const handleEdit = (user) => {
+    setSelectedAccount(user);
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    setSelectedAccount(null);
+  };
+
+  const commonColumns = [
+    { Header: "STT", accessor: "stt", width: "5%", align: "center" },
+    { Header: "Họ tên", accessor: "fullName", width: "25%", align: "left" },
+    { Header: "Vai trò", accessor: "role", align: "center" },
+    { Header: "Số điện thoại", accessor: "phone", align: "center" },
+    { Header: "Trạng thái", accessor: "status", align: "center" },
+    { Header: "Hành động", accessor: "action", align: "center" },
+  ];
+
+  const tabs = [
+    { label: "Admin", data: users.admin, badgeColor: "primary", roleLabel: "Admin" },
+    { label: "Giảng viên", data: users.lecturer, badgeColor: "info", roleLabel: "Giảng viên" },
+    { label: "Người dùng", data: users.student, badgeColor: "success", roleLabel: "Học viên" },
+  ];
 
   return (
     <DashboardLayout>
@@ -60,38 +88,31 @@ function AdminAccountManager() {
                 textColor="primary"
                 centered
               >
-                <Tab label="Admin" />
-                <Tab label="Giảng viên" />
-                <Tab label="Người dùng" />
+                {tabs.map((tab, index) => (
+                  <Tab key={index} label={tab.label} />
+                ))}
               </Tabs>
               <MDBox pt={3}>
-                {activeTab === 0 && (
-                  <DataTable
-                    table={{ columns, rows }}
-                    isSorted={false}
-                    entriesPerPage={false}
-                    showTotalEntries={false}
-                    noEndBorder
-                  />
-                )}
-                {activeTab === 1 && (
-                  <DataTable
-                    table={{ columns: lColumns, rows: lRows }}
-                    isSorted={false}
-                    entriesPerPage={false}
-                    showTotalEntries={false}
-                    noEndBorder
-                  />
-                )}
-                {activeTab === 2 && (
-                  <DataTable
-                    table={{ columns: pColumns, rows: pRows }}
-                    isSorted={false}
-                    entriesPerPage={false}
-                    showTotalEntries={false}
-                    noEndBorder
-                  />
-                )}
+                <DataTable
+                  table={{
+                    columns: commonColumns,
+                    rows: generateRows(
+                      tabs[activeTab].data,
+                      tabs[activeTab].badgeColor,
+                      tabs[activeTab].roleLabel,
+                      handleEdit,
+                      avt,
+                      open,
+                      handleClose,
+                      selectedAccount,
+                      () => fetchData(setUsers)
+                    ),
+                  }}
+                  isSorted={false}
+                  entriesPerPage={false}
+                  showTotalEntries={false}
+                  noEndBorder
+                />
               </MDBox>
             </Card>
           </Grid>

@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import PropTypes from "prop-types";
+import axios from "axios";
 import {
   Box,
   Button,
@@ -21,8 +22,7 @@ import {
   Input,
 } from "@mui/material";
 import { PhotoCamera } from "@mui/icons-material";
-import { textAlign } from "@mui/system";
-import { updateUser } from "./api/updateUser";
+import { updateUser } from "layouts/admin/admin-account-manager/popup/api/updateUser";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -31,22 +31,22 @@ const PopupComponent = ({ open, onClose, account, onSave }) => {
     return null;
   }
 
-  const [formData, setFormData] = useState({
-    name: account.name || "",
-    email: account.email || "",
-    phone: account.phone || "",
-    avatar: account.avatarUrl || "",
+  const [formData, setFormData] = useState(() => ({
+    name: account?.name || "",
+    email: account?.email || "",
+    phone: account?.phone || "",
+    avatar: account?.avatarUrl ? `${account.avatarUrl}` : "",
     roles: {
-      admin: account.roleId === 1,
-      teacher: account.roleId === 2,
-      user: account.roleId === 3,
-    }, // Ánh xạ roleId sang roles
-    status: account.status ? "active" : "inactive", // Chuyển boolean sang chuỗi
-  });
+      admin: account?.roleId === 1,
+      teacher: account?.roleId === 2,
+      user: account?.roleId === 3,
+    },
+    status: account?.status ? "active" : "inactive",
+  }));
 
-  useEffect(() => {
+  const memoizedAccount = useMemo(() => {
     if (account) {
-      setFormData({
+      return {
         name: account.name || "",
         email: account.email || "",
         phone: account.phone || "",
@@ -55,53 +55,60 @@ const PopupComponent = ({ open, onClose, account, onSave }) => {
           admin: account.roleId === 1,
           teacher: account.roleId === 2,
           user: account.roleId === 3,
-        }, // Ánh xạ roleId sang roles
-        status: account.status ? "active" : "inactive", // Chuyển boolean sang chuỗi
-      });
+        },
+        status: account.status ? "active" : "inactive",
+      };
     }
+    return {};
   }, [account]);
 
   const handleChange = (field) => (event) => {
-    if (field === "roles") {
-      setFormData({
-        ...formData,
-        roles: { ...formData.roles, [event.target.name]: event.target.checked },
-      });
-    } else if (field === "status") {
-      setFormData({ ...formData, status: event.target.value });
-    } else {
-      setFormData({ ...formData, [field]: event.target.value });
-    }
+    setFormData((prevFormData) => {
+      const newFormData = { ...prevFormData };
+      if (field === "roles") {
+        newFormData.roles[event.target.name] = event.target.checked;
+      } else if (field === "status") {
+        newFormData.status = event.target.value;
+      } else {
+        newFormData[field] = event.target.value;
+      }
+      return newFormData;
+    });
   };
-  const handleAvatarChange = (event) => {
+  const handleAvatarChange = async (event) => {
     const file = event.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData({ ...formData, avatar: reader.result });
-      };
-      reader.readAsDataURL(file);
+      const formData = new FormData();
+      formData.append("file", file);
+
+      try {
+        const response = await axios.post(
+          "http://localhost:3030/api/v1/upload/upload-avatar",
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+        console.log(response);
+        const avatarUrl = response.data;
+
+        setFormData((prevFormData) => ({
+          ...prevFormData,
+          avatar: avatarUrl,
+        }));
+
+        toast.success("Upload avatar thành công!");
+      } catch (error) {
+        toast.error("Lỗi khi upload avatar!");
+      }
     }
-  };
-
-  const handleRoleChange = (event) => {
-    const selectedRole = event.target.name;
-
-    // Cập nhật lại formData để chỉ chọn một vai trò
-    setFormData({
-      ...formData,
-      roles: {
-        admin: selectedRole === "admin",
-        teacher: selectedRole === "teacher",
-        user: selectedRole === "user",
-      },
-    });
   };
 
   const handleSave = async () => {
     const { name, email, phone, roles } = formData;
 
-    // Validate riêng từng trường
     if (!name) {
       toast.error("Họ và tên là bắt buộc!");
       return;
@@ -121,43 +128,45 @@ const PopupComponent = ({ open, onClose, account, onSave }) => {
 
     try {
       const payload = {
-        userId: account.userId, // Lấy từ account nếu có
+        userId: account.userId,
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
         avatarUrl: formData.avatar,
-        roleId: formData.roles.admin ? 1 : formData.roles.teacher ? 2 : formData.roles.user ? 3 : 0, // Default roleId nếu không chọn
-        status: formData.status === "active", // Convert "active"/"inactive" thành true/false
+        roleId: formData.roles.admin ? 1 : formData.roles.teacher ? 2 : formData.roles.user ? 3 : 0,
+        status: formData.status === "active",
       };
 
-      await updateUser(payload); // Gọi API cập nhật
+      await updateUser(payload);
       toast.success("Cập nhật thành công!");
-      //   fetchUsers();
+
+      const toastDuration = 5000;
+      setTimeout(() => {
+        onSave();
+        onClose();
+      }, toastDuration);
+      return;
     } catch (error) {
       alert("Lỗi khi cập nhật thông tin!");
     }
   };
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      fullWidth
-      maxWidth="sm"
-      BackdropProps={{
-        style: {
-          backgroundColor: "rgba(0, 0, 0, 0.3)",
-        },
-      }}
-    >
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <ToastContainer />
-      <DialogTitle style={{ textAlign: "center", color: "Bllack" }}>
-        Chỉnh sửa thông tin tài khoản
-      </DialogTitle>
+      <DialogTitle style={{ textAlign: "center" }}>Chỉnh sửa thông tin tài khoản</DialogTitle>
       <DialogContent>
         <Grid container spacing={2}>
           <Grid item xs={4} container justifyContent="center" alignItems="center">
-            <Avatar sx={{ width: 135, height: 135 }} src={formData.avatar} alt="Avatar" />
+            <Avatar
+              sx={{ width: 135, height: 135 }}
+              src={
+                formData.avatar
+                  ? `/Avatar-Account/${formData.avatar}`
+                  : "/Avatar-Account/default.png"
+              }
+              alt="Avatar"
+            />
             <Input
               type="file"
               accept="image/*"
@@ -216,7 +225,11 @@ const PopupComponent = ({ open, onClose, account, onSave }) => {
             <Box display="flex" justifyContent="space-between" width="100%">
               <FormControlLabel
                 control={
-                  <Checkbox name="user" checked={formData.roles.user} onChange={handleRoleChange} />
+                  <Checkbox
+                    name="user"
+                    checked={formData.roles.user}
+                    onChange={handleChange("roles")}
+                  />
                 }
                 label="Người dùng"
               />
@@ -225,7 +238,7 @@ const PopupComponent = ({ open, onClose, account, onSave }) => {
                   <Checkbox
                     name="teacher"
                     checked={formData.roles.teacher}
-                    onChange={handleRoleChange}
+                    onChange={handleChange("roles")}
                   />
                 }
                 label="Giảng viên"
@@ -235,7 +248,7 @@ const PopupComponent = ({ open, onClose, account, onSave }) => {
                   <Checkbox
                     name="admin"
                     checked={formData.roles.admin}
-                    onChange={handleRoleChange}
+                    onChange={handleChange("roles")}
                   />
                 }
                 label="Admin"
@@ -261,16 +274,8 @@ const PopupComponent = ({ open, onClose, account, onSave }) => {
                   },
                 }}
               >
-                <MenuItem value="active">
-                  <Box display="flex" justifyContent="space-between" width="100%">
-                    <Typography variant="body3">Hoạt động</Typography>
-                  </Box>
-                </MenuItem>
-                <MenuItem value="inactive">
-                  <Box display="flex" justifyContent="space-between" width="100%">
-                    <Typography variant="body3">Ngừng hoạt động</Typography>
-                  </Box>
-                </MenuItem>
+                <MenuItem value="active">Hoạt động</MenuItem>
+                <MenuItem value="inactive">Ngừng hoạt động</MenuItem>
               </Select>
             </FormControl>
           </Grid>
@@ -296,24 +301,10 @@ const PopupComponent = ({ open, onClose, account, onSave }) => {
   );
 };
 
-// Khai báo PropTypes
 PopupComponent.propTypes = {
   open: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
-  account: PropTypes.shape({
-    userId: PropTypes.number.isRequired,
-    name: PropTypes.string,
-    email: PropTypes.string,
-    phone: PropTypes.string,
-    avatarUrl: PropTypes.string, // Đảm bảo đúng key
-    roles: PropTypes.shape({
-      user: PropTypes.bool,
-      teacher: PropTypes.bool,
-      admin: PropTypes.bool,
-    }),
-    roleId: PropTypes.number, // Thêm roleId
-    status: PropTypes.bool, // Trạng thái là boolean
-  }),
+  account: PropTypes.object,
   onSave: PropTypes.func.isRequired,
 };
 
