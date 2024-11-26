@@ -303,14 +303,23 @@ const CourseManagement = () => {
     formData.append("file", file);
 
     try {
-      const response = await axios.post("http://localhost:3030/api/v1/upload/upload", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      updateCourseImage(response.data.fileName);
-      console.log(response.data);
-      return response.data;
+      const response = await axios.post(
+        "http://localhost:3030/api/v1/upload/upload-background",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      if (response.data && response.data.fileName) {
+        updateCourseImage(response.data.fileName);
+        // console.log("File uploaded successfully:", response.data);
+        return response.data;
+      } else {
+        throw new Error("Invalid response from the server.");
+      }
     } catch (error) {
       console.error("Error uploading file:", error);
       return null;
@@ -472,6 +481,13 @@ const CourseManagement = () => {
       setPrice(courseData.price);
       setActive(courseData.status === true);
       setInactive(courseData.status === false);
+      if (courseData.imgUrl) {
+        // Tạo đường dẫn ảnh từ API trả về
+        const imagePath = `/background-course/${courseData.imgUrl}`;
+        setFileUrl(imagePath);
+      } else {
+        setFileUrl(null);
+      }
       const instructorId = courseData.instructor;
       const instructor = instructors.find((instructor) => instructor.userId === instructorId);
 
