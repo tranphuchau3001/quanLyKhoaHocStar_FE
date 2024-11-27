@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 import MDTypography from "components/MDTypography";
 import MDBox from "components/MDBox";
 
-import { Avatar, Card, CardContent, CardMedia, Grid, Paper, Divider } from "@mui/material";
+import { Avatar, Card, CardContent, CardMedia, Grid, Paper, Divider, Button } from "@mui/material";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import "./profille.scss";
 
@@ -74,6 +74,7 @@ const ProfilePage = () => {
       }
 
       const result = await response.json();
+      console.log("API Response:", result);
 
       if (result.success) {
         const enrollments = result.data;
@@ -125,6 +126,15 @@ const ProfilePage = () => {
 
   const handleCourseClick = async (courseId) => {
     navigate(`/learning/${courseId}`);
+  };
+
+  const handleCertificateClick = (certificateUrl) => {
+    if (certificateUrl) {
+      const fileUrl = `${process.env.PUBLIC_URL}/certificate/${certificateUrl}`;
+      window.open(fileUrl, "_blank");
+    } else {
+      alert("Không tìm thấy chứng nhận!");
+    }
   };
 
   return (
@@ -181,7 +191,6 @@ const ProfilePage = () => {
       </Grid>
       <MDBox className="profile-page__content" display="flex" justifyContent="center" p={3}>
         <Grid container spacing={2} justifyContent="center">
-          {/* Các khóa học đang học */}
           <Grid item xs={12} md={6}>
             <Paper elevation={3} sx={{ padding: 2 }}>
               <MDTypography variant="h6" mb={2}>
@@ -228,8 +237,6 @@ const ProfilePage = () => {
               )}
             </Paper>
           </Grid>
-
-          {/* Các khóa học đã hoàn thành */}
           <Grid item xs={12} md={6}>
             <Paper elevation={3} sx={{ padding: 2 }}>
               <MDTypography variant="h6" mb={2}>
@@ -239,7 +246,10 @@ const ProfilePage = () => {
                 completedCourses.map((course, index) => {
                   const imagePath = require(`assets/images/Background/background-course/${course.imgUrl}`);
                   return (
-                    <Card sx={{ display: "flex", alignItems: "center", mb: 2 }} key={index}>
+                    <Card
+                      sx={{ display: "flex", alignItems: "center", mb: 2, position: "relative" }}
+                      key={index}
+                    >
                       <Grid container alignItems="center">
                         <Grid item xs={4} padding={1}>
                           <CardMedia
@@ -263,6 +273,20 @@ const ProfilePage = () => {
                             <MDTypography variant="body2" color="secondary">
                               {course.description}
                             </MDTypography>
+                            <Button
+                              variant="contained"
+                              color="primary"
+                              size="small"
+                              sx={{
+                                position: "absolute",
+                                right: 16,
+                                backgroundColor: "green",
+                                color: "#ffffffde",
+                              }}
+                              onClick={() => handleCertificateClick(course.certificateUrl)}
+                            >
+                              Xem chứng nhận
+                            </Button>
                           </CardContent>
                         </Grid>
                       </Grid>
