@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
+import Swal from "sweetalert2";
 import {
   getCourseById,
   getModulesByCourseId,
@@ -7,6 +8,8 @@ import {
   getQuizByModuleId,
   getQuestionsByQuizId,
   getChoicesByQuestionId,
+  addUserProgress,
+  getUserProgress,
 } from "layouts/learning2/data/api";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
@@ -28,7 +31,11 @@ import {
 } from "@mui/material";
 import PageLayout from "examples/LayoutContainers/PageLayout";
 import DefaultNavbar from "examples/Navbars/DefaultNavbar";
-import { List as ListIcon, ExpandLess, ExpandMore } from "@mui/icons-material";
+import MDButton from "components/MDButton";
+import { ExpandLess, ExpandMore } from "@mui/icons-material";
+import ArrowCircleLeftOutlinedIcon from "@mui/icons-material/ArrowCircleLeftOutlined";
+import ArrowCircleRightOutlinedIcon from "@mui/icons-material/ArrowCircleRightOutlined";
+import ListIcon from "@mui/icons-material/List";
 import YouTube from "react-youtube";
 
 const Learning2 = () => {
@@ -43,6 +50,8 @@ const Learning2 = () => {
   const [userAnswers, setUserAnswers] = useState({});
   const [quizResult, setQuizResult] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
+  const [progressRecorded, setProgressRecorded] = useState(false);
+  const playerRef = useRef(null);
 
   const handleToggleModule = (index) => {
     setOpenModules((prevState) => ({
@@ -52,8 +61,28 @@ const Learning2 = () => {
   };
 
   const handleSelectVideo = (videoUrl) => {
-    setSelectedVideo(videoUrl);
     setSelectedQuiz(null);
+
+    const lessons = moduleDetails.flatMap((module) => module.lessons);
+    const currentIndex = lessons.findIndex((lesson) => lesson.videoUrl === videoUrl);
+
+    if (currentIndex === -1) return;
+
+    if (currentIndex > 0) {
+      const previousLesson = lessons[currentIndex - 1];
+
+      if (!previousLesson.completed) {
+        Swal.fire({
+          title: "Không thể mở!",
+          text: "Bạn cần hoàn thành bài học trước đó để tiếp tục!",
+          icon: "warning",
+        });
+        // setSelectedVideo(null);
+        return;
+      }
+    }
+
+    setSelectedVideo(videoUrl);
   };
 
   const handleSelectAnswer = (questionId, choiceId) => {
@@ -75,11 +104,45 @@ const Learning2 = () => {
     });
 
     if (incorrectAnswers.length > 0) {
-      setErrorMessage("Bạn đã trả lời sai một số câu. Vui lòng kiểm tra lại!");
+      setErrorMessage(`Bạn đã trả lời sai ${incorrectAnswers.length} câu. Vui lòng kiểm tra lại!`);
       setQuizResult(false);
     } else {
       setErrorMessage(null);
       setQuizResult(true);
+    }
+  };
+
+  const handleNextLesson = () => {
+    const lessons = moduleDetails.flatMap((module) => module.lessons);
+    const currentIndex = lessons.findIndex((lesson) => lesson.videoUrl === selectedVideo);
+
+    if (currentIndex !== -1 && currentIndex < lessons.length - 1) {
+      const nextLesson = lessons[currentIndex + 1];
+
+      if (nextLesson.completed || progressRecorded || lessons[currentIndex].completed) {
+        setSelectedVideo(nextLesson.videoUrl);
+        setProgressRecorded(false);
+      } else {
+        alert("Bạn cần hoàn thành bài học hiện tại để tiếp tục!");
+      }
+    }
+  };
+
+  const handlePreviousLesson = () => {
+    const lessons = moduleDetails.flatMap((module) => module.lessons);
+    const currentIndex = lessons.findIndex((lesson) => lesson.videoUrl === selectedVideo);
+
+    if (currentIndex === -1) return;
+
+    const previousLessonIndex = currentIndex - 1;
+
+    if (previousLessonIndex >= 0) {
+      const previousLesson = lessons[previousLessonIndex];
+      if (previousLesson.completed) {
+        setSelectedVideo(previousLesson.videoUrl);
+      } else {
+        alert("Bạn cần hoàn thành bài học hiện tại trước khi quay lại!");
+      }
     }
   };
 
@@ -92,11 +155,20 @@ const Learning2 = () => {
       const modulesData = await getModulesByCourseId(courseId);
       setModules(modulesData);
 
+      const userId = localStorage.getItem("userId");
+      const userProgress = await getUserProgress(userId, courseId);
+
       const moduleDataWithDetails = await Promise.all(
         modulesData.map(async (module) => {
           const lessons = await getLessonsByModuleId(module.moduleId);
-          const quiz = await getQuizByModuleId(module.moduleId);
 
+          lessons.forEach((lesson) => {
+            lesson.completed = userProgress.some(
+              (progress) => progress.lessonId === lesson.lessonId && progress.status === "completed"
+            );
+          });
+
+          const quiz = await getQuizByModuleId(module.moduleId);
           const quizDetails = await Promise.all(
             quiz.map(async (quizItem) => {
               const questions = await getQuestionsByQuizId(quizItem.quizId);
@@ -115,6 +187,16 @@ const Learning2 = () => {
       );
 
       setModuleDetails(moduleDataWithDetails);
+
+      const firstIncompleteLesson = moduleDataWithDetails
+        .flatMap((module) => module.lessons)
+        .find((lesson) => !lesson.completed);
+
+      if (firstIncompleteLesson) {
+        setSelectedVideo(firstIncompleteLesson.videoUrl);
+      } else {
+        setSelectedVideo(null);
+      }
     } catch (error) {
       console.error("Error fetching course data:", error.message);
     } finally {
@@ -132,9 +214,44 @@ const Learning2 = () => {
         })
       );
       setSelectedQuiz({ ...quiz, questions: questionsWithChoices });
-      setSelectedVideo(null);
     } catch (error) {
       console.error("Error loading quiz details:", error.message);
+    }
+  };
+
+  const saveProgress = async () => {
+    if (progressRecorded) return;
+    setProgressRecorded(true);
+
+    try {
+      const userId = localStorage.getItem("userId");
+      const lesson = moduleDetails
+        .flatMap((module) => module.lessons)
+        .find((lesson) => lesson.videoUrl === selectedVideo);
+
+      if (!userId || !lesson) return;
+
+      // Lưu tiến độ lên server
+      await addUserProgress({
+        userId,
+        courseId,
+        lessonId: lesson.lessonId,
+        status: "completed",
+      });
+
+      // Cập nhật trạng thái completed
+      setModuleDetails((prevDetails) =>
+        prevDetails.map((module) => ({
+          ...module,
+          lessons: module.lessons.map((l) =>
+            l.lessonId === lesson.lessonId ? { ...l, completed: true } : l
+          ),
+        }))
+      );
+
+      console.log("Tiến độ đã được lưu và cập nhật trạng thái.");
+    } catch (error) {
+      console.error("Lỗi khi lưu tiến độ:", error.message);
     }
   };
 
@@ -164,10 +281,10 @@ const Learning2 = () => {
                     <MDTypography variant="h6" mb={2}>
                       Quiz: {selectedQuiz.title}
                     </MDTypography>
-                    {selectedQuiz.questions.map((question) => (
+                    {selectedQuiz.questions.map((question, index) => (
                       <MDBox key={question.questionId} mb={3}>
                         <MDTypography variant="body1" fontWeight="bold">
-                          {question.questionText}
+                          {index + 1}. {question.questionText}
                         </MDTypography>
 
                         <FormControl component="fieldset" fullWidth>
@@ -185,8 +302,9 @@ const Learning2 = () => {
                                 label={choice.choiceText}
                                 sx={{
                                   color:
-                                    userAnswers[question.questionId] === choice.choiceId
-                                      ? "green"
+                                    Number(userAnswers[question.questionId]) ===
+                                    Number(choice.choiceId)
+                                      ? "#1A73E8"
                                       : "inherit",
                                 }}
                               />
@@ -230,6 +348,38 @@ const Learning2 = () => {
                             modestbranding: 1,
                           },
                         }}
+                        onReady={(event) => {
+                          playerRef.current = event.target;
+                        }}
+                        onStateChange={(event) => {
+                          if (event.data === 1) {
+                            const interval = setInterval(() => {
+                              if (playerRef.current) {
+                                const currentTime = playerRef.current.getCurrentTime();
+                                const duration = playerRef.current.getDuration();
+                                const progress = (currentTime / duration) * 100;
+
+                                if (progress >= 80 && !progressRecorded) {
+                                  saveProgress();
+                                  clearInterval(interval);
+                                }
+                              }
+                            }, 1000);
+
+                            playerRef.current.addEventListener("onStateChange", (e) => {
+                              if (e.data === 2 || e.data === 0) {
+                                clearInterval(interval);
+                              }
+                            });
+                          }
+                        }}
+                        onProgress={(event) => {
+                          const progress =
+                            (event.target.getCurrentTime() / event.target.getDuration()) * 100;
+                          if (progress >= 80 && !progressRecorded) {
+                            saveProgress();
+                          }
+                        }}
                         style={{
                           position: "absolute",
                           top: 0,
@@ -241,6 +391,41 @@ const Learning2 = () => {
                     </MDBox>
                   )
                 )}
+              </MDBox>
+              <MDBox sx={{ display: "flex", justifyContent: "center", alignItems: "center", p: 2 }}>
+                <MDButton
+                  variant="contained"
+                  color="info"
+                  onClick={handlePreviousLesson}
+                  disabled={
+                    selectedVideo === null ||
+                    moduleDetails
+                      .flatMap((module) => module.lessons)
+                      .findIndex((lesson) => lesson.videoUrl === selectedVideo) === 0
+                  }
+                  sx={{ marginRight: 2, padding: "10px 20px" }}
+                >
+                  <ArrowCircleLeftOutlinedIcon sx={{ marginRight: 1 }} /> Bài trước
+                </MDButton>
+                <MDButton
+                  variant="contained"
+                  color="info"
+                  disabled={
+                    !progressRecorded &&
+                    !moduleDetails
+                      .flatMap((module) => module.lessons)
+                      .find((lesson) => lesson.videoUrl === selectedVideo)?.completed &&
+                    !quizResult
+                  }
+                  onClick={handleNextLesson}
+                  sx={{ marginRight: 2, padding: "10px 20px" }}
+                >
+                  Bài tiếp theo <ArrowCircleRightOutlinedIcon sx={{ marginLeft: 1 }} />
+                </MDButton>
+
+                <MDButton variant="contained" color="success" sx={{ padding: "10px 20px" }}>
+                  Nhận chứng nhận
+                </MDButton>
               </MDBox>
             </Card>
           </Grid>
@@ -274,7 +459,7 @@ const Learning2 = () => {
                   <React.Fragment key={module.moduleId}>
                     {/* Module */}
                     <ListItemButton onClick={() => handleToggleModule(index)}>
-                      <ListIcon sx={{ color: "info.main" }} />
+                      <ListIcon sx={{ mr: 2 }} />
                       <ListItemText primary={module.title} />
                       {openModules[index] ? <ExpandLess /> : <ExpandMore />}
                     </ListItemButton>
@@ -283,15 +468,36 @@ const Learning2 = () => {
                     <Collapse in={openModules[index]} timeout="auto" unmountOnExit>
                       <List component="div" disablePadding>
                         {module.lessons.length > 0 ? (
-                          module.lessons.map((lesson, lessonIndex) => (
-                            <ListItemButton
-                              key={lesson.lessonId}
-                              sx={{ pl: 4 }}
-                              onClick={() => handleSelectVideo(lesson.videoUrl)} // Chọn video
-                            >
-                              <ListItemText primary={`${lessonIndex + 1}. ${lesson.title}`} />
-                            </ListItemButton>
-                          ))
+                          module.lessons.map((lesson, lessonIndex) => {
+                            const isDisabled =
+                              lessonIndex > 0 && !module.lessons[lessonIndex - 1].completed;
+
+                            return (
+                              <ListItemButton
+                                key={lesson.lessonId}
+                                sx={{
+                                  pl: 4,
+                                  bgcolor:
+                                    selectedVideo === lesson.videoUrl ? "lightblue" : "inherit",
+                                  pointerEvents: isDisabled ? "none" : "auto",
+                                  opacity: isDisabled ? 0.5 : 1,
+                                }}
+                                onClick={() => handleSelectVideo(lesson.videoUrl)}
+                                disabled={isDisabled}
+                              >
+                                <ListItemText
+                                  primary={
+                                    <>
+                                      {`${lessonIndex + 1}. ${lesson.title}`}{" "}
+                                      {lesson.completed && (
+                                        <span style={{ color: "green", marginLeft: "8px" }}>✔</span>
+                                      )}
+                                    </>
+                                  }
+                                />
+                              </ListItemButton>
+                            );
+                          })
                         ) : (
                           <ListItemText
                             primary="Không có bài học nào."
@@ -302,15 +508,19 @@ const Learning2 = () => {
                           module.quiz.map((quiz) => (
                             <ListItemButton
                               key={quiz.quizId}
-                              sx={{ pl: 4 }}
-                              onClick={() => handleSelectQuiz(quiz)} // Chọn quiz
+                              sx={{
+                                pl: 4,
+                                bgcolor:
+                                  selectedQuiz?.quizId === quiz.quizId ? "lightblue" : "inherit",
+                              }}
+                              onClick={() => handleSelectQuiz(quiz)}
                             >
                               <ListItemText primary={`Quiz: ${quiz.title}`} />
                             </ListItemButton>
                           ))
                         ) : (
                           <ListItemText
-                            primary="Không có Quiz"
+                            // primary="Không có Quiz"
                             sx={{ pl: 4, color: "text.secondary" }}
                           />
                         )}

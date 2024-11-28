@@ -47,3 +47,38 @@ export const getChoicesByQuestionId = async (questionId) => {
   });
   return response.data.data;
 };
+
+// Lưu tiến độ hoàn thành bài học
+export const addUserProgress = async ({ userId, courseId, lessonId, status }) => {
+  try {
+    const response = await axios.post(
+      "http://localhost:3030/api/v1/user-progress/addUserProgress",
+      {
+        userId,
+        courseId,
+        lessonId,
+        status,
+      }
+    );
+    return response.data.data;
+  } catch (error) {
+    console.error("Error adding user progress:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+// Lấy tiến độ của người dùng theo userId và courseId
+export const getUserProgress = async (userId, courseId) => {
+  try {
+    const response = await axios.get(
+      "http://localhost:3030/api/v1/user-progress/getUserProgressByUserIdAndCourseId",
+      {
+        params: { userId, courseId },
+      }
+    );
+    return response.data.data;
+  } catch (error) {
+    console.error("Error fetching user progress:", error.response?.data || error.message);
+    throw error;
+  }
+};
