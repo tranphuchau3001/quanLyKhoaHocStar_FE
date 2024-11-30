@@ -126,3 +126,19 @@ export const getSubmissionHistories = async (userId, courseId) => {
     throw error;
   }
 };
+
+// Lấy danh sách enrollments của người dùng
+export const getEnrollmentsByUserId = async (userId) => {
+  try {
+    const response = await axios.get(
+      "http://localhost:3030/api/v1/enrollment/getEnrollmentByUserId",
+      {
+        params: { userId },
+      }
+    );
+    return response.data.data; // Trả về mảng enrollments
+  } catch (error) {
+    console.error("Error fetching enrollments:", error.response?.data || error.message);
+    throw error; // Ném lỗi nếu có
+  }
+};
