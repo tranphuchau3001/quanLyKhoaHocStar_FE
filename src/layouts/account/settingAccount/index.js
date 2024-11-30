@@ -51,7 +51,7 @@ const AccountSettings = () => {
         });
         if (response.data.data.avatarUrl) {
           setAvatar(
-            require(`../../../assets/images/Avatar-Account/${response.data.data.avatarUrl}`)
+            require(`../../../assets/images/avatar-Account/${response.data.data.avatarUrl}`)
           );
         }
       } catch (error) {

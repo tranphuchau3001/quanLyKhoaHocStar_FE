@@ -162,8 +162,8 @@ const PopupComponent = ({ open, onClose, account, onSave }) => {
               sx={{ width: 135, height: 135 }}
               src={
                 formData.avatar
-                  ? `/Avatar-Account/${formData.avatar}`
-                  : "/Avatar-Account/default.png"
+                  ? `/avatar-Account/${formData.avatar}`
+                  : "/avatar-Account/default.png"
               }
               alt="Avatar"
             />
