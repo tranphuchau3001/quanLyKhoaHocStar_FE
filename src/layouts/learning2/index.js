@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
+import axios from "axios";
 import Swal from "sweetalert2";
 import {
   getCourseById,
@@ -10,6 +11,8 @@ import {
   getChoicesByQuestionId,
   addUserProgress,
   getUserProgress,
+  saveSubmissionHistory,
+  getSubmissionHistories,
 } from "layouts/learning2/data/api";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
@@ -27,7 +30,6 @@ import {
   RadioGroup,
   FormControlLabel,
   FormControl,
-  FormLabel,
 } from "@mui/material";
 import PageLayout from "examples/LayoutContainers/PageLayout";
 import DefaultNavbar from "examples/Navbars/DefaultNavbar";
@@ -37,6 +39,7 @@ import ArrowCircleLeftOutlinedIcon from "@mui/icons-material/ArrowCircleLeftOutl
 import ArrowCircleRightOutlinedIcon from "@mui/icons-material/ArrowCircleRightOutlined";
 import ListIcon from "@mui/icons-material/List";
 import YouTube from "react-youtube";
+import { green } from "@mui/material/colors";
 
 const Learning2 = () => {
   const { courseId } = useParams();
@@ -50,8 +53,16 @@ const Learning2 = () => {
   const [userAnswers, setUserAnswers] = useState({});
   const [quizResult, setQuizResult] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
   const [progressRecorded, setProgressRecorded] = useState(false);
+  const [completedLessonsCount, setCompletedLessonsCount] = useState(0);
+  const [completedQuizzesCount, setCompletedQuizzesCount] = useState(0);
   const playerRef = useRef(null);
+
+  const totalLessons = moduleDetails.reduce((total, module) => total + module.lessons.length, 0);
+  const totalQuizzes = moduleDetails.reduce((total, module) => total + module.quiz.length, 0);
+  const completionPercentage =
+    ((completedLessonsCount + completedQuizzesCount) / (totalLessons + totalQuizzes)) * 100;
 
   const handleToggleModule = (index) => {
     setOpenModules((prevState) => ({
@@ -60,29 +71,27 @@ const Learning2 = () => {
     }));
   };
 
-  const handleSelectVideo = (videoUrl) => {
+  const handleSelectVideo = (lessonId) => {
     setSelectedQuiz(null);
 
     const lessons = moduleDetails.flatMap((module) => module.lessons);
-    const currentIndex = lessons.findIndex((lesson) => lesson.videoUrl === videoUrl);
+    const currentIndex = lessons.findIndex((lesson) => lesson.lessonId === lessonId);
 
     if (currentIndex === -1) return;
 
     if (currentIndex > 0) {
       const previousLesson = lessons[currentIndex - 1];
-
       if (!previousLesson.completed) {
         Swal.fire({
           title: "Không thể mở!",
           text: "Bạn cần hoàn thành bài học trước đó để tiếp tục!",
           icon: "warning",
         });
-        // setSelectedVideo(null);
         return;
       }
     }
 
-    setSelectedVideo(videoUrl);
+    setSelectedVideo(lessonId);
   };
 
   const handleSelectAnswer = (questionId, choiceId) => {
@@ -105,22 +114,30 @@ const Learning2 = () => {
 
     if (incorrectAnswers.length > 0) {
       setErrorMessage(`Bạn đã trả lời sai ${incorrectAnswers.length} câu. Vui lòng kiểm tra lại!`);
+      setSuccessMessage(null);
       setQuizResult(false);
     } else {
       setErrorMessage(null);
+      setSuccessMessage(`Chúc mừng bạn đã hoàn thành quiz này! 🎉`);
       setQuizResult(true);
+      saveQuizProgress(selectedQuiz.quizId, 10.0);
     }
+  };
+
+  const handleReceiveCertificate = (event) => {
+    event.preventDefault();
+    fetchCheckEnrollment();
   };
 
   const handleNextLesson = () => {
     const lessons = moduleDetails.flatMap((module) => module.lessons);
-    const currentIndex = lessons.findIndex((lesson) => lesson.videoUrl === selectedVideo);
+    const currentIndex = lessons.findIndex((lesson) => lesson.lessonId === selectedVideo);
 
     if (currentIndex !== -1 && currentIndex < lessons.length - 1) {
       const nextLesson = lessons[currentIndex + 1];
 
       if (nextLesson.completed || progressRecorded || lessons[currentIndex].completed) {
-        setSelectedVideo(nextLesson.videoUrl);
+        setSelectedVideo(nextLesson.lessonId);
         setProgressRecorded(false);
       } else {
         alert("Bạn cần hoàn thành bài học hiện tại để tiếp tục!");
@@ -130,7 +147,7 @@ const Learning2 = () => {
 
   const handlePreviousLesson = () => {
     const lessons = moduleDetails.flatMap((module) => module.lessons);
-    const currentIndex = lessons.findIndex((lesson) => lesson.videoUrl === selectedVideo);
+    const currentIndex = lessons.findIndex((lesson) => lesson.lessonId === selectedVideo);
 
     if (currentIndex === -1) return;
 
@@ -139,7 +156,7 @@ const Learning2 = () => {
     if (previousLessonIndex >= 0) {
       const previousLesson = lessons[previousLessonIndex];
       if (previousLesson.completed) {
-        setSelectedVideo(previousLesson.videoUrl);
+        setSelectedVideo(previousLesson.lessonId);
       } else {
         alert("Bạn cần hoàn thành bài học hiện tại trước khi quay lại!");
       }
@@ -157,18 +174,30 @@ const Learning2 = () => {
 
       const userId = localStorage.getItem("userId");
       const userProgress = await getUserProgress(userId, courseId);
+      const submissionHistories = await getSubmissionHistories(userId, courseId);
 
       const moduleDataWithDetails = await Promise.all(
         modulesData.map(async (module) => {
           const lessons = await getLessonsByModuleId(module.moduleId);
 
+          // Gán trạng thái hoàn thành cho mỗi bài học
           lessons.forEach((lesson) => {
             lesson.completed = userProgress.some(
               (progress) => progress.lessonId === lesson.lessonId && progress.status === "completed"
             );
           });
 
+          // Tính số bài học hoàn thành và tổng số bài học
+          const completedLessonsCount = lessons.filter((lesson) => lesson.completed).length;
+          const totalLessons = lessons.length;
+
           const quiz = await getQuizByModuleId(module.moduleId);
+
+          quiz.forEach((quiz) => {
+            quiz.completed = submissionHistories.some(
+              (quizes) => quizes.quizId === quiz.quizId && quizes.assignmentStatus === true
+            );
+          });
           const quizDetails = await Promise.all(
             quiz.map(async (quizItem) => {
               const questions = await getQuestionsByQuizId(quizItem.quizId);
@@ -182,21 +211,91 @@ const Learning2 = () => {
             })
           );
 
-          return { ...module, lessons, quiz: quizDetails };
+          return {
+            ...module,
+            lessons,
+            completedLessonsCount, // Số bài học đã hoàn thành
+            totalLessons, // Tổng số bài học
+            quiz: quizDetails, // Thông tin quiz
+          };
         })
       );
 
       setModuleDetails(moduleDataWithDetails);
 
-      const firstIncompleteLesson = moduleDataWithDetails
-        .flatMap((module) => module.lessons)
-        .find((lesson) => !lesson.completed);
+      const lessons = moduleDataWithDetails.flatMap((module) => module.lessons);
+
+      // Xác định bài học đầu tiên cần hiển thị
+      const firstIncompleteLesson = lessons.find((lesson) => !lesson.completed);
+      const firstLesson = lessons[0];
 
       if (firstIncompleteLesson) {
-        setSelectedVideo(firstIncompleteLesson.videoUrl);
+        setSelectedVideo(firstIncompleteLesson.lessonId);
       } else {
-        setSelectedVideo(null);
+        setSelectedVideo(firstLesson.lessonId);
       }
+
+      // Tự động mở module chứa bài học đầu tiên
+      const moduleIndex = moduleDataWithDetails.findIndex((module) =>
+        module.lessons.some(
+          (lesson) => lesson.lessonId === (firstIncompleteLesson?.lessonId || firstLesson.lessonId)
+        )
+      );
+
+      if (moduleIndex !== -1) {
+        handleToggleModule(moduleIndex);
+      }
+
+      // Cập nhật số bài học đã hoàn thành
+      const completedCount = lessons.filter((lesson) => lesson.completed).length;
+      setCompletedLessonsCount(completedCount);
+
+      const totalCompletedQuizzes = moduleDataWithDetails.reduce((count, module) => {
+        return count + module.quiz.filter((quiz) => quiz.completed).length;
+      }, 0);
+
+      setCompletedQuizzesCount(totalCompletedQuizzes);
+
+      // const allLessonsCompleted = moduleDataWithDetails
+      //   .flatMap((module) => module.lessons)
+      //   .every((lesson) => lesson.completed);
+
+      // if (allLessonsCompleted) {
+      //   const firstLesson = moduleDataWithDetails
+      //     .flatMap((module) => module.lessons)
+      //     .find((lesson) => lesson.completed);
+      //   setSelectedVideo(firstLesson?.videoUrl);
+
+      //   const moduleIndex = moduleDataWithDetails.findIndex((module) =>
+      //     module.lessons.some((lesson) => lesson.videoUrl === firstLesson?.videoUrl)
+      //   );
+      //   if (moduleIndex !== -1) {
+      //     handleToggleModule(moduleIndex);
+      //   }
+      // } else {
+      //   const firstIncompleteLesson = moduleDataWithDetails
+      //     .flatMap((module) => module.lessons)
+      //     .find((lesson) => !lesson.completed);
+      //   setSelectedVideo(firstIncompleteLesson ? firstIncompleteLesson.videoUrl : null);
+
+      //   const moduleIndex = moduleDataWithDetails.findIndex((module) =>
+      //     module.lessons.some((lesson) => lesson.videoUrl === firstIncompleteLesson?.videoUrl)
+      //   );
+      //   if (moduleIndex !== -1) {
+      //     handleToggleModule(moduleIndex);
+      //   }
+      // }
+
+      // // Tổng số bài học đã hoàn thành
+      // const completedCount = moduleDataWithDetails
+      //   .flatMap((module) => module.lessons)
+      //   .filter((lesson) => lesson.completed).length;
+      // setCompletedLessonsCount(completedCount);
+
+      // const totalCompletedQuizzes = moduleDataWithDetails.reduce((count, module) => {
+      //   return count + module.quiz.filter((quiz) => quiz.completed).length;
+      // }, 0);
+      setCompletedQuizzesCount(totalCompletedQuizzes);
     } catch (error) {
       console.error("Error fetching course data:", error.message);
     } finally {
@@ -214,24 +313,87 @@ const Learning2 = () => {
         })
       );
       setSelectedQuiz({ ...quiz, questions: questionsWithChoices });
+      setSelectedVideo(null);
+      setErrorMessage(null);
+      setSuccessMessage(null);
     } catch (error) {
       console.error("Error loading quiz details:", error.message);
     }
   };
 
+  const fetchCheckEnrollment = async () => {
+    const userId = localStorage.getItem("userId");
+    console.log("courseId: " + courseId);
+    try {
+      const checkEnrollment = await axios.get(
+        "http://localhost:3030/api/v1/enrollment/get-enrollment-by-user-id-and-course-id",
+        {
+          params: { userId, courseId },
+        }
+      );
+
+      if (checkEnrollment.data.success) {
+        const enrollment = checkEnrollment.data.data;
+        const enrollmentId = enrollment.enrollmentId;
+        const certificateUrl = "certificate_" + enrollmentId + ".pdf";
+        const saveEnrollmentStatus = await axios.put(
+          "http://localhost:3030/api/v1/enrollment/completeCourse",
+          null,
+          {
+            params: {
+              enrollmentId,
+              certificateUrl,
+            },
+          }
+        );
+
+        if (saveEnrollmentStatus.data.success) {
+          console.log("Cấp chứng nhận thành công");
+          Swal.fire({
+            title: "Thành công!",
+            text: "Đã cấp chứng nhận hoàn thành khóa học. Kiểm tra ở ...",
+            icon: "success",
+          });
+        } else {
+          Swal.fire({
+            title: "Chứng nhận đã được cấp!",
+            text: "Vui lòng kiểm tra ở ...",
+            icon: "warning",
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error checking enrollment or enrolling:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "Có lỗi xảy ra khi cấp chứng nhận!",
+      });
+    }
+  };
+
   const saveProgress = async () => {
     if (progressRecorded) return;
-    setProgressRecorded(true);
+    // setProgressRecorded(true);
 
     try {
       const userId = localStorage.getItem("userId");
       const lesson = moduleDetails
         .flatMap((module) => module.lessons)
-        .find((lesson) => lesson.videoUrl === selectedVideo);
+        .find((lesson) => lesson.lessonId === selectedVideo);
 
       if (!userId || !lesson) return;
 
-      // Lưu tiến độ lên server
+      const userProgress = await getUserProgress(userId, courseId);
+      const isAlreadyCompleted = userProgress.some(
+        (progress) => progress.lessonId === lesson.lessonId && progress.status === "completed"
+      );
+
+      if (isAlreadyCompleted) {
+        console.log("Tiến độ bài học này đã được lưu trước đó.");
+        return;
+      }
+
       await addUserProgress({
         userId,
         courseId,
@@ -239,19 +401,94 @@ const Learning2 = () => {
         status: "completed",
       });
 
-      // Cập nhật trạng thái completed
-      setModuleDetails((prevDetails) =>
-        prevDetails.map((module) => ({
-          ...module,
-          lessons: module.lessons.map((l) =>
+      setModuleDetails((prevDetails) => {
+        const updatedDetails = prevDetails.map((module) => {
+          const updatedLessons = module.lessons.map((l) =>
             l.lessonId === lesson.lessonId ? { ...l, completed: true } : l
-          ),
-        }))
-      );
+          );
+
+          const completedCount = updatedLessons.filter((l) => l.completed).length;
+
+          return {
+            ...module,
+            lessons: updatedLessons,
+            completedLessonsCount: completedCount,
+          };
+        });
+
+        const totalCompletedLessons = updatedDetails
+          .flatMap((module) => module.lessons)
+          .filter((lesson) => lesson.completed).length;
+
+        setCompletedLessonsCount(totalCompletedLessons);
+
+        return updatedDetails;
+      });
 
       console.log("Tiến độ đã được lưu và cập nhật trạng thái.");
     } catch (error) {
       console.error("Lỗi khi lưu tiến độ:", error.message);
+    }
+  };
+
+  const saveQuizProgress = async (quizId, score) => {
+    try {
+      const userId = localStorage.getItem("userId");
+      if (!userId || !courseId || !quizId) return;
+
+      // Kiểm tra lịch sử nộp bài để tránh lưu trùng
+      const submissionHistories = await getSubmissionHistories(userId, courseId);
+      const isAlreadySubmitted = submissionHistories.some(
+        (submission) => submission.quizId === quizId && submission.assignmentStatus === true
+      );
+
+      if (isAlreadySubmitted) {
+        console.log("Tiến độ quiz này đã được lưu trước đó.");
+        return;
+      }
+
+      const module = moduleDetails.find((m) => m.quiz.some((q) => q.quizId === quizId));
+      if (!module) return;
+
+      await saveSubmissionHistory({
+        userId,
+        courseId: Number(courseId),
+        moduleId: module.moduleId,
+        quizId,
+        score,
+        assignmentStatus: true,
+      });
+
+      setModuleDetails((prevDetails) => {
+        const updatedDetails = prevDetails.map((module) => {
+          const updatedQuizzes = module.quiz.map((quiz) =>
+            quiz.quizId === quizId ? { ...quiz, completed: true } : quiz
+          );
+
+          // Tính toán lại số quiz đã hoàn thành
+          const completedQuizCount = updatedQuizzes.filter((quiz) => quiz.completed).length;
+
+          return {
+            ...module,
+            quiz: updatedQuizzes,
+            completedQuizzesCount: completedQuizCount,
+          };
+        });
+
+        // Tính toán lại tổng số quiz đã hoàn thành trong toàn bộ khóa học
+        const totalCompletedQuizzes = updatedDetails.reduce((count, module) => {
+          return count + module.quiz.filter((quiz) => quiz.completed).length;
+        }, 0);
+
+        // Cập nhật tổng số quiz đã hoàn thành
+        setCompletedQuizzesCount(totalCompletedQuizzes);
+
+        return updatedDetails;
+      });
+
+      console.log("Lưu tiến độ quiz thành công!");
+    } catch (error) {
+      console.error("Lỗi khi lưu tiến độ quiz: ", error.message);
     }
   };
 
@@ -278,8 +515,8 @@ const Learning2 = () => {
               <MDBox p={3} sx={{ position: "relative" }}>
                 {selectedQuiz ? (
                   <MDBox>
-                    <MDTypography variant="h6" mb={2}>
-                      Quiz: {selectedQuiz.title}
+                    <MDTypography variant="h5" color="info" mb={2}>
+                      {selectedQuiz.title}
                     </MDTypography>
                     {selectedQuiz.questions.map((question, index) => (
                       <MDBox key={question.questionId} mb={3}>
@@ -320,17 +557,19 @@ const Learning2 = () => {
                     )}
 
                     <MDBox display="flex" justifyContent="center" mt={4}>
-                      <button
+                      <MDButton
+                        variant="contained"
+                        color="info"
+                        sx={{ padding: "10px 20px" }}
                         onClick={handleSubmitQuiz}
-                        style={{ padding: "10px 20px", fontSize: "16px" }}
                       >
                         Nộp bài
-                      </button>
+                      </MDButton>
                     </MDBox>
 
                     {quizResult && (
                       <MDTypography color="success" mt={2}>
-                        Bạn đã hoàn thành quiz này! 🎉
+                        {successMessage}
                       </MDTypography>
                     )}
                   </MDBox>
@@ -338,7 +577,13 @@ const Learning2 = () => {
                   selectedVideo && (
                     <MDBox sx={{ paddingTop: "56.25%" }}>
                       <YouTube
-                        videoId={selectedVideo}
+                        videoId={
+                          selectedVideo
+                            ? moduleDetails
+                                .flatMap((module) => module.lessons)
+                                .find((lesson) => lesson.lessonId === selectedVideo)?.videoUrl
+                            : ""
+                        }
                         opts={{
                           width: "100%",
                           height: "100%",
@@ -393,39 +638,16 @@ const Learning2 = () => {
                 )}
               </MDBox>
               <MDBox sx={{ display: "flex", justifyContent: "center", alignItems: "center", p: 2 }}>
-                <MDButton
-                  variant="contained"
-                  color="info"
-                  onClick={handlePreviousLesson}
-                  disabled={
-                    selectedVideo === null ||
-                    moduleDetails
-                      .flatMap((module) => module.lessons)
-                      .findIndex((lesson) => lesson.videoUrl === selectedVideo) === 0
-                  }
-                  sx={{ marginRight: 2, padding: "10px 20px" }}
-                >
-                  <ArrowCircleLeftOutlinedIcon sx={{ marginRight: 1 }} /> Bài trước
-                </MDButton>
-                <MDButton
-                  variant="contained"
-                  color="info"
-                  disabled={
-                    !progressRecorded &&
-                    !moduleDetails
-                      .flatMap((module) => module.lessons)
-                      .find((lesson) => lesson.videoUrl === selectedVideo)?.completed &&
-                    !quizResult
-                  }
-                  onClick={handleNextLesson}
-                  sx={{ marginRight: 2, padding: "10px 20px" }}
-                >
-                  Bài tiếp theo <ArrowCircleRightOutlinedIcon sx={{ marginLeft: 1 }} />
-                </MDButton>
-
-                <MDButton variant="contained" color="success" sx={{ padding: "10px 20px" }}>
-                  Nhận chứng nhận
-                </MDButton>
+                {completionPercentage === 100 && (
+                  <MDButton
+                    variant="contained"
+                    color="success"
+                    onClick={handleReceiveCertificate}
+                    sx={{ padding: "10px 20px" }}
+                  >
+                    Nhận chứng nhận
+                  </MDButton>
+                )}
               </MDBox>
             </Card>
           </Grid>
@@ -447,9 +669,30 @@ const Learning2 = () => {
                   Khóa Học: {courseDetails?.title}
                 </MDTypography>
               </MDBox>
-              <MDTypography sx={{ mt: 2, ml: 3, mb: 3 }}>
+              <MDTypography sx={{ mt: 2 }} textAlign="center">
                 {courseDetails?.description || "Không có mô tả."}
               </MDTypography>
+              <List
+                component="nav"
+                aria-labelledby="nested-list-subheader"
+                subheader={<ListSubheader>Thống kê khóa học</ListSubheader>}
+              >
+                {/* <ListItemText sx={{ ml: 2 }} primary={`Tổng số bài học: ${totalLessons}`} /> */}
+                <ListItemText
+                  sx={{ ml: 2 }}
+                  primary={`Tiến độ hoàn thành bài học: ${completedLessonsCount}/${totalLessons}`}
+                />
+                {/* <ListItemText sx={{ ml: 2 }} primary={`Tổng số bài quiz: ${totalQuizzes}`} /> */}
+                <ListItemText
+                  sx={{ ml: 2 }}
+                  primary={`Tiến độ hoàn thành quiz: ${completedQuizzesCount}/${totalQuizzes}`}
+                />
+                <ListItemText
+                  sx={{ ml: 2 }}
+                  primary={`Tỉ lệ hoàn thành: ${completionPercentage.toFixed(0)}%`}
+                />
+              </List>
+
               <List
                 component="nav"
                 aria-labelledby="nested-list-subheader"
@@ -460,7 +703,9 @@ const Learning2 = () => {
                     {/* Module */}
                     <ListItemButton onClick={() => handleToggleModule(index)}>
                       <ListIcon sx={{ mr: 2 }} />
-                      <ListItemText primary={module.title} />
+                      <ListItemText
+                        primary={`${module.title} (${module.completedLessonsCount}/${module.totalLessons} bài học hoàn thành)`}
+                      />
                       {openModules[index] ? <ExpandLess /> : <ExpandMore />}
                     </ListItemButton>
 
@@ -478,11 +723,11 @@ const Learning2 = () => {
                                 sx={{
                                   pl: 4,
                                   bgcolor:
-                                    selectedVideo === lesson.videoUrl ? "lightblue" : "inherit",
+                                    selectedVideo === lesson.lessonId ? "lightblue" : "inherit",
                                   pointerEvents: isDisabled ? "none" : "auto",
                                   opacity: isDisabled ? 0.5 : 1,
                                 }}
-                                onClick={() => handleSelectVideo(lesson.videoUrl)}
+                                onClick={() => handleSelectVideo(lesson.lessonId)}
                                 disabled={isDisabled}
                               >
                                 <ListItemText
@@ -504,25 +749,42 @@ const Learning2 = () => {
                             sx={{ pl: 4, color: "text.secondary" }}
                           />
                         )}
+
+                        {/* Quiz */}
                         {module.quiz.length > 0 ? (
-                          module.quiz.map((quiz) => (
-                            <ListItemButton
-                              key={quiz.quizId}
-                              sx={{
-                                pl: 4,
-                                bgcolor:
-                                  selectedQuiz?.quizId === quiz.quizId ? "lightblue" : "inherit",
-                              }}
-                              onClick={() => handleSelectQuiz(quiz)}
-                            >
-                              <ListItemText primary={`Quiz: ${quiz.title}`} />
-                            </ListItemButton>
-                          ))
+                          module.quiz.map((quiz, quizIndex) => {
+                            const isQuizEnabled =
+                              module.completedLessonsCount === module.totalLessons;
+
+                            return (
+                              <ListItemButton
+                                key={quiz.quizId}
+                                sx={{
+                                  pl: 4,
+                                  bgcolor:
+                                    selectedQuiz?.quizId === quiz.quizId ? "lightblue" : "inherit",
+                                  pointerEvents: isQuizEnabled ? "auto" : "none",
+                                  opacity: isQuizEnabled ? 1 : 0.5,
+                                }}
+                                onClick={() => handleSelectQuiz(quiz)}
+                                disabled={!isQuizEnabled}
+                              >
+                                <ListItemText
+                                  primary={
+                                    <>
+                                      {`Quiz ${quizIndex + 1}`}{" "}
+                                      {quiz.completed && (
+                                        <span style={{ color: "green", marginLeft: "8px" }}>✔</span>
+                                      )}
+                                    </>
+                                  }
+                                />
+                                {/* <ListItemText primary={`Quiz: ${quiz.title}`} /> */}
+                              </ListItemButton>
+                            );
+                          })
                         ) : (
-                          <ListItemText
-                            // primary="Không có Quiz"
-                            sx={{ pl: 4, color: "text.secondary" }}
-                          />
+                          <ListItemText sx={{ pl: 4, color: "text.secondary" }} />
                         )}
                       </List>
                     </Collapse>

@@ -18,6 +18,7 @@ const PaymentVNPay = () => {
   const [courseName, setCourseName] = useState("");
   const [amount, setAmount] = useState(0);
   const [enrollmentId, setEnrollmentId] = useState("");
+  const [courseId, setCourseId] = useState("");
   const [userId, setUserId] = useState(localStorage.getItem("userId"));
   const navigate = useNavigate();
 
@@ -26,6 +27,7 @@ const PaymentVNPay = () => {
     const name = params.get("courseName");
     const price = params.get("price");
     const enrollmentId = params.get("enrollmentId");
+    const courseId = params.get("courseId");
 
     if (!userId) {
       Swal.fire({
@@ -55,7 +57,11 @@ const PaymentVNPay = () => {
       setEnrollmentId(enrollmentId);
     }
 
-    console.log(name, price, enrollmentId, userId);
+    if (courseId) {
+      setCourseId(courseId);
+    }
+
+    console.log(name, price, enrollmentId, userId, courseId);
   }, []);
 
   const handlePayment = async () => {
@@ -65,7 +71,7 @@ const PaymentVNPay = () => {
     try {
       const orderData = {
         amount,
-        orderInfo: `ID ${userId} thanh toan khoa hoc co ID dang ky ${enrollmentId}`,
+        orderInfo: `${courseId}`,
         enrollmentId,
       };
 

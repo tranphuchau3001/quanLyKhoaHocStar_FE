@@ -6,8 +6,8 @@ import SecurityIcon from "@mui/icons-material/Security";
 import "./settingAccount.scss";
 import PageLayout from "examples/LayoutContainers/PageLayout";
 import axios from "axios";
-import defaultAvatar from "../../../assets/images/avatar-Account/image.png";
-import SecurityPopup from "./securityPopup";
+import defaultAvatar from "assets/images/default.jpg";
+import SecurityPopup from "layouts/account/settingAccount/securityPopup";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import DefaultNavbar from "examples/Navbars/DefaultNavbar";
 import MDBox from "components/MDBox";
@@ -51,7 +51,7 @@ const AccountSettings = () => {
         });
         if (response.data.data.avatarUrl) {
           setAvatar(
-            require(`../../../assets/images/avatar-Account/${response.data.data.avatarUrl}`)
+            require(`../../../assets/images/Avatar-Account/${response.data.data.avatarUrl}`)
           );
         }
       } catch (error) {

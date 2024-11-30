@@ -82,3 +82,47 @@ export const getUserProgress = async (userId, courseId) => {
     throw error;
   }
 };
+
+// Lưu lịch sử làm bài quiz
+export const saveSubmissionHistory = async ({
+  userId,
+  courseId,
+  moduleId,
+  quizId,
+  score,
+  assignmentStatus,
+}) => {
+  try {
+    const response = await axios.post(
+      "http://localhost:3030/api/v1/history/saveSubmissionHistory",
+      {
+        userId,
+        courseId,
+        moduleId,
+        quizId,
+        score,
+        assignmentStatus,
+      }
+    );
+    return response.data.data;
+  } catch (error) {
+    console.error("Error saving submission history:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+// Lấy lịch sử làm bài quiz theo userId và courseId
+export const getSubmissionHistories = async (userId, courseId) => {
+  try {
+    const response = await axios.get(
+      "http://localhost:3030/api/v1/history/getSubmissionHistoriesByUserIdAndCourseId",
+      {
+        params: { userId, courseId },
+      }
+    );
+    return response.data.data;
+  } catch (error) {
+    console.error("Error fetching submission histories:", error.response?.data || error.message);
+    throw error;
+  }
+};

@@ -41,7 +41,7 @@ import MDBox from "components/MDBox";
 import DataTable from "examples/Tables/DataTable";
 
 // Data
-import authorsTableData from "layouts/tables/data/authorsTableData";
+import authorsTableData from "layouts/admin/CoursesManager/data/authorsTableData";
 import CourseTables from "layouts/admin/CoursesManager/data/projectsTableData";
 
 const defaultImage = "https://via.placeholder.com/150";
