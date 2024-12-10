@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import PropTypes from "prop-types";
-import axios from "axios";
+
 import {
   Box,
   Button,
@@ -25,6 +25,7 @@ import { PhotoCamera } from "@mui/icons-material";
 import { updateUser } from "layouts/admin/admin-account-manager/popup/api/updateUser";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import apiClient from "api/apiClient";
 
 const PopupComponent = ({ open, onClose, account, onSave }) => {
   if (!account) {
@@ -82,16 +83,13 @@ const PopupComponent = ({ open, onClose, account, onSave }) => {
       formData.append("file", file);
 
       try {
-        const response = await axios.post(
-          "http://localhost:3030/api/v1/upload/upload-avatar",
-          formData,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          }
-        );
-        console.log(response);
+        const response = await apiClient.post("/api/v1/upload/upload-avatar", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+
+        // console.log(response);
         const avatarUrl = response.data;
 
         setFormData((prevFormData) => ({

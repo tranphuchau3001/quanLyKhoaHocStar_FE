@@ -26,7 +26,7 @@ export default function dataUser() {
   };
 
   const handleSave = (updatedAccount) => {
-    console.log("Tài khoản đã cập nhật:", updatedAccount);
+    // console.log("Tài khoản đã cập nhật:", updatedAccount);
     setOpen(false);
   };
 

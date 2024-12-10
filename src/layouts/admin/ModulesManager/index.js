@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Footer from "examples/Footer";
-import axios from "axios";
+
 import Swal from "sweetalert2";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -58,8 +58,8 @@ function ModulesManagement() {
   };
 
   useEffect(() => {
-    axios
-      .get("http://localhost:3030/course-api/getAllCourse")
+    apiClient
+      .get("/course-api/getAllCourse")
       .then((response) => {
         const { data } = response.data;
         setCourses(data);
@@ -86,9 +86,10 @@ function ModulesManagement() {
   useEffect(() => {
     const fetchModules = async () => {
       try {
-        const response = await axios.get(
-          `http://localhost:3030/api/v1/module/getModulesByCourseId?courseId=${formData.maKhoaHoc}`
-        );
+        const response = await apiClient.get("/api/v1/module/getModulesByCourseId", {
+          params: { courseId: formData.maKhoaHoc },
+        });
+
         const data = response.data.data;
 
         if (!data || data.length === 0) {
@@ -155,12 +156,10 @@ function ModulesManagement() {
         createdAt: new Date().toISOString(),
       };
 
-      const response = await axios.post(
-        "http://localhost:3030/api/v1/module/addModule",
-        moduleData
-      );
+      const response = await apiClient.post("/api/v1/module/addModule", moduleData);
+
       Swal.fire("Thành công", "Thêm thành công", "success");
-      etModules([...modules, response.data.data]);
+      setModules([...modules, response.data.data]);
     } catch (error) {
       console.error("Error adding module:", error);
     }
@@ -186,12 +185,15 @@ function ModulesManagement() {
       return;
     }
 
-    axios
-      .put(`http://localhost:3030/api/v1/module/updateModule?moduleId=${formData.chuong}`, {
-        orderNumber: formData.soChuong,
-        title: formData.tenChuong,
-        course: {
-          courseId: formData.maKhoaHoc,
+    apiClient
+      .put("/api/v1/module/updateModule", {
+        params: { moduleId: formData.chuong },
+        data: {
+          orderNumber: formData.soChuong,
+          title: formData.tenChuong,
+          course: {
+            courseId: formData.maKhoaHoc,
+          },
         },
       })
       .then((response) => {
@@ -220,9 +222,10 @@ function ModulesManagement() {
     }
 
     try {
-      await axios.delete(
-        `http://localhost:3030/api/v1/module/deleteModule?moduleId=${moduleToDelete.moduleId}`
-      );
+      await apiClient.delete("/api/v1/module/deleteModule", {
+        params: { moduleId: moduleToDelete.moduleId },
+      });
+
       setModules(modules.filter((module) => module.moduleId !== moduleToDelete.moduleId));
       Swal.fire("Thành công", "Module đã được xóa thành công!", "success");
     } catch (error) {
@@ -246,9 +249,10 @@ function ModulesManagement() {
   useEffect(() => {
     const fetchModulesLession = async () => {
       try {
-        const response = await axios.get(
-          `http://localhost:3030/api/v1/module/getModulesByCourseId?courseId=${lessonData.maKhoaHoc}`
-        );
+        const response = await apiClient.get("/api/v1/module/getModulesByCourseId", {
+          params: { courseId: lessonData.maKhoaHoc },
+        });
+
         const data = response.data.data;
 
         if (!data || data.length === 0) {
@@ -275,9 +279,10 @@ function ModulesManagement() {
       }
 
       try {
-        const response = await axios.get(
-          `http://localhost:3030/api/v1/lesson/getLessonsByModuleId?moduleId=${lessonData.chuong}`
-        );
+        const response = await apiClient.get("/api/v1/lesson/getLessonsByModuleId", {
+          params: { moduleId: lessonData.chuong },
+        });
+
         const data = response.data.data;
         if (!data || data.length === 0) {
           setLessons([]);
@@ -297,9 +302,10 @@ function ModulesManagement() {
   }, [lessonData.chuong]);
   const fetchLessonData = async (maBaiHoc) => {
     try {
-      const response = await axios.get(
-        `http://localhost:3030/api/v1/lesson/getLessonById?lessonId=${maBaiHoc}`
-      );
+      const response = await apiClient.get("/api/v1/lesson/getLessonById", {
+        params: { lessonId: maBaiHoc },
+      });
+
       const { success, message, data } = response.data;
       setLessonData({
         ...lessonData,
@@ -370,9 +376,10 @@ function ModulesManagement() {
       }
 
       try {
-        const response = await axios.get(
-          `http://localhost:3030/api/v1/lesson/getLessonsByModuleId?moduleId=${lessonData.chuong}`
-        );
+        const response = await apiClient.get("/api/v1/lesson/getLessonsByModuleId", {
+          params: { moduleId: lessonData.chuong },
+        });
+
         const data = response.data.data;
         if (!data || data.length === 0) {
           setLessons([]);
@@ -454,7 +461,8 @@ function ModulesManagement() {
 
         createdAt: dayjs().format("YYYY-MM-DDTHH:mm:ss"),
       };
-      const response = await axios.post("http://localhost:3030/api/v1/lesson/addLesson", newLesson);
+      const response = await apiClient.post("/api/v1/lesson/addLesson", newLesson);
+
       Swal.fire("Thành công", "Thêm bài học thành công!", "success");
       setLessons([...lessons, response.data.data]);
     } catch (error) {
@@ -483,9 +491,9 @@ function ModulesManagement() {
     }
 
     try {
-      const response = await axios.delete(
-        `http://localhost:3030/api/v1/lesson/deleteLesson?lessonId=${lessonData.maBaiHoc}`
-      );
+      const response = await apiClient.delete("/api/v1/lesson/deleteLesson", {
+        params: { lessonId: lessonData.maBaiHoc },
+      });
 
       if (response.status === 200 || response.data.success) {
         toast.success("Xóa bài học thành công.");
@@ -541,11 +549,9 @@ function ModulesManagement() {
     }
 
     try {
-      const response = await axios.put(
-        `http://localhost:3030/api/v1/lesson/updateLesson`,
-        lessonData,
-        { params: { lessonId } }
-      );
+      const response = await apiClient.put("/api/v1/lesson/updateLesson", lessonData, {
+        params: { lessonId },
+      });
 
       if (response.data.success) {
         toast.success("Cập nhật bài học thành công!");
@@ -584,7 +590,7 @@ function ModulesManagement() {
       orderNumber: lessonData.lessonOrder === "custom" ? customOrderNumber : lessonData.lessonOrder,
       createdAt: lessonData.createdAt || new Date().toISOString(),
     };
-    console.log("Updated lesson data: ", updatedLesson);
+    // console.log("Updated lesson data: ", updatedLesson);
     try {
       const response = await updateLesson(lessonData.maBaiHoc, updatedLesson);
 

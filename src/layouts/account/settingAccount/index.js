@@ -5,7 +5,7 @@ import PersonIcon from "@mui/icons-material/Person";
 import SecurityIcon from "@mui/icons-material/Security";
 import "./settingAccount.scss";
 import PageLayout from "examples/LayoutContainers/PageLayout";
-import axios from "axios";
+
 import defaultAvatar from "assets/images/default.jpg";
 import SecurityPopup from "layouts/account/settingAccount/securityPopup";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
@@ -15,6 +15,7 @@ import Swal from "sweetalert2";
 import MDButton from "components/MDButton";
 import MDTypography from "components/MDTypography";
 import Footer from "examples/Footer";
+import apiClient from "api/apiClient";
 
 const AccountSettings = () => {
   const [userInfo, setUserInfo] = useState({
@@ -41,9 +42,10 @@ const AccountSettings = () => {
     }
     const fetchUserInfo = async () => {
       try {
-        const response = await axios.get(
-          `http://localhost:3030/user-api/getUserByUserId?userId=${userId}`
-        );
+        const response = await apiClient.get("/user-api/getUserByUserId", {
+          params: { userId },
+        });
+
         setUserInfo({
           name: response.data.data.name || null,
           phone: response.data.data.phone || null,
@@ -63,9 +65,8 @@ const AccountSettings = () => {
 
     const fetchCourses = async () => {
       try {
-        const response = await axios.get(
-          "http://localhost:3030/api/v1/history/getAllSubmissionHistory"
-        );
+        const response = await apiClient.get("/api/v1/history/getAllSubmissionHistory");
+
         setCourses(response.data.courses || []);
       } catch (error) {
         console.error("Lỗi khi lấy dữ liệu khóa học:", error);
@@ -91,7 +92,7 @@ const AccountSettings = () => {
         if (result.isConfirmed) {
           navigate("/authentication/sign-in");
         } else if (result.isDismissed) {
-          console.log("Người dùng đã từ chối đăng nhập.");
+          // console.log("Người dùng đã từ chối đăng nhập.");
         }
       });
       return;
@@ -142,14 +143,15 @@ const AccountSettings = () => {
   const handleSave = async () => {
     if (validateFields()) {
       try {
-        const response = await axios.put("http://localhost:3030/user-api/update", {
+        const response = await apiClient.put("/user-api/update", {
           userId: userId,
           name: userInfo.name || undefined,
           phone: userInfo.phone || undefined,
           email: email,
           avatarUrl: "default.png",
         });
-        console.log("Dữ liệu đã được lưu:", response.data);
+
+        // console.log("Dữ liệu đã được lưu:", response.data);
       } catch (error) {
         console.error("Có lỗi xảy ra khi lưu dữ liệu:", error);
       }

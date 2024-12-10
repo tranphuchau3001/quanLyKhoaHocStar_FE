@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+
 import Swal from "sweetalert2";
 import {
   getCourseById,
@@ -40,7 +40,7 @@ import ArrowCircleLeftOutlinedIcon from "@mui/icons-material/ArrowCircleLeftOutl
 import ArrowCircleRightOutlinedIcon from "@mui/icons-material/ArrowCircleRightOutlined";
 import ListIcon from "@mui/icons-material/List";
 import YouTube from "react-youtube";
-import { green } from "@mui/material/colors";
+import apiClient from "api/apiClient";
 
 const Learning2 = () => {
   const navigate = useNavigate();
@@ -146,8 +146,8 @@ const Learning2 = () => {
       const userAnswer = userAnswers[question.questionId];
       const correctChoice = question.choices.find((choice) => choice.isCorrect);
 
-      console.log("Câu trả lời người dùng:", userAnswer);
-      console.log("Câu trả lời đúng:", correctChoice?.choiceId);
+      // console.log("Câu trả lời người dùng:", userAnswer);
+      // console.log("Câu trả lời đúng:", correctChoice?.choiceId);
 
       return Number(userAnswer) !== Number(correctChoice?.choiceId);
     });
@@ -317,10 +317,10 @@ const Learning2 = () => {
 
   const fetchCheckEnrollment = async () => {
     const userId = localStorage.getItem("userId");
-    console.log("courseId: " + courseId);
+    // console.log("courseId: " + courseId);
     try {
-      const checkEnrollment = await axios.get(
-        "http://localhost:3030/api/v1/enrollment/get-enrollment-by-user-id-and-course-id",
+      const checkEnrollment = await apiClient.get(
+        "/api/v1/enrollment/get-enrollment-by-user-id-and-course-id",
         {
           params: { userId, courseId },
         }
@@ -330,8 +330,8 @@ const Learning2 = () => {
         const enrollment = checkEnrollment.data.data;
         const enrollmentId = enrollment.enrollmentId;
         const certificateUrl = "certificate_" + enrollmentId + ".pdf";
-        const saveEnrollmentStatus = await axios.put(
-          "http://localhost:3030/api/v1/enrollment/completeCourse",
+        const saveEnrollmentStatus = await apiClient.put(
+          "/api/v1/enrollment/completeCourse",
           null,
           {
             params: {
@@ -342,7 +342,7 @@ const Learning2 = () => {
         );
 
         if (saveEnrollmentStatus.data.success) {
-          console.log("Cấp chứng nhận thành công");
+          // console.log("Cấp chứng nhận thành công");
           Swal.fire({
             title: "Thành công!",
             text: "Đã cấp chứng nhận hoàn thành khóa học. Kiểm tra ở ...",
@@ -372,11 +372,11 @@ const Learning2 = () => {
       const data = await getEnrollmentsByUserId(userId);
       setEnrollments(data);
 
-      console.log("Danh sách đăng ký:", data);
+      // console.log("Danh sách đăng ký:", data);
 
       const courseExists = data.some((enrollment) => enrollment.courseId === parseInt(courseId));
 
-      console.log("Is course available:", courseExists);
+      // console.log("Is course available:", courseExists);
       if (!courseExists) {
         Swal.fire({
           title: "Bạn chưa đăng ký khóa học này!",
@@ -412,7 +412,7 @@ const Learning2 = () => {
       );
 
       if (isAlreadyCompleted) {
-        console.log("Tiến độ bài học này đã được lưu trước đó.");
+        // console.log("Tiến độ bài học này đã được lưu trước đó.");
         return;
       }
 
@@ -447,7 +447,7 @@ const Learning2 = () => {
         return updatedDetails;
       });
 
-      console.log("Tiến độ đã được lưu và cập nhật trạng thái.");
+      // console.log("Tiến độ đã được lưu và cập nhật trạng thái.");
     } catch (error) {
       console.error("Lỗi khi lưu tiến độ:", error.message);
     }
@@ -464,7 +464,7 @@ const Learning2 = () => {
       );
 
       if (isAlreadySubmitted) {
-        console.log("Tiến độ quiz này đã được lưu trước đó.");
+        // console.log("Tiến độ quiz này đã được lưu trước đó.");
         return;
       }
 
@@ -504,7 +504,7 @@ const Learning2 = () => {
         return updatedDetails;
       });
 
-      console.log("Lưu tiến độ quiz thành công!");
+      // console.log("Lưu tiến độ quiz thành công!");
     } catch (error) {
       console.error("Lỗi khi lưu tiến độ quiz: ", error.message);
     }
@@ -529,7 +529,7 @@ const Learning2 = () => {
             navigate("/authentication/sign-in");
           } else if (result.isDismissed) {
             navigate("/home");
-            console.log("Người dùng đã từ chối đăng nhập.");
+            // console.log("Người dùng đã từ chối đăng nhập.");
           }
         });
         return;

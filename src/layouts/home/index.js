@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import axios from "axios";
+
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import { Container, Typography, Box, Button, Grid } from "@mui/material";
 import { Splide, SplideSlide } from "@splidejs/react-splide";
@@ -14,6 +14,7 @@ import { Link, useNavigate } from "react-router-dom";
 import "@splidejs/react-splide/css";
 import imgLogo from "assets/images/logos/image.png";
 import "./home.scss";
+import apiClient from "api/apiClient";
 
 const images = [
   {
@@ -50,7 +51,7 @@ const Home = () => {
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const response = await axios.get("http://localhost:3030/course-api/getAllCourse");
+        const response = await apiClient.get("/course-api/getAllCourse");
         if (response.data.success) {
           const allCourses = response.data.data;
           const today = new Date();
@@ -76,22 +77,23 @@ const Home = () => {
   const checkEnrollment = async (courseId) => {
     const userId = localStorage.getItem("userId");
     try {
-      const response = await fetch(
-        `http://localhost:3030/api/v1/enrollment/getEnrollmentByCourseId?courseId=${courseId}`
-      );
-      const data = await response.json();
+      const response = await apiClient.get("/api/v1/enrollment/getEnrollmentByCourseId", {
+        params: { courseId },
+      });
 
-      console.log("Enrollment Data:", data);
+      const data = response.data;
+
+      // console.log("Enrollment Data:", data);
 
       const enrollment = data.data.find((enrollment) => enrollment.userId === Number(userId));
 
       if (enrollment) {
         if (enrollment.paymentStatus === "failed") {
-          console.log("Payment failed, redirecting to payment page.");
+          // console.log("Payment failed, redirecting to payment page.");
           return "failed";
         }
         if (enrollment.paymentStatus === "pending") {
-          console.log("Payment pending, waiting for confirmation.");
+          // console.log("Payment pending, waiting for confirmation.");
           return "pending";
         }
         return "completed";
@@ -105,9 +107,9 @@ const Home = () => {
   };
 
   const handleCourseClick = async (courseId) => {
-    console.log("handleCourseClick called with courseId:", courseId);
+    // console.log("handleCourseClick called with courseId:", courseId);
     const enrollmentStatus = await checkEnrollment(courseId);
-    console.log("Enrollment Status:", enrollmentStatus);
+    // console.log("Enrollment Status:", enrollmentStatus);
 
     if (enrollmentStatus === "failed") {
       navigate(`/courses/${courseId}`);

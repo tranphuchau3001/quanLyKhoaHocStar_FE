@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+
 import { useNavigate } from "react-router-dom";
 import { CardContent, CircularProgress } from "@mui/material";
 import Footer from "examples/Footer";
@@ -11,6 +11,7 @@ import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
 import Swal from "sweetalert2";
+import apiClient from "api/apiClient";
 
 const PaymentVNPay = () => {
   const [loading, setLoading] = useState(false);
@@ -42,7 +43,7 @@ const PaymentVNPay = () => {
           navigate("/authentication/sign-in");
         } else if (result.isDismissed) {
           navigate("/home");
-          console.log("Người dùng đã từ chối đăng nhập.");
+          // console.log("Người dùng đã từ chối đăng nhập.");
         }
       });
       return;
@@ -61,7 +62,7 @@ const PaymentVNPay = () => {
       setCourseId(courseId);
     }
 
-    console.log(name, price, enrollmentId, userId, courseId);
+    // console.log(name, price, enrollmentId, userId, courseId);
   }, []);
 
   const handlePayment = async () => {
@@ -75,20 +76,16 @@ const PaymentVNPay = () => {
         enrollmentId,
       };
 
-      const response = await axios.post(
-        "http://localhost:3030/api/v1/vnpay/submitOrder",
-        orderData,
-        {
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      const response = await apiClient.post("/api/v1/vnpay/submitOrder", orderData, {
+        headers: { "Content-Type": "application/json" },
+      });
 
-      console.log(response);
+      // console.log(response);
 
       if (response.status === 200) {
         const paymentUrl = response.data;
-        console.log("Redirecting to:", paymentUrl);
-        console.log(orderData);
+        // console.log("Redirecting to:", paymentUrl);
+        // console.log(orderData);
         Swal.fire({
           title: "Thành công!",
           text: "Đơn hàng đã được tạo thành công!",
