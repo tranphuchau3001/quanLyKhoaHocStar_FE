@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+
 import { useNavigate } from "react-router-dom";
 import { CardContent, CircularProgress } from "@mui/material";
 import Footer from "examples/Footer";
@@ -11,6 +11,7 @@ import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
 import Swal from "sweetalert2";
+import apiClient from "api/apiClient";
 
 const PaymentVNPay = () => {
   const [loading, setLoading] = useState(false);
@@ -18,6 +19,7 @@ const PaymentVNPay = () => {
   const [courseName, setCourseName] = useState("");
   const [amount, setAmount] = useState(0);
   const [enrollmentId, setEnrollmentId] = useState("");
+  const [courseId, setCourseId] = useState("");
   const [userId, setUserId] = useState(localStorage.getItem("userId"));
   const navigate = useNavigate();
 
@@ -26,6 +28,7 @@ const PaymentVNPay = () => {
     const name = params.get("courseName");
     const price = params.get("price");
     const enrollmentId = params.get("enrollmentId");
+    const courseId = params.get("courseId");
 
     if (!userId) {
       Swal.fire({
@@ -40,7 +43,7 @@ const PaymentVNPay = () => {
           navigate("/authentication/sign-in");
         } else if (result.isDismissed) {
           navigate("/home");
-          console.log("Người dùng đã từ chối đăng nhập.");
+          // console.log("Người dùng đã từ chối đăng nhập.");
         }
       });
       return;
@@ -55,7 +58,11 @@ const PaymentVNPay = () => {
       setEnrollmentId(enrollmentId);
     }
 
-    console.log(name, price, enrollmentId, userId);
+    if (courseId) {
+      setCourseId(courseId);
+    }
+
+    // console.log(name, price, enrollmentId, userId, courseId);
   }, []);
 
   const handlePayment = async () => {
@@ -65,24 +72,20 @@ const PaymentVNPay = () => {
     try {
       const orderData = {
         amount,
-        orderInfo: `ID ${userId} thanh toan khoa hoc co ID dang ky ${enrollmentId}`,
+        orderInfo: `${courseId}`,
         enrollmentId,
       };
 
-      const response = await axios.post(
-        "http://localhost:3030/api/v1/vnpay/submitOrder",
-        orderData,
-        {
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      const response = await apiClient.post("/api/v1/vnpay/submitOrder", orderData, {
+        headers: { "Content-Type": "application/json" },
+      });
 
-      console.log(response);
+      // console.log(response);
 
       if (response.status === 200) {
         const paymentUrl = response.data;
-        console.log("Redirecting to:", paymentUrl);
-        console.log(orderData);
+        // console.log("Redirecting to:", paymentUrl);
+        // console.log(orderData);
         Swal.fire({
           title: "Thành công!",
           text: "Đơn hàng đã được tạo thành công!",

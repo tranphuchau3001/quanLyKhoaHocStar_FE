@@ -7,7 +7,8 @@ import DefaultNavbar from "examples/Navbars/DefaultNavbar";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
-import axios from "axios";
+
+import apiClient from "api/apiClient";
 
 const PaymentResult = () => {
   const [loading, setLoading] = useState(true);
@@ -18,6 +19,7 @@ const PaymentResult = () => {
   const [orderInfo, setOrderInfo] = useState("");
   const [totalAmount, setTotalAmount] = useState("");
   const [payDate, setPayDate] = useState("");
+  const [courseId, setCourseId] = useState(null);
 
   const location = useLocation();
 
@@ -30,6 +32,13 @@ const PaymentResult = () => {
     const payDate = params.get("vnp_PayDate");
 
     const totalAmountInVND = amount ? (amount / 100).toLocaleString() : "";
+
+    const decodedOrderInfo = decodeURIComponent(orderInfo);
+    const courseIdValue = parseInt(decodedOrderInfo, 10);
+
+    setCourseId(courseIdValue);
+
+    setCourseId(courseIdValue);
 
     let formattedPayDate = "N/A";
     if (payDate) {
@@ -67,13 +76,13 @@ const PaymentResult = () => {
   }, [location]);
 
   const updatePaymentStatus = (transactionId, paymentStatus) => {
-    axios
-      .post("http://localhost:3030/api/v1/vnpay/update-status", {
+    apiClient
+      .post("/api/v1/vnpay/update-status", {
         transactionId: transactionId,
         paymentStatus: paymentStatus,
       })
       .then((response) => {
-        console.log("Cập nhật thành công", response.data);
+        // console.log("Cập nhật thành công", response.data);
       })
       .catch((error) => {
         console.error(
@@ -84,13 +93,13 @@ const PaymentResult = () => {
   };
 
   const sendPaymentSuccessEmail = (transactionId, paymentStatus) => {
-    axios
-      .post("http://localhost:3030/api/v1/vnpay/send-payment-success-email", {
+    apiClient
+      .post("/api/v1/vnpay/send-payment-success-email", {
         transactionId: transactionId,
         paymentStatus: paymentStatus,
       })
       .then((response) => {
-        console.log("Gửi maill thành công", response.data);
+        // console.log("Gửi mail thành công", response.data);
       })
       .catch((error) => {
         console.error(
@@ -113,7 +122,7 @@ const PaymentResult = () => {
         minHeight="100vh"
       >
         <Grid container spacing={6} justifyContent="center">
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} md={6} mt={3}>
             <Card>
               <MDBox
                 mx={2}
@@ -165,7 +174,7 @@ const PaymentResult = () => {
                       </Grid>
 
                       {/* Thông tin đơn hàng */}
-                      <Grid item xs={12}>
+                      {/* <Grid item xs={12}>
                         <Grid container spacing={2}>
                           <Grid item xs={5} sx={{ ml: 4 }}>
                             <MDTypography
@@ -191,7 +200,7 @@ const PaymentResult = () => {
                             </MDTypography>
                           </Grid>
                         </Grid>
-                      </Grid>
+                      </Grid> */}
 
                       {/* Tổng tiền */}
                       <Grid item xs={12}>
@@ -295,9 +304,22 @@ const PaymentResult = () => {
 
                       {/* Nút quay lại */}
                       <Grid item xs={12} mt={2}>
-                        <MDButton variant="outlined" color="primary" href="/home" fullWidth>
-                          Quay lại trang chủ
-                        </MDButton>
+                        {paymentStatus === "success" ? (
+                          // Nút "Đi đến bài học" khi thanh toán thành công
+                          <MDButton
+                            variant="outlined"
+                            color="primary"
+                            href={`/learning/${courseId}`}
+                            fullWidth
+                          >
+                            Đi đến bài học
+                          </MDButton>
+                        ) : (
+                          // Nút "Quay lại trang chủ" khi thanh toán thất bại
+                          <MDButton variant="outlined" color="primary" href="/home" fullWidth>
+                            Quay lại trang chủ
+                          </MDButton>
+                        )}
                       </Grid>
                     </>
                   )}

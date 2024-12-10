@@ -1,7 +1,10 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 
 // porp-types is a library for typechecking of props
 import PropTypes from "prop-types";
+
+import YearSelect from "./data/dataYearSelect";
+import fetchBarChartData from "../../../../layouts/dashboard/data/reportsBarChartData";
 
 // react-chartjs-2 components
 import { Bar } from "react-chartjs-2";
@@ -30,14 +33,41 @@ import { FormControl, Grid, MenuItem, Select, Typography } from "@mui/material";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-function ReportsBarChart({ color, title, description, date, chart }) {
-  const { data, options } = configs(chart.labels || [], chart.datasets || {});
-  const [selectedYear, setSelectedYear] = useState(2024);
-  const handleYearChange = (event) => {
-    setSelectedYear(event.target.value);
-    // Xử lý logic thêm nếu cần, ví dụ gửi request hoặc cập nhật dữ liệu biểu đồ.
+function ReportsBarChart({ color, title, description, date, chart, initialYear }) {
+  // const { data, options } = configs(chart.labels || [], chart.datasets || {});
+  const [selectedYear, setSelectedYear] = useState("");
+  const [chartData, setChartData] = useState({ labels: [], datasets: [] });
+  console.log("Data being passed to BarChart:", chartData);
+
+  const handleYearChange = async (event) => {
+    const year = Number(event.target.value);
+
+    if (!year || isNaN(year)) {
+      console.error("Invalid year selected:", year);
+      return; // Không gọi API nếu năm không hợp lệ
+    }
+
+    setSelectedYear(year);
+
+    try {
+      console.log("Year being passed to fetchBarChartData:", typeof year, year);
+      const data = await fetchBarChartData(Number(year));
+      setChartData(data);
+    } catch (error) {
+      console.error("Failed to fetch data:", error.message);
+    }
   };
 
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await fetchBarChartData();
+      setChartData(data);
+    };
+
+    fetchData();
+  }, [initialYear]);
+
+  const { data, options } = configs(chartData.labels, chartData.datasets);
   return (
     <Card sx={{ height: "100%" }}>
       <MDBox padding="1rem">
@@ -83,29 +113,7 @@ function ReportsBarChart({ color, title, description, date, chart }) {
             </Grid>
             <Grid item xs={6} textAlign="center">
               <FormControl variant="outlined" size="small" sx={{ minWidth: 120 }}>
-                <Select
-                  value={selectedYear}
-                  onChange={handleYearChange}
-                  displayEmptyxx
-                  sx={{
-                    borderRadius: "6px",
-                    backgroundColor: "#fff",
-                    "& .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "#d1d9e6",
-                    },
-                    "&:hover .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "#5e72e4",
-                    },
-                    height: "30px",
-                    width: "200px",
-                  }}
-                >
-                  {[2022, 2023, 2024, 2025].map((year) => (
-                    <MenuItem key={year} value={year}>
-                      {year}
-                    </MenuItem>
-                  ))}
-                </Select>
+                <YearSelect selectedYear={selectedYear} handleYearChange={handleYearChange} />
               </FormControl>
             </Grid>
           </Grid>
@@ -119,6 +127,7 @@ function ReportsBarChart({ color, title, description, date, chart }) {
 ReportsBarChart.defaultProps = {
   color: "info",
   description: "",
+  initialYear: new Date().getFullYear(),
 };
 
 // Typechecking props for the ReportsBarChart
@@ -128,6 +137,7 @@ ReportsBarChart.propTypes = {
   description: PropTypes.oneOfType([PropTypes.string, PropTypes.node]),
   date: PropTypes.string.isRequired,
   chart: PropTypes.objectOf(PropTypes.oneOfType([PropTypes.array, PropTypes.object])).isRequired,
+  initialYear: PropTypes.number, // Năm khởi tạo
 };
 
 export default ReportsBarChart;

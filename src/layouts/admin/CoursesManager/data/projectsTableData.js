@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import axios from "axios";
+
 import moment from "moment";
 
 // @mui material components
@@ -9,6 +9,7 @@ import Icon from "@mui/material/Icon";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
+import apiClient from "api/apiClient";
 
 export default function CourseTables({ handleRowDoubleClick, handleDelete }) {
   const [expiredCourses, setExpiredCourses] = useState([]);
@@ -17,7 +18,8 @@ export default function CourseTables({ handleRowDoubleClick, handleDelete }) {
 
   const fetchCourses = async () => {
     try {
-      const response = await axios.get("http://localhost:3030/course-api/getAllCourse");
+      const response = await apiClient.get("/course-api/getAllCourse");
+
       const courses = response.data.data;
 
       if (Array.isArray(courses)) {

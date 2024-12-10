@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+
 import Swal from "sweetalert2";
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
@@ -45,9 +45,8 @@ function Learning() {
 
   const fetchUserProgress = async (moduleId) => {
     try {
-      const response = await axios.get(
-        "http://localhost:3030/api/v1/user-progress/getAllUserProgress"
-      );
+      const response = await apiClient.get("/api/v1/user-progress/getAllUserProgress");
+
       // console.log("Call API getAllUserProgress OK");
       return response.data.success ? response.data.data : [];
     } catch (error) {
@@ -58,9 +57,10 @@ function Learning() {
 
   const fetchLessons = async (moduleId) => {
     try {
-      const response = await axios.get("http://localhost:3030/api/v1/lesson/getLessonsByModuleId", {
+      const response = await apiClient.get("/api/v1/lesson/getLessonsByModuleId", {
         params: { moduleId },
       });
+
       return response.data.success ? response.data.data : [];
     } catch (error) {
       console.error("Error fetching lessons:", error);
@@ -69,17 +69,16 @@ function Learning() {
   };
   const fetchCourse = async () => {
     try {
-      const courseResponse = await axios.get("http://localhost:3030/course-api/getCourseById", {
+      const courseResponse = await apiClient.get("/course-api/getCourseById", {
         params: { courseId },
       });
+
       setCourse(courseResponse.data.data);
 
-      const modulesResponse = await axios.get(
-        "http://localhost:3030/api/v1/module/getModulesByCourseId",
-        {
-          params: { courseId },
-        }
-      );
+      const modulesResponse = await apiClient.get("/api/v1/module/getModulesByCourseId", {
+        params: { courseId },
+      });
+
       setModules(modulesResponse.data.data);
       setOpen(new Array(modulesResponse.data.data.length).fill(false));
 
@@ -122,21 +121,18 @@ function Learning() {
     // console.log("Đang lưu tiến trình cho:", { userId, courseId, lessonId, status });
 
     try {
-      const response = await axios.post(
-        "http://localhost:3030/api/v1/user-progress/addUserProgress",
-        {
-          userId,
-          courseId,
-          lessonId,
-          status,
-        }
-      );
+      const response = await apiClient.post("/api/v1/user-progress/addUserProgress", {
+        userId,
+        courseId,
+        lessonId,
+        status,
+      });
 
       if (response.data.success) {
         // console.log("Tiến trình học tập đã được lưu thành công.");
         setCompletedLessons((prev) => new Set(prev).add(lessonId));
       } else {
-        console.log("Tiến trình đã lưu:", response.data.message);
+        // console.log("Tiến trình đã lưu:", response.data.message);
       }
     } catch (error) {
       console.error("Lỗi khi lưu tiến trình học tập:", error);
@@ -145,9 +141,11 @@ function Learning() {
 
   const fetchUserProgressByUserIdAndCourseId = async (userId, courseId) => {
     try {
-      const response = await axios.get(
-        "http://localhost:3030/api/v1/user-progress/getUserProgressByUserIdAndCourseId",
-        { params: { userId, courseId } }
+      const response = await apiClient.get(
+        "/api/v1/user-progress/getUserProgressByUserIdAndCourseId",
+        {
+          params: { userId, courseId },
+        }
       );
 
       if (response.data.success) {
@@ -176,8 +174,8 @@ function Learning() {
   const fetchCheckEnrollment = async () => {
     const userId = localStorage.getItem("userId");
     try {
-      const checkEnrollment = await axios.get(
-        "http://localhost:3030/api/v1/enrollment/get-enrollment-by-user-id-and-course-id",
+      const checkEnrollment = await apiClient.get(
+        "/api/v1/enrollment/get-enrollment-by-user-id-and-course-id",
         {
           params: { userId, courseId },
         }
@@ -187,8 +185,8 @@ function Learning() {
         const enrollment = checkEnrollment.data.data;
         const enrollmentId = enrollment.enrollmentId;
         const certificateUrl = "certificate_" + enrollmentId + ".pdf";
-        const saveEnrollmentStatus = await axios.put(
-          "http://localhost:3030/api/v1/enrollment/completeCourse",
+        const saveEnrollmentStatus = await apiClient.put(
+          "/api/v1/enrollment/completeCourse",
           null,
           {
             params: {
@@ -223,8 +221,8 @@ function Learning() {
   };
 
   const setNextVideo = async (allLessons, completedLessons) => {
-    console.log("All Lessons:", allLessons);
-    console.log("Completed Lessons:", completedLessons);
+    // console.log("All Lessons:", allLessons);
+    // console.log("Completed Lessons:", completedLessons);
 
     if (allLessons.length > 0 && allLessons[0].length > 0) {
       const completedLessonIds = Array.from(completedLessons);
@@ -290,7 +288,7 @@ function Learning() {
             navigate("/authentication/sign-in");
           } else if (result.isDismissed) {
             navigate("/home");
-            console.log("Người dùng đã từ chối đăng nhập.");
+            // console.log("Người dùng đã từ chối đăng nhập.");
           }
         });
         return;

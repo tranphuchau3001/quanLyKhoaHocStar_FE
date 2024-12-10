@@ -4,7 +4,7 @@ import Tables from "layouts/tables";
 import SignIn from "layouts/authentication/sign-in";
 import SignUp from "layouts/authentication/sign-up";
 import CourseDetail from "layouts/courses";
-import Learning from "layouts/learning";
+import Learning from "layouts/learning2";
 import Payment from "layouts/payment";
 import PaymentResult from "layouts/payment-result";
 import Notifications from "layouts/notifications";

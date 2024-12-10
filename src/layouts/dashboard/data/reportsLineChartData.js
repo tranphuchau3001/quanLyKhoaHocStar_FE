@@ -1,13 +1,14 @@
-import axios from "axios";
+import apiClient from "api/apiClient";
 
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 const fetchReportsLineChartData = async () => {
   try {
-    const response = await axios.get("http://localhost:3030/user-api/statistics");
+    const response = await apiClient.get("/user-api/statistics");
+
     const apiData = response.data;
     const data = months.map((_, index) => apiData[`Month ${index + 1}`] || 0);
-    console.log("Data for chart:", response.data);
+    // console.log("Data for chart:", response.data);
     return {
       labels: months, // Nhãn là danh sách 12 tháng
       datasets: {

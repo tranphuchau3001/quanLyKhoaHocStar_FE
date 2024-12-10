@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+
 import Swal from "sweetalert2";
 import Card from "@mui/material/Card";
 import MDBox from "components/MDBox";
@@ -10,11 +10,13 @@ import MDButton from "components/MDButton";
 import CoverLayout from "layouts/authentication/components/CoverLayout";
 import bgImage from "assets/images/bg-login-layout.png";
 import { Grid } from "@mui/material";
+import apiClient from "api/apiClient";
 
 function Cover() {
   const [formData, setFormData] = useState({
-    username: "",
+    fullName: "",
     password: "",
+    confirmPassword: "",
     email: "",
     phone: "",
     otp: "",
@@ -22,17 +24,93 @@ function Cover() {
 
   const [otpCountdown, setOtpCountdown] = useState(0);
   const [isOtpSent, setIsOtpSent] = useState(false);
+  const [isOtpVerified, setIsOtpVerified] = useState(false);
   const navigate = useNavigate();
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const phoneRegex = /^[0-9]{10}$/;
+  const emailRegex =
+    /^(?:[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:\\[\x01-\x7F]|[^\x00-\x1F\x7F\\"])*")@(?:(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}|(?:\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-zA-Z0-9-]*[a-zA-Z0-9]:[\x01-\x7F]+)\]))$/;
+  const phoneRegex = /^(0|\+84)(3|5|7|8|9)[0-9]{8}$/;
   const otpRegex = /^[0-9]{6}$/;
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
   };
 
-  const validateForm = () => {
-    const { email, phone, otp } = formData;
+  const checkEmailRegistered = async (email) => {
+    try {
+      const response = await apiClient.get("/user-api/check-email", {
+        params: { email },
+      });
+      return response.data.success === false;
+    } catch (error) {
+      console.error("Lỗi khi gọi API check-email:", error);
+      return false;
+    }
+  };
+
+  const checkPhoneRegistered = async (phone) => {
+    try {
+      const response = await apiClient.get("/user-api/check-phone", {
+        params: { phone },
+      });
+      return response.data.success === false;
+    } catch (error) {
+      console.error("Lỗi khi gọi API check-phone:", error);
+      return false;
+    }
+  };
+
+  const validateForm = async () => {
+    const { fullName, email, phone, password, confirmPassword } = formData;
+
+    if (!fullName || fullName.trim() === "") {
+      Swal.fire({
+        icon: "error",
+        title: "Họ tên không được để trống",
+        text: "Vui lòng nhập họ tên của bạn.",
+      });
+      return false;
+    }
+
+    if (!password || password.trim() === "") {
+      Swal.fire({
+        icon: "error",
+        title: "Mật khẩu không được để trống",
+        text: "Vui lòng nhập mật khẩu.",
+      });
+      return false;
+    }
+
+    if (password.length < 6) {
+      Swal.fire({
+        icon: "error",
+        title: "Mật khẩu quá ngắn",
+        text: "Mật khẩu phải có ít nhất 6 ký tự.",
+      });
+      return false;
+    }
+
+    if (!confirmPassword || confirmPassword.trim() === "") {
+      Swal.fire({
+        icon: "error",
+        title: "Nhập lại mật khẩu không được để trống",
+        text: "Vui lòng nhập lại mật khẩu.",
+      });
+      return false;
+    }
+
+    if (password !== confirmPassword) {
+      Swal.fire({
+        icon: "error",
+        title: "Mật khẩu không khớp",
+        text: "Vui lòng nhập lại mật khẩu đúng.",
+      });
+      return false;
+    }
+
     if (!email || email.trim() === "") {
       Swal.fire({
         icon: "error",
@@ -69,11 +147,22 @@ function Cover() {
       return false;
     }
 
-    if (!otpRegex.test(otp)) {
+    const isEmailRegistered = await checkEmailRegistered(email);
+    if (isEmailRegistered) {
       Swal.fire({
         icon: "error",
-        title: "OTP không hợp lệ",
-        text: "OTP phải gồm 6 chữ số.",
+        title: "Email đã được đăng ký",
+        text: "Email này đã được sử dụng cho một tài khoản khác.",
+      });
+      return false;
+    }
+
+    const isPhoneRegistered = await checkPhoneRegistered(phone);
+    if (isPhoneRegistered) {
+      Swal.fire({
+        icon: "error",
+        title: "Số điện thoại đã được đăng ký",
+        text: "Số điện thoại này đã được sử dụng cho một tài khoản khác.",
       });
       return false;
     }
@@ -82,38 +171,86 @@ function Cover() {
   };
 
   const handleRegister = async () => {
-    if (!validateForm()) {
-      return;
-    }
-    if (!formData.password) {
+    if (isOtpVerified && !otpRegex.test(otp)) {
       Swal.fire({
         icon: "error",
-        title: "Vui lòng điền mật khẩu",
-        text: "Mật khẩu không được để trống.",
+        title: "OTP không hợp lệ",
+        text: "OTP phải gồm 6 chữ số.",
       });
-      return false;
+      return;
     }
 
-    console.log("Dữ liệu gửi đi:", {
-      email: formData.email,
-      otp: formData.otp,
-    });
-
     try {
-      const response = await axios.post("http://localhost:3030/user-api/verify-otp", {
+      const response = await apiClient.post("/user-api/register", {
+        name: formData.fullName,
+        passwordHash: formData.password,
+        email: formData.email,
+        phone: formData.phone,
+      });
+
+      Swal.fire({
+        icon: "success",
+        title: "Đăng ký thành công",
+        text: "Bạn đã đăng ký thành công!",
+      });
+
+      navigate("/authentication/sign-in");
+    } catch (error) {
+      if (error.response && error.response.data) {
+        const errorMessage = error.response.data.message;
+        Swal.fire({
+          icon: "error",
+          title: "Đăng ký thất bại",
+          text: errorMessage || error.message,
+        });
+      }
+    }
+  };
+
+  const handleContinue = async () => {
+    const isValid = await validateForm();
+    if (!isValid) return;
+
+    setIsOtpSent(true);
+    setOtpCountdown(60); // Start countdown for OTP
+    try {
+      const email = formData.email.trim();
+      if (!emailRegex.test(email)) {
+        alert("Email không hợp lệ");
+        return;
+      }
+
+      const response = await apiClient.post("/user-api/send-otp", { email });
+
+      if (response.data.success) {
+        // OTP sent successfully
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Lỗi",
+          text: "Có lỗi khi gửi OTP.",
+        });
+      }
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Gửi OTP thất bại",
+        text: error.message,
+      });
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    try {
+      const response = await apiClient.post("/user-api/verify-otp", {
         email: formData.email,
         otp: formData.otp,
       });
+
       if (response.data.success) {
-        // OTP hợp lệ
-        Swal.fire({
-          icon: "success",
-          title: "Đăng ký thành công",
-          text: "Bạn đã đăng ký thành công!",
-        });
-        navigate("/authentication/sign-in");
+        setIsOtpVerified(true);
+        await handleRegister();
       } else {
-        // OTP không hợp lệ
         Swal.fire({
           icon: "error",
           title: "Mã OTP không hợp lệ",
@@ -123,47 +260,7 @@ function Cover() {
     } catch (error) {
       Swal.fire({
         icon: "error",
-        title: "Đăng ký thất bại",
-        text: error.response ? error.response.data : error.message,
-      });
-    }
-  };
-
-  const handleSendOtp = async () => {
-    if (!formData.password || !formData.email) {
-      Swal.fire({
-        icon: "warning",
-        title: "Thiếu thông tin",
-        text: "Vui lòng điền đầy đủ thông tin để gửi OTP.",
-      });
-      return;
-    }
-
-    console.log("Dữ liệu gửi đi:", {
-      name: formData.username,
-      phone: formData.phone,
-      email: formData.email,
-      passwordHash: formData.password,
-    });
-
-    try {
-      const response = await axios.post("http://localhost:3030/user-api/register", {
-        name: formData.username,
-        passwordHash: formData.password,
-        email: formData.email,
-        phone: formData.phone,
-      });
-      Swal.fire({
-        icon: "success",
-        title: "Gửi OTP thành công",
-        text: "OTP đã được gửi đến email của bạn! Otp sẽ hết hạn sau 5 phút",
-      });
-      setIsOtpSent(true);
-      setOtpCountdown(60);
-    } catch (error) {
-      Swal.fire({
-        icon: "error",
-        title: "Gửi OTP thất bại",
+        title: "Xác thực thất bại",
         text: error.response ? error.response.data : error.message,
       });
     }
@@ -200,144 +297,73 @@ function Cover() {
           </MDTypography>
           <MDBox pb={3} px={3}>
             <MDBox component="form" role="form">
-              <MDBox mb={2}></MDBox>
-              <MDBox mb={2}>
-                <MDInput
-                  name="username"
-                  type="text"
-                  label="Họ và tên"
-                  variant="standard"
-                  fullWidth
-                  onChange={handleChange}
-                  InputLabelProps={{
-                    sx: {
-                      color: "dark",
-                    },
-                  }}
-                  inputProps={{
-                    style: { color: "dark" },
-                  }}
-                />
+              {/* Form đăng ký */}
+              <MDInput
+                name="fullName"
+                type="text"
+                label="Họ và tên"
+                variant="standard"
+                fullWidth
+                onChange={handleChange}
+              />
+              <MDInput
+                name="password"
+                type="password"
+                label="Mật khẩu"
+                variant="standard"
+                fullWidth
+                onChange={handleChange}
+              />
+              <MDInput
+                name="confirmPassword"
+                type="password"
+                label="Nhập lại mật khẩu"
+                variant="standard"
+                fullWidth
+                onChange={handleChange}
+              />
+              <MDInput
+                name="email"
+                type="email"
+                label="Email"
+                variant="standard"
+                fullWidth
+                onChange={handleChange}
+              />
+              <MDInput
+                name="phone"
+                type="text"
+                label="Số điện thoại"
+                variant="standard"
+                fullWidth
+                onChange={handleChange}
+              />
 
-                <MDInput
-                  name="password"
-                  type="password"
-                  label="Mật khẩu"
-                  variant="standard"
-                  fullWidth
-                  onChange={handleChange}
-                  InputLabelProps={{
-                    sx: {
-                      color: "dark",
-                    },
-                  }}
-                  inputProps={{
-                    style: { color: "dark" },
-                  }}
-                />
-
-                <MDInput
-                  name="email"
-                  type="email"
-                  label="Email"
-                  variant="standard"
-                  fullWidth
-                  onChange={handleChange}
-                  InputLabelProps={{
-                    sx: {
-                      color: "dark",
-                    },
-                  }}
-                  inputProps={{
-                    style: { color: "dark" },
-                  }}
-                />
-
-                <MDInput
-                  name="phone"
-                  type="text"
-                  label="Số điện thoại"
-                  variant="standard"
-                  fullWidth
-                  onChange={handleChange}
-                  InputLabelProps={{
-                    sx: {
-                      color: "dark",
-                    },
-                  }}
-                  inputProps={{
-                    style: { color: "dark" },
-                  }}
-                />
-              </MDBox>
-
-              <MDBox mb={2}>
-                <Grid container spacing={1} alignItems="center">
-                  <Grid item xs={8}>
-                    <MDInput
-                      name="otp"
-                      type="text"
-                      label="Nhập mã OTP"
-                      variant="standard"
-                      fullWidth
-                      onChange={handleChange}
-                      InputLabelProps={{
-                        sx: {
-                          color: "dark",
-                        },
-                      }}
-                      inputProps={{
-                        style: { color: "dark" },
-                      }}
-                    />
-                  </Grid>
-                  <Grid item xs={4}>
-                    <MDButton
-                      variant="gradient"
-                      fullWidth
-                      disabled={isOtpSent}
-                      onChange={handleChange}
-                      sx={{
-                        height: "20px",
-                        backgroundColor: "#6CA5CE",
-                        fontWeight: "bold",
-                        color: "#030d1e",
-                        "&:hover": {
-                          backgroundColor: "info",
-                        },
-                      }}
-                      onClick={handleSendOtp}
-                    >
-                      {isOtpSent ? `Gửi lại (${otpCountdown}s)` : "Gửi OTP"}
-                    </MDButton>
-                  </Grid>
-                </Grid>
-              </MDBox>
-              <MDBox mt={4}>
-                <MDButton
-                  variant="gradient"
-                  // color="dark"
-                  fullWidth
-                  onClick={handleRegister}
-                  sx={{ color: "white", backgroundColor: "#00ff00" }}
-                >
-                  Đăng ký
-                </MDButton>
-              </MDBox>
-              <MDBox mt={3} mb={1} textAlign="center">
-                <MDTypography variant="button" color="dark">
-                  Bạn đã có tài khoản?{" "}
-                  <MDTypography
-                    component="a"
-                    href="/authentication/sign-in"
-                    variant="button"
-                    color="dark"
-                    fontWeight="medium"
-                  >
-                    Đăng nhập
-                  </MDTypography>
-                </MDTypography>
-              </MDBox>
+              {/* OTP Form */}
+              {isOtpSent && !isOtpVerified && (
+                <>
+                  <MDInput
+                    name="otp"
+                    type="text"
+                    label="Nhập mã OTP"
+                    variant="standard"
+                    fullWidth
+                    onChange={handleChange}
+                  />
+                  <MDButton variant="gradient" color="info" fullWidth onClick={handleVerifyOtp}>
+                    Xác thực OTP
+                  </MDButton>
+                </>
+              )}
+              <MDButton
+                variant="gradient"
+                color="info"
+                fullWidth
+                onClick={handleContinue}
+                disabled={isOtpSent}
+              >
+                {isOtpSent ? "Đang gửi OTP..." : "Tiếp tục"}
+              </MDButton>
             </MDBox>
           </MDBox>
         </Card>

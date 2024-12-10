@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import apiClient from "api/apiClient";
+
 import Swal from "sweetalert2";
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
@@ -34,13 +35,15 @@ function CourseDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { courseId } = useParams();
+  const [paymentStatus, setPaymentStatus] = useState(null);
   const navigate = useNavigate();
 
   const fetchLessons = async (moduleId) => {
     try {
-      const response = await axios.get("http://localhost:3030/api/v1/lesson/getLessonsByModuleId", {
+      const response = await apiClient.get("/api/v1/lesson/getLessonsByModuleId", {
         params: { moduleId },
       });
+
       return response.data.success ? response.data.data : [];
     } catch (error) {
       console.error("Error fetching lessons:", error);
@@ -50,17 +53,16 @@ function CourseDetail() {
 
   const fetchCourse = async () => {
     try {
-      const courseResponse = await axios.get("http://localhost:3030/course-api/getCourseById", {
+      const courseResponse = await apiClient.get("/course-api/getCourseById", {
         params: { courseId },
       });
+
       setCourse(courseResponse.data.data);
 
-      const modulesResponse = await axios.get(
-        "http://localhost:3030/api/v1/module/getModulesByCourseId",
-        {
-          params: { courseId },
-        }
-      );
+      const modulesResponse = await apiClient.get("/api/v1/module/getModulesByCourseId", {
+        params: { courseId },
+      });
+
       setModules(modulesResponse.data.data);
       setOpen(new Array(modulesResponse.data.data.length).fill(false));
 
@@ -68,6 +70,19 @@ function CourseDetail() {
         modulesResponse.data.data.map((module) => fetchLessons(module.moduleId))
       );
       setLessons(allLessons);
+
+      const userId = localStorage.getItem("userId");
+      if (userId) {
+        const enrollmentResponse = await apiClient.get("/api/v1/enrollment/checkEnrollment", {
+          params: { userId, courseId },
+        });
+
+        if (enrollmentResponse.data.success) {
+          setPaymentStatus(enrollmentResponse.data.data.paymentStatus);
+        } else {
+          setPaymentStatus(null);
+        }
+      }
       setLoading(false);
     } catch (error) {
       console.error("Error calling API:", error.response ? error.response.data : error.message);
@@ -103,23 +118,21 @@ function CourseDetail() {
         if (result.isConfirmed) {
           navigate("/authentication/sign-in");
         } else if (result.isDismissed) {
-          console.log("Người dùng đã từ chối đăng nhập.");
+          // console.log("Người dùng đã từ chối đăng nhập.");
         }
       });
       return;
     }
 
     try {
-      const checkEnrollmentResponse = await axios.get(
-        "http://localhost:3030/api/v1/enrollment/checkEnrollment",
-        {
-          params: { userId, courseId },
-        }
-      );
+      const checkEnrollmentResponse = await apiClient.get("/api/v1/enrollment/checkEnrollment", {
+        params: { userId, courseId },
+      });
+
       if (checkEnrollmentResponse.data.success) {
         const enrollment = checkEnrollmentResponse.data.data;
         const enrollmentId = enrollment.enrollmentId;
-        console.log("paymentStatus" + enrollment.paymentStatus);
+        // console.log("paymentStatus" + enrollment.paymentStatus);
 
         if (enrollment.paymentStatus === "pending" || enrollment.paymentStatus === "failed") {
           Swal.fire({
@@ -142,13 +155,10 @@ function CourseDetail() {
       }
 
       if (course.price > 0) {
-        const enrollmentResponse = await axios.post(
-          "http://localhost:3030/api/v1/enrollment/addEnrollment",
-          {
-            userId: Number(userId),
-            courseId: courseId,
-          }
-        );
+        const enrollmentResponse = await apiClient.post("/api/v1/enrollment/addEnrollment", {
+          userId: Number(userId),
+          courseId: courseId,
+        });
 
         if (enrollmentResponse.data.success) {
           const enrollmentId = enrollmentResponse.data.data.enrollmentId;
@@ -168,13 +178,10 @@ function CourseDetail() {
           });
         }
       } else {
-        const freeCourseResponse = await axios.post(
-          "http://localhost:3030/api/v1/enrollment/addEnrollment",
-          {
-            userId: Number(userId),
-            courseId: courseId,
-          }
-        );
+        const freeCourseResponse = await apiClient.post("/api/v1/enrollment/addEnrollment", {
+          userId: Number(userId),
+          courseId: courseId,
+        });
 
         if (freeCourseResponse.data.success) {
           Swal.fire({
@@ -329,15 +336,40 @@ function CourseDetail() {
                       </Grid>
                     </Grid>
                     <MDBox mt={4} mb={1}>
-                      <MDButton
-                        onClick={handleEnrollment}
-                        variant="gradient"
-                        color="success"
-                        fullWidth
-                      >
-                        Đăng ký học
-                      </MDButton>
+                      {paymentStatus === "completed" ? (
+                        <MDButton
+                          onClick={() => navigate(`/learning/${courseId}`)}
+                          variant="gradient"
+                          color="info"
+                          fullWidth
+                        >
+                          Vào học
+                        </MDButton>
+                      ) : paymentStatus === "pending" || paymentStatus === "failed" ? (
+                        <MDButton
+                          onClick={() =>
+                            navigate(
+                              `/payment?courseId=${courseId}&courseName=${course.title}&price=${course.price}`
+                            )
+                          }
+                          variant="gradient"
+                          color="warning"
+                          fullWidth
+                        >
+                          Thanh toán
+                        </MDButton>
+                      ) : (
+                        <MDButton
+                          onClick={handleEnrollment}
+                          variant="gradient"
+                          color="success"
+                          fullWidth
+                        >
+                          Đăng ký học
+                        </MDButton>
+                      )}
                     </MDBox>
+
                     <Typography variant="body2" sx={{ mt: 2 }}>
                       Để biết thêm thông tin chi tiết và nhận hỗ trợ vui lòng liên hệ với Star Dev
                       qua email hoặc số điện thoại.

@@ -34,6 +34,7 @@ function Dashboard() {
       data: [],
     },
   });
+  console.log("Dữ liệu component chính", chartData); // Kiểm tra dữ liệu
   const [chartData2, setChartData2] = useState({
     labels: [],
     datasets: {
