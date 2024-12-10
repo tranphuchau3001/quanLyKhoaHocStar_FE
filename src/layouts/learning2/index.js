@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useParams } from "react-router-dom";
-import axios from "axios";
+import { useParams, useNavigate } from "react-router-dom";
+
 import Swal from "sweetalert2";
 import {
   getCourseById,
@@ -13,6 +13,7 @@ import {
   getUserProgress,
   saveSubmissionHistory,
   getSubmissionHistories,
+  getEnrollmentsByUserId,
 } from "layouts/learning2/data/api";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
@@ -39,13 +40,16 @@ import ArrowCircleLeftOutlinedIcon from "@mui/icons-material/ArrowCircleLeftOutl
 import ArrowCircleRightOutlinedIcon from "@mui/icons-material/ArrowCircleRightOutlined";
 import ListIcon from "@mui/icons-material/List";
 import YouTube from "react-youtube";
-import { green } from "@mui/material/colors";
+import apiClient from "api/apiClient";
 
 const Learning2 = () => {
+  const navigate = useNavigate();
   const { courseId } = useParams();
   const [courseDetails, setCourseDetails] = useState(null);
   const [modules, setModules] = useState([]);
   const [moduleDetails, setModuleDetails] = useState([]);
+  const [enrollments, setEnrollments] = useState([]);
+  const [isCourseAvailable, setIsCourseAvailable] = useState(false);
   const [loading, setLoading] = useState(true);
   const [openModules, setOpenModules] = useState({});
   const [selectedVideo, setSelectedVideo] = useState(null);
@@ -57,7 +61,10 @@ const Learning2 = () => {
   const [progressRecorded, setProgressRecorded] = useState(false);
   const [completedLessonsCount, setCompletedLessonsCount] = useState(0);
   const [completedQuizzesCount, setCompletedQuizzesCount] = useState(0);
+  const [viewTime, setViewTime] = useState(0);
   const playerRef = useRef(null);
+
+  let intervalId = useRef(null);
 
   const totalLessons = moduleDetails.reduce((total, module) => total + module.lessons.length, 0);
   const totalQuizzes = moduleDetails.reduce((total, module) => total + module.quiz.length, 0);
@@ -71,8 +78,41 @@ const Learning2 = () => {
     }));
   };
 
+  const startViewTime = () => {
+    if (intervalId.current) return;
+    intervalId.current = setInterval(() => {
+      setViewTime((prevTime) => prevTime + 1);
+    }, 1000);
+  };
+
+  const stopViewTime = () => {
+    if (intervalId.current) {
+      clearInterval(intervalId.current);
+      intervalId.current = null;
+    }
+  };
+
+  const formatViewTime = (timeInSeconds) => {
+    if (timeInSeconds < 60) {
+      return `${timeInSeconds} giây`;
+    } else if (timeInSeconds < 3600) {
+      const minutes = Math.floor(timeInSeconds / 60);
+      const seconds = timeInSeconds % 60;
+      return `${minutes} phút ${seconds} giây`;
+    } else if (timeInSeconds < 86400) {
+      const hours = Math.floor(timeInSeconds / 3600);
+      const minutes = Math.floor((timeInSeconds % 3600) / 60);
+      return `${hours} giờ ${minutes} phút`;
+    } else {
+      const days = Math.floor(timeInSeconds / 86400);
+      const hours = Math.floor((timeInSeconds % 86400) / 3600);
+      return `${days} ngày ${hours} giờ`;
+    }
+  };
+
   const handleSelectVideo = (lessonId) => {
     setSelectedQuiz(null);
+    stopViewTime();
 
     const lessons = moduleDetails.flatMap((module) => module.lessons);
     const currentIndex = lessons.findIndex((lesson) => lesson.lessonId === lessonId);
@@ -106,8 +146,8 @@ const Learning2 = () => {
       const userAnswer = userAnswers[question.questionId];
       const correctChoice = question.choices.find((choice) => choice.isCorrect);
 
-      console.log("Câu trả lời người dùng:", userAnswer);
-      console.log("Câu trả lời đúng:", correctChoice?.choiceId);
+      // console.log("Câu trả lời người dùng:", userAnswer);
+      // console.log("Câu trả lời đúng:", correctChoice?.choiceId);
 
       return Number(userAnswer) !== Number(correctChoice?.choiceId);
     });
@@ -124,8 +164,7 @@ const Learning2 = () => {
     }
   };
 
-  const handleReceiveCertificate = (event) => {
-    event.preventDefault();
+  const handleReceiveCertificate = () => {
     fetchCheckEnrollment();
   };
 
@@ -180,14 +219,12 @@ const Learning2 = () => {
         modulesData.map(async (module) => {
           const lessons = await getLessonsByModuleId(module.moduleId);
 
-          // Gán trạng thái hoàn thành cho mỗi bài học
           lessons.forEach((lesson) => {
             lesson.completed = userProgress.some(
               (progress) => progress.lessonId === lesson.lessonId && progress.status === "completed"
             );
           });
 
-          // Tính số bài học hoàn thành và tổng số bài học
           const completedLessonsCount = lessons.filter((lesson) => lesson.completed).length;
           const totalLessons = lessons.length;
 
@@ -214,9 +251,9 @@ const Learning2 = () => {
           return {
             ...module,
             lessons,
-            completedLessonsCount, // Số bài học đã hoàn thành
-            totalLessons, // Tổng số bài học
-            quiz: quizDetails, // Thông tin quiz
+            completedLessonsCount,
+            totalLessons,
+            quiz: quizDetails,
           };
         })
       );
@@ -225,7 +262,6 @@ const Learning2 = () => {
 
       const lessons = moduleDataWithDetails.flatMap((module) => module.lessons);
 
-      // Xác định bài học đầu tiên cần hiển thị
       const firstIncompleteLesson = lessons.find((lesson) => !lesson.completed);
       const firstLesson = lessons[0];
 
@@ -235,7 +271,6 @@ const Learning2 = () => {
         setSelectedVideo(firstLesson.lessonId);
       }
 
-      // Tự động mở module chứa bài học đầu tiên
       const moduleIndex = moduleDataWithDetails.findIndex((module) =>
         module.lessons.some(
           (lesson) => lesson.lessonId === (firstIncompleteLesson?.lessonId || firstLesson.lessonId)
@@ -246,7 +281,6 @@ const Learning2 = () => {
         handleToggleModule(moduleIndex);
       }
 
-      // Cập nhật số bài học đã hoàn thành
       const completedCount = lessons.filter((lesson) => lesson.completed).length;
       setCompletedLessonsCount(completedCount);
 
@@ -254,47 +288,6 @@ const Learning2 = () => {
         return count + module.quiz.filter((quiz) => quiz.completed).length;
       }, 0);
 
-      setCompletedQuizzesCount(totalCompletedQuizzes);
-
-      // const allLessonsCompleted = moduleDataWithDetails
-      //   .flatMap((module) => module.lessons)
-      //   .every((lesson) => lesson.completed);
-
-      // if (allLessonsCompleted) {
-      //   const firstLesson = moduleDataWithDetails
-      //     .flatMap((module) => module.lessons)
-      //     .find((lesson) => lesson.completed);
-      //   setSelectedVideo(firstLesson?.videoUrl);
-
-      //   const moduleIndex = moduleDataWithDetails.findIndex((module) =>
-      //     module.lessons.some((lesson) => lesson.videoUrl === firstLesson?.videoUrl)
-      //   );
-      //   if (moduleIndex !== -1) {
-      //     handleToggleModule(moduleIndex);
-      //   }
-      // } else {
-      //   const firstIncompleteLesson = moduleDataWithDetails
-      //     .flatMap((module) => module.lessons)
-      //     .find((lesson) => !lesson.completed);
-      //   setSelectedVideo(firstIncompleteLesson ? firstIncompleteLesson.videoUrl : null);
-
-      //   const moduleIndex = moduleDataWithDetails.findIndex((module) =>
-      //     module.lessons.some((lesson) => lesson.videoUrl === firstIncompleteLesson?.videoUrl)
-      //   );
-      //   if (moduleIndex !== -1) {
-      //     handleToggleModule(moduleIndex);
-      //   }
-      // }
-
-      // // Tổng số bài học đã hoàn thành
-      // const completedCount = moduleDataWithDetails
-      //   .flatMap((module) => module.lessons)
-      //   .filter((lesson) => lesson.completed).length;
-      // setCompletedLessonsCount(completedCount);
-
-      // const totalCompletedQuizzes = moduleDataWithDetails.reduce((count, module) => {
-      //   return count + module.quiz.filter((quiz) => quiz.completed).length;
-      // }, 0);
       setCompletedQuizzesCount(totalCompletedQuizzes);
     } catch (error) {
       console.error("Error fetching course data:", error.message);
@@ -316,6 +309,7 @@ const Learning2 = () => {
       setSelectedVideo(null);
       setErrorMessage(null);
       setSuccessMessage(null);
+      stopViewTime();
     } catch (error) {
       console.error("Error loading quiz details:", error.message);
     }
@@ -323,10 +317,10 @@ const Learning2 = () => {
 
   const fetchCheckEnrollment = async () => {
     const userId = localStorage.getItem("userId");
-    console.log("courseId: " + courseId);
+    // console.log("courseId: " + courseId);
     try {
-      const checkEnrollment = await axios.get(
-        "http://localhost:3030/api/v1/enrollment/get-enrollment-by-user-id-and-course-id",
+      const checkEnrollment = await apiClient.get(
+        "/api/v1/enrollment/get-enrollment-by-user-id-and-course-id",
         {
           params: { userId, courseId },
         }
@@ -336,8 +330,8 @@ const Learning2 = () => {
         const enrollment = checkEnrollment.data.data;
         const enrollmentId = enrollment.enrollmentId;
         const certificateUrl = "certificate_" + enrollmentId + ".pdf";
-        const saveEnrollmentStatus = await axios.put(
-          "http://localhost:3030/api/v1/enrollment/completeCourse",
+        const saveEnrollmentStatus = await apiClient.put(
+          "/api/v1/enrollment/completeCourse",
           null,
           {
             params: {
@@ -348,7 +342,7 @@ const Learning2 = () => {
         );
 
         if (saveEnrollmentStatus.data.success) {
-          console.log("Cấp chứng nhận thành công");
+          // console.log("Cấp chứng nhận thành công");
           Swal.fire({
             title: "Thành công!",
             text: "Đã cấp chứng nhận hoàn thành khóa học. Kiểm tra ở ...",
@@ -372,6 +366,34 @@ const Learning2 = () => {
     }
   };
 
+  const fetchEnrollments = async () => {
+    try {
+      const userId = localStorage.getItem("userId");
+      const data = await getEnrollmentsByUserId(userId);
+      setEnrollments(data);
+
+      // console.log("Danh sách đăng ký:", data);
+
+      const courseExists = data.some((enrollment) => enrollment.courseId === parseInt(courseId));
+
+      // console.log("Is course available:", courseExists);
+      if (!courseExists) {
+        Swal.fire({
+          title: "Bạn chưa đăng ký khóa học này!",
+          text: "Vui lòng đăng ký khóa học để tiếp tục.",
+          icon: "warning",
+        }).then(() => {
+          navigate(`/courses/${courseId}`);
+        });
+        return;
+      }
+    } catch (error) {
+      console.error("Error fetching enrollments:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const saveProgress = async () => {
     if (progressRecorded) return;
     // setProgressRecorded(true);
@@ -390,7 +412,7 @@ const Learning2 = () => {
       );
 
       if (isAlreadyCompleted) {
-        console.log("Tiến độ bài học này đã được lưu trước đó.");
+        // console.log("Tiến độ bài học này đã được lưu trước đó.");
         return;
       }
 
@@ -425,7 +447,7 @@ const Learning2 = () => {
         return updatedDetails;
       });
 
-      console.log("Tiến độ đã được lưu và cập nhật trạng thái.");
+      // console.log("Tiến độ đã được lưu và cập nhật trạng thái.");
     } catch (error) {
       console.error("Lỗi khi lưu tiến độ:", error.message);
     }
@@ -436,14 +458,13 @@ const Learning2 = () => {
       const userId = localStorage.getItem("userId");
       if (!userId || !courseId || !quizId) return;
 
-      // Kiểm tra lịch sử nộp bài để tránh lưu trùng
       const submissionHistories = await getSubmissionHistories(userId, courseId);
       const isAlreadySubmitted = submissionHistories.some(
         (submission) => submission.quizId === quizId && submission.assignmentStatus === true
       );
 
       if (isAlreadySubmitted) {
-        console.log("Tiến độ quiz này đã được lưu trước đó.");
+        // console.log("Tiến độ quiz này đã được lưu trước đó.");
         return;
       }
 
@@ -465,7 +486,6 @@ const Learning2 = () => {
             quiz.quizId === quizId ? { ...quiz, completed: true } : quiz
           );
 
-          // Tính toán lại số quiz đã hoàn thành
           const completedQuizCount = updatedQuizzes.filter((quiz) => quiz.completed).length;
 
           return {
@@ -475,25 +495,48 @@ const Learning2 = () => {
           };
         });
 
-        // Tính toán lại tổng số quiz đã hoàn thành trong toàn bộ khóa học
         const totalCompletedQuizzes = updatedDetails.reduce((count, module) => {
           return count + module.quiz.filter((quiz) => quiz.completed).length;
         }, 0);
 
-        // Cập nhật tổng số quiz đã hoàn thành
         setCompletedQuizzesCount(totalCompletedQuizzes);
 
         return updatedDetails;
       });
 
-      console.log("Lưu tiến độ quiz thành công!");
+      // console.log("Lưu tiến độ quiz thành công!");
     } catch (error) {
       console.error("Lỗi khi lưu tiến độ quiz: ", error.message);
     }
   };
 
   useEffect(() => {
-    fetchCourseData();
+    const initializeData = async () => {
+      await fetchCourseData();
+      await fetchEnrollments();
+
+      const userId = localStorage.getItem("userId");
+      if (!userId) {
+        Swal.fire({
+          title: "Bạn chưa đăng nhập!",
+          text: "Vui lòng đăng nhập để tiếp tục. Bạn có muốn đăng nhập không?",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonText: "Có",
+          cancelButtonText: "Không",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            navigate("/authentication/sign-in");
+          } else if (result.isDismissed) {
+            navigate("/home");
+            // console.log("Người dùng đã từ chối đăng nhập.");
+          }
+        });
+        return;
+      }
+    };
+
+    initializeData();
   }, [courseId]);
 
   if (loading) {
@@ -597,6 +640,14 @@ const Learning2 = () => {
                           playerRef.current = event.target;
                         }}
                         onStateChange={(event) => {
+                          const playerState = event.data;
+
+                          if (playerState === 1) {
+                            startViewTime();
+                          } else if (playerState === 2 || playerState === 0) {
+                            stopViewTime();
+                          }
+
                           if (event.data === 1) {
                             const interval = setInterval(() => {
                               if (playerRef.current) {
@@ -618,11 +669,13 @@ const Learning2 = () => {
                             });
                           }
                         }}
+                        // ref={playerRef}
                         onProgress={(event) => {
                           const progress =
                             (event.target.getCurrentTime() / event.target.getDuration()) * 100;
                           if (progress >= 80 && !progressRecorded) {
                             saveProgress();
+                            setProgressRecorded(true);
                           }
                         }}
                         style={{
@@ -675,7 +728,7 @@ const Learning2 = () => {
               <List
                 component="nav"
                 aria-labelledby="nested-list-subheader"
-                subheader={<ListSubheader>Thống kê khóa học</ListSubheader>}
+                subheader={<ListSubheader>Thống kê tiến độ</ListSubheader>}
               >
                 {/* <ListItemText sx={{ ml: 2 }} primary={`Tổng số bài học: ${totalLessons}`} /> */}
                 <ListItemText
@@ -690,6 +743,10 @@ const Learning2 = () => {
                 <ListItemText
                   sx={{ ml: 2 }}
                   primary={`Tỉ lệ hoàn thành: ${completionPercentage.toFixed(0)}%`}
+                />
+                <ListItemText
+                  sx={{ ml: 2 }}
+                  primary={`Thời gian xem video: ${formatViewTime(viewTime)}`}
                 />
               </List>
 

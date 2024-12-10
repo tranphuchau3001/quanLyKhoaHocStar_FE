@@ -12,8 +12,9 @@ import {
 } from "@mui/material";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import axios from "axios";
+
 import { useNavigate } from "react-router-dom";
+import apiClient from "api/apiClient";
 
 const SecurityPopup = ({ open, onClose }) => {
   const [currentPassword, setCurrentPassword] = useState("");
@@ -42,7 +43,7 @@ const SecurityPopup = ({ open, onClose }) => {
     }
 
     try {
-      const response = await axios.post("http://localhost:3030/user-api/changePassword", {
+      const response = await apiClient.post("/user-api/changePassword", {
         userId: userId,
         currentPassword: currentPassword || undefined,
         newPassword: newPassword || undefined,

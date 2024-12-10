@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+
 import Checkbox from "@mui/material/Checkbox";
 import Card from "@mui/material/Card";
 import MDBox from "components/MDBox";
@@ -13,6 +13,7 @@ import BasicLayout from "layouts/authentication/components/BasicLayout";
 import bgImage from "assets/images/bg-login-layout.png";
 import { Button, Stack, SvgIcon } from "@mui/material";
 import { color } from "@mui/system";
+import apiClient from "api/apiClient";
 
 function SignIn() {
   const [checked, setChecked] = useState(false);
@@ -53,7 +54,7 @@ function SignIn() {
     }
 
     try {
-      const response = await axios.post("http://localhost:3030/api/v1/auth/login", {
+      const response = await apiClient.post("/api/v1/auth/login", {
         email,
         password,
       });
@@ -71,14 +72,14 @@ function SignIn() {
         localStorage.setItem("status", status);
 
         setIsLoggedIn(true);
-        console.log("Dữ liệu đã lưu vào localStorage:", { token, userId, name, email });
+        // console.log("Dữ liệu đã lưu vào localStorage:", { token, userId, name, email });
 
         Swal.fire("Thành công", "Đăng nhập thành công!", "success").then(() => {
           navigate("/home");
         });
       } else {
         setIsLoggedIn(false);
-        console.log("Đăng nhập thất bại: Không có dữ liệu hợp lệ.");
+        // console.log("Đăng nhập thất bại: Không có dữ liệu hợp lệ.");
         Swal.fire("Thất bại", "Đăng nhập thất bại. Vui lòng thử lại.", "error");
       }
     } catch (error) {

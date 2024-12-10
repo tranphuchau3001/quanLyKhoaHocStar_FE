@@ -5,6 +5,7 @@ import MDAvatar from "components/MDAvatar";
 import MDBadge from "components/MDBadge";
 import MDButton from "components/MDButton";
 import Icon from "@mui/material/Icon";
+import apiClient from "api/apiClient";
 
 // Images
 import avt from "assets/images/favicon.png";
@@ -22,8 +23,8 @@ export default function data() {
 
   const fetchGetAllUser = async () => {
     try {
-      const response = await fetch("http://localhost:3030/user-api/getAllUser");
-      const result = await response.json();
+      const response = await apiClient.get("/user-api/getAllUser");
+      const result = response.data;
 
       if (result.success) {
         const { data } = result;
@@ -56,7 +57,7 @@ export default function data() {
 
   // Hàm lưu thay đổi (từ popup)
   const handleSave = (updatedAccount) => {
-    console.log("Tài khoản đã cập nhật:", updatedAccount);
+    // console.log("Tài khoản đã cập nhật:", updatedAccount);
     // Thay đổi danh sách tài khoản (nếu cần)
     setOpen(false); // Đóng popup
   };

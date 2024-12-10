@@ -12,6 +12,7 @@ import MDBox from "components/MDBox";
 import { Avatar, Card, CardContent, CardMedia, Grid, Paper, Divider, Button } from "@mui/material";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import "./profille.scss";
+import apiClient from "api/apiClient";
 
 const ProfilePage = () => {
   const [name, setName] = useState("");
@@ -50,7 +51,7 @@ const ProfilePage = () => {
           isNavigating.current = true;
           navigate("/authentication/sign-in");
         } else if (result.isDismissed) {
-          console.log("Người dùng đã từ chối đăng nhập.");
+          // console.log("Người dùng đã từ chối đăng nhập.");
         }
       });
     }
@@ -64,29 +65,25 @@ const ProfilePage = () => {
     }
 
     try {
-      const response = await fetch(
-        `http://localhost:3030/api/v1/enrollment/getEnrollmentByUserId?userId=${userId}`
-      );
+      const response = await apiClient.get("/api/v1/enrollment/getEnrollmentByUserId", {
+        params: { userId },
+      });
 
-      if (!response.ok) {
-        console.error("Network response was not ok:", response.status);
-        return;
-      }
+      // console.log("API Response:", response.data);
 
-      const result = await response.json();
-      console.log("API Response:", result);
-
-      if (result.success) {
-        const enrollments = result.data;
+      if (response.data.success) {
+        const enrollments = response.data.data;
 
         const inProgress = enrollments.filter((enrollment) => enrollment.status === "in_progress");
         const completed = enrollments.filter((enrollment) => enrollment.status === "completed");
 
         setInProgressCourses(inProgress);
         setCompletedCourses(completed);
+      } else {
+        console.error("API response was not successful:", response.data.message);
       }
     } catch (error) {
-      console.error("Error fetching courses:", error);
+      // console.error("Error fetching courses:", error);
     }
   };
 
@@ -125,7 +122,19 @@ const ProfilePage = () => {
   // };
 
   const handleCourseClick = async (courseId) => {
-    navigate(`/learning/${courseId}`);
+    const course = [...inProgressCourses, ...completedCourses].find((c) => c.courseId === courseId);
+
+    if (course.paymentStatus === "completed") {
+      navigate(`/learning/${courseId}`);
+    } else {
+      Swal.fire({
+        title: "Bạn chưa thanh toán!",
+        text: "Vui lòng thanh toán để truy cập vào khóa học này.",
+        icon: "warning",
+        confirmButtonText: "OK",
+      });
+      navigate(`/courses/${courseId}`);
+    }
   };
 
   const handleCertificateClick = (certificateUrl) => {
@@ -200,7 +209,11 @@ const ProfilePage = () => {
                 inProgressCourses.map((course, index) => {
                   const imagePath = require(`assets/images/Background/background-course/${course.imgUrl}`);
                   return (
-                    <Card sx={{ display: "flex", alignItems: "center", mb: 2 }} key={index}>
+                    <Card
+                      sx={{ display: "flex", alignItems: "center", mb: 2, cursor: "pointer" }}
+                      key={index}
+                      onClick={() => handleCourseClick(course.courseId)}
+                    >
                       <Grid container alignItems="center">
                         <Grid item xs={4} padding={1}>
                           <CardMedia
@@ -215,7 +228,7 @@ const ProfilePage = () => {
                             }}
                             image={imagePath}
                             alt="Course"
-                            onClick={() => handleCourseClick(course.courseId)}
+                            // onClick={() => handleCourseClick(course.courseId)}
                           />
                         </Grid>
                         <Grid item xs={8}>
@@ -247,8 +260,9 @@ const ProfilePage = () => {
                   const imagePath = require(`assets/images/Background/background-course/${course.imgUrl}`);
                   return (
                     <Card
-                      sx={{ display: "flex", alignItems: "center", mb: 2, position: "relative" }}
+                      sx={{ display: "flex", alignItems: "center", mb: 2, cursor: "pointer" }}
                       key={index}
+                      onClick={() => handleCourseClick(course.courseId)}
                     >
                       <Grid container alignItems="center">
                         <Grid item xs={4} padding={1}>
@@ -264,7 +278,7 @@ const ProfilePage = () => {
                             }}
                             image={imagePath}
                             alt="Course"
-                            onClick={() => handleCourseClick(course.courseId)}
+                            // onClick={() => handleCourseClick(course.courseId)}
                           />
                         </Grid>
                         <Grid item xs={8}>

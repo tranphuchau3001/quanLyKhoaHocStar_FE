@@ -1,7 +1,9 @@
+import apiClient from "api/apiClient";
+
 export const fetchData = async (setUsers) => {
   try {
-    const response = await fetch("http://localhost:3030/user-api/getAllUser");
-    const result = await response.json();
+    const response = await apiClient.get("/user-api/getAllUser");
+    const result = response.data;
 
     if (result.success) {
       const { data } = result;

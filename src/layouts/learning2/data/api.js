@@ -1,8 +1,8 @@
-import axios from "axios";
+import apiClient from "api/apiClient";
 
 // Lấy thông tin khóa học
 export const getCourseById = async (courseId) => {
-  const response = await axios.get("http://localhost:3030/course-api/getCourseById", {
+  const response = await apiClient.get("/course-api/getCourseById", {
     params: { courseId },
   });
   return response.data.data;
@@ -10,7 +10,7 @@ export const getCourseById = async (courseId) => {
 
 // Lấy danh sách module
 export const getModulesByCourseId = async (courseId) => {
-  const response = await axios.get("http://localhost:3030/api/v1/module/getModulesByCourseId", {
+  const response = await apiClient.get("/api/v1/module/getModulesByCourseId", {
     params: { courseId },
   });
   return response.data.data;
@@ -18,7 +18,7 @@ export const getModulesByCourseId = async (courseId) => {
 
 // Lấy bài học theo moduleId
 export const getLessonsByModuleId = async (moduleId) => {
-  const response = await axios.get("http://localhost:3030/api/v1/lesson/getLessonsByModuleId", {
+  const response = await apiClient.get("/api/v1/lesson/getLessonsByModuleId", {
     params: { moduleId },
   });
   return response.data.data;
@@ -26,7 +26,7 @@ export const getLessonsByModuleId = async (moduleId) => {
 
 // Lấy quiz theo moduleId
 export const getQuizByModuleId = async (moduleId) => {
-  const response = await axios.get("http://localhost:3030/api/v1/Quiz/getQuizByModuleId", {
+  const response = await apiClient.get("/api/v1/Quiz/getQuizByModuleId", {
     params: { moduleId },
   });
   return response.data.data;
@@ -34,7 +34,7 @@ export const getQuizByModuleId = async (moduleId) => {
 
 // Lấy danh sách câu hỏi theo quizId
 export const getQuestionsByQuizId = async (quizId) => {
-  const response = await axios.get("http://localhost:3030/api/v1/question/getQuestionByQuizId", {
+  const response = await apiClient.get("/api/v1/question/getQuestionByQuizId", {
     params: { quizId },
   });
   return response.data.data;
@@ -42,7 +42,7 @@ export const getQuestionsByQuizId = async (quizId) => {
 
 // Lấy danh sách lựa chọn theo questionId
 export const getChoicesByQuestionId = async (questionId) => {
-  const response = await axios.get("http://localhost:3030/api/v1/choice/getChoiceByQuestionId", {
+  const response = await apiClient.get("/api/v1/choice/getChoiceByQuestionId", {
     params: { questionId },
   });
   return response.data.data;
@@ -51,15 +51,12 @@ export const getChoicesByQuestionId = async (questionId) => {
 // Lưu tiến độ hoàn thành bài học
 export const addUserProgress = async ({ userId, courseId, lessonId, status }) => {
   try {
-    const response = await axios.post(
-      "http://localhost:3030/api/v1/user-progress/addUserProgress",
-      {
-        userId,
-        courseId,
-        lessonId,
-        status,
-      }
-    );
+    const response = await apiClient.post("/api/v1/user-progress/addUserProgress", {
+      userId,
+      courseId,
+      lessonId,
+      status,
+    });
     return response.data.data;
   } catch (error) {
     console.error("Error adding user progress:", error.response?.data || error.message);
@@ -70,8 +67,8 @@ export const addUserProgress = async ({ userId, courseId, lessonId, status }) =>
 // Lấy tiến độ của người dùng theo userId và courseId
 export const getUserProgress = async (userId, courseId) => {
   try {
-    const response = await axios.get(
-      "http://localhost:3030/api/v1/user-progress/getUserProgressByUserIdAndCourseId",
+    const response = await apiClient.get(
+      "/api/v1/user-progress/getUserProgressByUserIdAndCourseId",
       {
         params: { userId, courseId },
       }
@@ -93,17 +90,14 @@ export const saveSubmissionHistory = async ({
   assignmentStatus,
 }) => {
   try {
-    const response = await axios.post(
-      "http://localhost:3030/api/v1/history/saveSubmissionHistory",
-      {
-        userId,
-        courseId,
-        moduleId,
-        quizId,
-        score,
-        assignmentStatus,
-      }
-    );
+    const response = await apiClient.post("/api/v1/history/saveSubmissionHistory", {
+      userId,
+      courseId,
+      moduleId,
+      quizId,
+      score,
+      assignmentStatus,
+    });
     return response.data.data;
   } catch (error) {
     console.error("Error saving submission history:", error.response?.data || error.message);
@@ -114,8 +108,8 @@ export const saveSubmissionHistory = async ({
 // Lấy lịch sử làm bài quiz theo userId và courseId
 export const getSubmissionHistories = async (userId, courseId) => {
   try {
-    const response = await axios.get(
-      "http://localhost:3030/api/v1/history/getSubmissionHistoriesByUserIdAndCourseId",
+    const response = await apiClient.get(
+      "/api/v1/history/getSubmissionHistoriesByUserIdAndCourseId",
       {
         params: { userId, courseId },
       }
@@ -124,5 +118,18 @@ export const getSubmissionHistories = async (userId, courseId) => {
   } catch (error) {
     console.error("Error fetching submission histories:", error.response?.data || error.message);
     throw error;
+  }
+};
+
+// Lấy danh sách enrollments của người dùng
+export const getEnrollmentsByUserId = async (userId) => {
+  try {
+    const response = await apiClient.get("/api/v1/enrollment/getEnrollmentByUserId", {
+      params: { userId },
+    });
+    return response.data.data; // Trả về mảng enrollments
+  } catch (error) {
+    console.error("Error fetching enrollments:", error.response?.data || error.message);
+    throw error; // Ném lỗi nếu có
   }
 };

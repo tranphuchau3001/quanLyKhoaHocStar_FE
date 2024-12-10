@@ -1,5 +1,3 @@
-import axios from "axios";
-
 // Danh sách nhãn cố định cho 12 tháng
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -9,7 +7,7 @@ const fetchBarChartData = async (year) => {
     if (!year) throw new Error("Invalid year parameter");
     console.log("Năm", year);
 
-    const response = await axios.get(`http://localhost:3030/api/v1/enrollment/revenue/statistics`, {
+    const response = await apiClient.get("/api/v1/enrollment/revenue/statistics", {
       params: { year },
     });
 

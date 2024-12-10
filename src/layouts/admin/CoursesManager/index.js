@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import Footer from "examples/Footer";
-import axios from "axios";
+
 import moment from "moment";
 import {
   Container,
@@ -39,6 +39,7 @@ import "./coursesManager.scss";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import MDBox from "components/MDBox";
 import DataTable from "examples/Tables/DataTable";
+import apiClient from "api/apiClient";
 
 // Data
 import authorsTableData from "layouts/admin/CoursesManager/data/authorsTableData";
@@ -167,10 +168,11 @@ const CourseManagement = () => {
       status,
       instructor: instructorData,
     };
-    console.log("Dữ liệu gửi lên API:", courseData);
+    // console.log("Dữ liệu gửi lên API:", courseData);
 
     try {
-      const response = await axios.post("http://localhost:3030/course-api/saveCourse", courseData);
+      const response = await apiClient.post("/course-api/saveCourse", courseData);
+
       if (response.data.success) {
         Swal.fire("Thành công!", "Khóa học đã được thêm.", "success");
         if (file) {
@@ -258,10 +260,10 @@ const CourseManagement = () => {
       instructor: instructorData,
     };
 
-    console.log("Dữ liệu gửi lên API:", courseData);
+    // console.log("Dữ liệu gửi lên API:", courseData);
 
     try {
-      const response = await axios.put("http://localhost:3030/course-api/updateCourse", courseData);
+      const response = await apiClient.put("/course-api/updateCourse", courseData);
 
       if (response.data.success) {
         Swal.fire("Thành công!", "Khóa học đã được cập nhật.", "success");
@@ -303,15 +305,11 @@ const CourseManagement = () => {
     formData.append("file", file);
 
     try {
-      const response = await axios.post(
-        "http://localhost:3030/api/v1/upload/upload-background",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      const response = await apiClient.post("/api/v1/upload/upload-background", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
       if (response.data && response.data.fileName) {
         updateCourseImage(response.data.fileName);
@@ -342,8 +340,9 @@ const CourseManagement = () => {
 
   const fetchInstructors = async () => {
     try {
-      const response = await fetch("http://localhost:3030/user-api/getAllUser");
-      const result = await response.json();
+      const response = await apiClient.get("/user-api/getAllUser");
+      const result = response.data;
+
       if (result.success && Array.isArray(result.data)) {
         const instructors = result.data.filter((user) => user.roleId === 2);
         setInstructors(instructors);
@@ -361,7 +360,8 @@ const CourseManagement = () => {
 
   const fetchCourses = async () => {
     try {
-      const response = await axios.get("http://localhost:3030/course-api/getAllCourse");
+      const response = await apiClient.get("/course-api/getAllCourse");
+
       const courses = response.data.data;
       if (Array.isArray(courses)) {
         const currentDate = moment();
@@ -384,9 +384,9 @@ const CourseManagement = () => {
         setPaidCourses(paid);
         setFreeCourses(free);
         setExpiredCourses(expiredCourses);
-        console.log(paid);
-        console.log(free);
-        console.log(expiredCourses);
+        // console.log(paid);
+        // console.log(free);
+        // console.log(expiredCourses);
       } else {
         console.error("Dữ liệu không phải là một mảng:", courses);
       }
@@ -419,7 +419,8 @@ const CourseManagement = () => {
       });
 
       if (result.isConfirmed) {
-        await axios.delete(`http://localhost:3030/course-api/deleteCourse/${courseId}`);
+        await apiClient.delete(`/course-api/deleteCourse/${courseId}`);
+
         Swal.fire("Đã xóa!", "Khóa học đã được xóa thành công.", "success");
 
         fetchCourses();
@@ -457,19 +458,20 @@ const CourseManagement = () => {
   const indexOfFirstCourse = indexOfLastCourse - coursesPerPage;
 
   const handleRowDoubleClick = async (courseId) => {
-    console.log("courseId nhận được:", courseId);
+    // console.log("courseId nhận được:", courseId);
     if (!courseId) {
       console.error("Course ID không hợp lệ:", courseId);
       Swal.fire("Lỗi!", "ID khóa học không hợp lệ.", "error");
       return;
     }
     try {
-      const response = await axios.get(
-        `http://localhost:3030/course-api/getCourseById?courseId=${courseId}`
-      );
+      const response = await apiClient.get("/course-api/getCourseById", {
+        params: { courseId },
+      });
+
       const courseData = response.data.data;
 
-      console.log(courseData);
+      // console.log(courseData);
 
       setCourseCode(courseData.courseId);
       setCourseName(courseData.title);

@@ -7,7 +7,8 @@ import DefaultNavbar from "examples/Navbars/DefaultNavbar";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
-import axios from "axios";
+
+import apiClient from "api/apiClient";
 
 const PaymentResult = () => {
   const [loading, setLoading] = useState(true);
@@ -75,13 +76,13 @@ const PaymentResult = () => {
   }, [location]);
 
   const updatePaymentStatus = (transactionId, paymentStatus) => {
-    axios
-      .post("http://localhost:3030/api/v1/vnpay/update-status", {
+    apiClient
+      .post("/api/v1/vnpay/update-status", {
         transactionId: transactionId,
         paymentStatus: paymentStatus,
       })
       .then((response) => {
-        console.log("Cập nhật thành công", response.data);
+        // console.log("Cập nhật thành công", response.data);
       })
       .catch((error) => {
         console.error(
@@ -92,13 +93,13 @@ const PaymentResult = () => {
   };
 
   const sendPaymentSuccessEmail = (transactionId, paymentStatus) => {
-    axios
-      .post("http://localhost:3030/api/v1/vnpay/send-payment-success-email", {
+    apiClient
+      .post("/api/v1/vnpay/send-payment-success-email", {
         transactionId: transactionId,
         paymentStatus: paymentStatus,
       })
       .then((response) => {
-        console.log("Gửi maill thành công", response.data);
+        // console.log("Gửi mail thành công", response.data);
       })
       .catch((error) => {
         console.error(
