@@ -1,3 +1,4 @@
+// ReportsLineChart.js
 import { useMemo, useState } from "react";
 
 // porp-types is a library for typechecking of props
@@ -96,7 +97,7 @@ function ReportsLineChart({ color, title, description, date, chart }) {
                 <Select
                   value={selectedYear}
                   onChange={handleYearChange}
-                  displayEmptyxx
+                  displayEmpty
                   sx={{
                     borderRadius: "6px",
                     backgroundColor: "#fff",

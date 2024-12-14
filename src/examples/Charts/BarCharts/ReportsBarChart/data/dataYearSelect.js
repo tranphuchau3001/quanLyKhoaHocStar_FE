@@ -1,30 +1,49 @@
 // YearSelect.js
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import apiClient from "api/apiClient";
 import { FormControl, Select, MenuItem } from "@mui/material";
 import PropTypes from "prop-types";
 
 const YearSelect = ({ selectedYear, handleYearChange }) => {
   const [years, setYears] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchYears = async () => {
       try {
-        const response = await axios.get("http://localhost:3030/api/v1/enrollment/years");
-        console.log("Data năm", response.data);
-        setYears(response.data);
-      } catch (error) {
-        console.error("Error fetching years:", error);
+        const response = await apiClient.get("/api/v1/enrollment/years");
+        // console.log("API get years:", response.data.data);
+        if (response.data.success) {
+          setYears(response.data.data);
+        } else {
+          throw new Error(response.data.message || "Failed to fetch years");
+        }
+      } catch (err) {
+        setError(err.message);
+        console.error("Error fetching years:", err);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchYears();
   }, []);
 
+  const validYear = selectedYear || years[0] || new Date().getFullYear();
+
+  if (loading) {
+    return <div>Loading years...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
   return (
     <FormControl variant="outlined" size="small" sx={{ minWidth: 120 }}>
       <Select
-        value={selectedYear}
+        value={validYear}
         onChange={handleYearChange}
         displayEmpty
         sx={{

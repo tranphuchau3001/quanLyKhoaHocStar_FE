@@ -1,112 +1,121 @@
+// Dashboard.js
 import React, { useState, useEffect } from "react";
 import Grid from "@mui/material/Grid";
-import MenuItem from "@mui/material/MenuItem";
-import Select from "@mui/material/Select";
-import InputLabel from "@mui/material/InputLabel";
-import FormControl from "@mui/material/FormControl";
-import fetchBarChartData from "../dashboard/data/reportsBarChartData";
-import fetchReportsLineChartData from "../dashboard/data/reportsLineChartData";
-// Material Dashboard 2 React components
 import MDBox from "components/MDBox";
-
-// Material Dashboard 2 React example components
+import MDTypography from "components/MDTypography";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 import ReportsBarChart from "examples/Charts/BarCharts/ReportsBarChart";
 import ReportsLineChart from "examples/Charts/LineCharts/ReportsLineChart";
 import ComplexStatisticsCard from "examples/Cards/StatisticsCards/ComplexStatisticsCard";
-
-// Data
-// import fetchBarChartData from "layouts/dashboard/data/reportsBarChartData";
-// import fetchReportsLineChartData from "layouts/dashboard/data/reportsLineChartData";
-// Dashboard components
-import Projects from "layouts/dashboard/components/Projects";
-import OrdersOverview from "layouts/dashboard/components/OrdersOverview";
-import { Typography } from "@mui/material";
+import fetchBarChartData from "layouts/dashboard/data/reportsBarChartData";
+import { textAlign } from "@mui/system";
 
 function Dashboard() {
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  const [chartData, setChartData] = useState({
-    labels: [],
-    datasets: {
-      label: "Revenue",
-      data: [],
-    },
-  });
-  console.log("Dữ liệu component chính", chartData); // Kiểm tra dữ liệu
-  const [chartData2, setChartData2] = useState({
-    labels: [],
-    datasets: {
-      label: "Revenue",
-      data: [],
-    },
-  });
-  const handleYearChange = async (event) => {
-    const year = event.target.value;
-    setSelectedYear(year);
-    await fetchChartData(year);
-  };
+  const [revenueChartData, setRevenueChartData] = useState(null);
+  const [userChartData, setUserChartData] = useState(null);
+  const [initialYear, setInitialYear] = useState(new Date().getFullYear());
 
-  const fetchChartData = async (year) => {
-    const barData = await fetchBarChartData(year); // Truyền năm làm tham số
-    const lineData = await fetchReportsLineChartData(year);
-    setChartData(barData);
-    setChartData2(lineData);
+  // Hàm lấy dữ liệu cho doanh thu
+  const fetchInitialData = async () => {
+    try {
+      const dataRevenue = await fetchBarChartData(initialYear);
+      setRevenueChartData(dataRevenue);
+      // Nếu có dữ liệu khác, bạn cũng có thể gọi thêm hàm cho userChartData
+      // const dataUser = await fetchReportsLineChartData();
+      // setUserChartData(dataUser);
+    } catch (error) {
+      console.error("Error fetching initial data:", error);
+    }
   };
 
   useEffect(() => {
-    fetchChartData(selectedYear);
-  }, [selectedYear]);
+    fetchInitialData();
+  }, [initialYear]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const data = await fetchBarChartData();
-      setChartData(data);
-    };
+  const formatCurrencyVND = (amount) => {
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+      minimumFractionDigits: 0,
+    }).format(amount);
+  };
 
-    fetchData();
-  }, []);
+  console.log("revenueChartData Dashboard: ", revenueChartData);
+  console.log("userChartData Dashboard: ", userChartData);
 
-  useEffect(() => {
-    const loadData = async () => {
-      const data = await fetchReportsLineChartData();
-      setChartData2(data);
-    };
+  const currentMonthIndex = new Date().getMonth();
+  const previousMonthIndex = currentMonthIndex - 1 >= 0 ? currentMonthIndex - 1 : 11;
 
-    loadData();
-  }, []);
+  const currentMonthRevenue = revenueChartData?.datasets.data[currentMonthIndex] || 0;
+  const previousMonthRevenue = revenueChartData?.datasets.data[previousMonthIndex] || 0;
+
+  const calculatePercentageChange = (current, previous) => {
+    if (previous === 0) {
+      return current > 0 ? 100 : 0;
+    }
+    return ((current - previous) / previous) * 100;
+  };
+
+  const percentageChange = calculatePercentageChange(currentMonthRevenue, previousMonthRevenue);
+
+  console.log("currentMonthRevenue: " + currentMonthRevenue);
+
+  if (revenueChartData === null) {
+    return (
+      <MDTypography variant="h6" sx={{ textAlign: "center" }}>
+        Loading...
+      </MDTypography>
+    );
+  }
 
   return (
     <DashboardLayout>
       <DashboardNavbar />
       <MDBox py={3}>
         <Grid container spacing={3}>
-          {/* <Grid item xs={12} md={6} lg={3}>
-            <MDBox mb={1.5}>
-              <ComplexStatisticsCard
-                color="dark"
-                icon="weekend"
-                title="Bookings"
-                count={281}
-                percentage={{
-                  color: "success",
-                  amount: "+55%",
-                  label: "than lask week",
-                }}
-              />
-            </MDBox>
-          </Grid> */}
           <Grid item xs={12} md={6} lg={3}>
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
                 icon="leaderboard"
                 title="Doanh thu tháng này"
-                count="2,300"
+                count={formatCurrencyVND(currentMonthRevenue)}
+                percentage={{
+                  color: percentageChange >= 0 ? "success" : "error",
+                  label:
+                    percentageChange >= 0 ? "So với tháng trước tăng " : "So với tháng trước giảm ",
+                  amount: `${percentageChange.toFixed(1)}%`,
+                }}
+              />
+            </MDBox>
+          </Grid>
+          <Grid item xs={12} md={6} lg={3}>
+            <MDBox mb={1.5}>
+              <ComplexStatisticsCard
+                color="dark"
+                icon="leaderboard"
+                title="Tổng doanh thu năm"
+                count={281}
                 percentage={{
                   color: "success",
-                  amount: "+3%",
-                  label: "than last month",
+                  amount: "+55%",
+                  label: "So với năm trước",
+                }}
+              />
+            </MDBox>
+          </Grid>
+          <Grid item xs={12} md={6} lg={3}>
+            <MDBox mb={1.5}>
+              <ComplexStatisticsCard
+                color="primary"
+                icon="person_add"
+                title="Số người dùng tháng này"
+                count="+91"
+                percentage={{
+                  color: "success",
+                  amount: "+2.5%",
+                  label: "So với tháng trước",
                 }}
               />
             </MDBox>
@@ -115,84 +124,49 @@ function Dashboard() {
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
                 color="success"
-                icon="store"
+                icon="person"
                 title="Tổng số người dùng"
                 count="34k"
                 percentage={{
                   color: "success",
-                  amount: "+1%",
-                  label: "than yesterday",
+                  amount: "",
+                  label: "Vừa cập nhật",
                 }}
               />
             </MDBox>
           </Grid>
-          {/* <Grid item xs={12} md={6} lg={3}>
-            <MDBox mb={1.5}>
-              <ComplexStatisticsCard
-                color="primary"
-                icon="person_add"
-                title="Followers"
-                count="+91"
-                percentage={{
-                  color: "success",
-                  amount: "",
-                  label: "Just updated",
-                }}
-              />
-            </MDBox>
-          </Grid> */}
         </Grid>
         <MDBox mt={4.5}>
           <Grid container spacing={3}>
             <Grid item xs={12} md={6} lg={6}>
               <MDBox mb={3}>
                 <ReportsBarChart
+                  title="Doanh thu hàng tháng"
+                  description="Thống kê doanh thu hàng tháng"
+                  date={`Cập nhật lần cuối: ${new Date().toLocaleDateString()}`}
+                  chart={revenueChartData}
+                  initialYear={initialYear}
                   color="info"
-                  title="Thống kê doanh thu"
-                  // description="Last Campaign Performance"
-                  date="Cập nhật 2 ngày trước"
-                  chart={chartData}
                 />
               </MDBox>
             </Grid>
             <Grid item xs={12} md={6} lg={6}>
               <MDBox mb={3}>
-                <ReportsLineChart
+                {/* <ReportsLineChart
                   color="success"
                   title="Tổng số học viên"
-                  // description={
-                  //   <>
-                  //     (<strong>+15%</strong>) increase in today sales.
-                  //   </>
-                  // }
+                  description={
+                    <>
+                      (<strong>+15%</strong>) increase in today sales.
+                    </>
+                  }
                   date="Cập nhật 2 ngày trước"
-                  chart={chartData2}
-                />
+                  chart={userChartData}
+                /> */}
               </MDBox>
             </Grid>
-            {/* <Grid item xs={12} md={6} lg={4}>
-              <MDBox mb={3}>
-                <ReportsLineChart
-                  color="dark"
-                  title="completed tasks"
-                  description="Last Campaign Performance"
-                  date="just updated"
-                  chart={tasks}
-                />
-              </MDBox> */}
-            {/* </Grid> */}
           </Grid>
         </MDBox>
-        {/* <MDBox>
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6} lg={8}>
-              <Projects />
-            </Grid>
-            <Grid item xs={12} md={6} lg={4}>
-              <OrdersOverview />
-            </Grid>
-          </Grid>
-        </MDBox> */}
       </MDBox>
       <Footer />
     </DashboardLayout>

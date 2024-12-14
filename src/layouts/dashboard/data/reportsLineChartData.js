@@ -6,13 +6,13 @@ const fetchReportsLineChartData = async () => {
   try {
     const response = await apiClient.get("/user-api/statistics");
 
-    const apiData = response.data;
+    const apiData = response.data.data;
     const data = months.map((_, index) => apiData[`Month ${index + 1}`] || 0);
     // console.log("Data for chart:", response.data);
     return {
       labels: months, // Nhãn là danh sách 12 tháng
       datasets: {
-        label: "Revenue", // Nhãn cho biểu đồ
+        label: "User", // Nhãn cho biểu đồ
         data, // Dữ liệu doanh thu
       },
     };
