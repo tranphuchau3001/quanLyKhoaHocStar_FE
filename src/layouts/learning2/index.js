@@ -753,10 +753,10 @@ const Learning2 = () => {
                   sx={{ ml: 2 }}
                   primary={`Tỉ lệ hoàn thành: ${completionPercentage.toFixed(0)}%`}
                 />
-                <ListItemText
+                {/* <ListItemText
                   sx={{ ml: 2 }}
                   primary={`Thời gian xem video: ${formatViewTime(viewTime)}`}
-                />
+                /> */}
               </List>
 
               <List
