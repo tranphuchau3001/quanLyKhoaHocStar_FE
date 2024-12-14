@@ -16,23 +16,45 @@ function Dashboard() {
   const [revenueChartData, setRevenueChartData] = useState(null);
   const [userChartData, setUserChartData] = useState(null);
   const [initialYear, setInitialYear] = useState(new Date().getFullYear());
+  const [totalYearRevenue, setTotalYearRevenue] = useState(0);
+  const [previousYearRevenue, setPreviousYearRevenue] = useState(0);
+  const [yearlyPercentageChange, setYearlyPercentageChange] = useState(0);
 
   // Hàm lấy dữ liệu cho doanh thu
   const fetchInitialData = async () => {
     try {
       const dataRevenue = await fetchBarChartData(initialYear);
       setRevenueChartData(dataRevenue);
-      // Nếu có dữ liệu khác, bạn cũng có thể gọi thêm hàm cho userChartData
+
       // const dataUser = await fetchReportsLineChartData();
       // setUserChartData(dataUser);
+
+      const totalYearRevenue = dataRevenue.datasets.data.reduce((acc, value) => acc + value, 0);
+      setTotalYearRevenue(totalYearRevenue);
     } catch (error) {
       console.error("Error fetching initial data:", error);
     }
   };
 
   useEffect(() => {
-    fetchInitialData();
-  }, [initialYear]);
+    const fetchData = async () => {
+      await fetchInitialData();
+      const previousYearRevenueData = await fetchBarChartData(initialYear - 1);
+      const previousYearTotalRevenue = previousYearRevenueData.datasets.data.reduce(
+        (acc, value) => acc + value,
+        0
+      );
+      setPreviousYearRevenue(previousYearTotalRevenue);
+
+      const yearlyChange = calculateYearlyPercentageChange(
+        totalYearRevenue,
+        previousYearTotalRevenue
+      );
+      setYearlyPercentageChange(yearlyChange);
+    };
+
+    fetchData();
+  }, [initialYear, totalYearRevenue]);
 
   const formatCurrencyVND = (amount) => {
     return new Intl.NumberFormat("vi-VN", {
@@ -59,6 +81,17 @@ function Dashboard() {
   };
 
   const percentageChange = calculatePercentageChange(currentMonthRevenue, previousMonthRevenue);
+
+  const calculateYearlyPercentageChange = (currentYearRevenue, previousYearRevenue) => {
+    if (previousYearRevenue === 0) {
+      return currentYearRevenue > 0 ? 100 : 0;
+    }
+    return ((currentYearRevenue - previousYearRevenue) / previousYearRevenue) * 100;
+  };
+
+  const getYearlyChangeSign = (yearlyChange) => {
+    return yearlyChange >= 0 ? `+${yearlyChange.toFixed(1)}%` : `${yearlyChange.toFixed(1)}%`;
+  };
 
   console.log("currentMonthRevenue: " + currentMonthRevenue);
 
@@ -93,13 +126,13 @@ function Dashboard() {
           <Grid item xs={12} md={6} lg={3}>
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
-                color="dark"
+                color="success"
                 icon="leaderboard"
-                title="Tổng doanh thu năm"
-                count={281}
+                title="Tổng doanh thu năm nay"
+                count={formatCurrencyVND(totalYearRevenue)}
                 percentage={{
-                  color: "success",
-                  amount: "+55%",
+                  color: yearlyPercentageChange >= 0 ? "success" : "error",
+                  amount: getYearlyChangeSign(yearlyPercentageChange),
                   label: "So với năm trước",
                 }}
               />
