@@ -139,8 +139,8 @@ const ProfilePage = () => {
 
   const handleCertificateClick = (certificateUrl) => {
     if (certificateUrl) {
-      const fileUrl = `${process.env.PUBLIC_URL}/certificate/${certificateUrl}`;
-      window.open(fileUrl, "_blank");
+      // Sử dụng trực tiếp URL từ S3 thay vì thư mục public
+      window.open(certificateUrl, "_blank");
     } else {
       alert("Không tìm thấy chứng nhận!");
     }
@@ -299,7 +299,7 @@ const ProfilePage = () => {
                               }}
                               onClick={() => handleCertificateClick(course.certificateUrl)}
                             >
-                              Xem chứng nhận
+                              Tải chứng nhận
                             </Button>
                           </CardContent>
                         </Grid>

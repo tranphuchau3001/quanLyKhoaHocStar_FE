@@ -328,6 +328,15 @@ const Learning2 = () => {
 
       if (checkEnrollment.data.success) {
         const enrollment = checkEnrollment.data.data;
+        if (enrollment.status == "completed") {
+          Swal.fire({
+            title: "Chứng nhận đã được cấp!",
+            text: "Vui lòng kiểm tra ở trang thông tin tài khoản",
+            icon: "warning",
+          });
+          return;
+        }
+        console.log("status", enrollment.status);
         const enrollmentId = enrollment.enrollmentId;
         const certificateUrl = "certificate_" + enrollmentId + ".pdf";
         const saveEnrollmentStatus = await apiClient.put(
@@ -342,16 +351,16 @@ const Learning2 = () => {
         );
 
         if (saveEnrollmentStatus.data.success) {
-          // console.log("Cấp chứng nhận thành công");
+          console.log("Cấp chứng nhận thành công");
           Swal.fire({
             title: "Thành công!",
-            text: "Đã cấp chứng nhận hoàn thành khóa học. Kiểm tra ở ...",
+            text: "Đã cấp chứng nhận hoàn thành khóa học. Kiểm tra ở trang thông tin tài khoản",
             icon: "success",
           });
         } else {
           Swal.fire({
             title: "Chứng nhận đã được cấp!",
-            text: "Vui lòng kiểm tra ở ...",
+            text: "Vui lòng kiểm tra ở trang thông tin tài khoản",
             icon: "warning",
           });
         }
@@ -744,10 +753,10 @@ const Learning2 = () => {
                   sx={{ ml: 2 }}
                   primary={`Tỉ lệ hoàn thành: ${completionPercentage.toFixed(0)}%`}
                 />
-                <ListItemText
+                {/* <ListItemText
                   sx={{ ml: 2 }}
                   primary={`Thời gian xem video: ${formatViewTime(viewTime)}`}
-                />
+                /> */}
               </List>
 
               <List
