@@ -139,7 +139,6 @@ const ProfilePage = () => {
 
   const handleCertificateClick = (certificateUrl) => {
     if (certificateUrl) {
-      // Sử dụng trực tiếp URL từ S3 thay vì thư mục public
       window.open(certificateUrl, "_blank");
     } else {
       alert("Không tìm thấy chứng nhận!");
