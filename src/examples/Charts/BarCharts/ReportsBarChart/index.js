@@ -19,7 +19,7 @@ import Icon from "@mui/material/Icon";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import configs from "examples/Charts/BarCharts/ReportsBarChart/configs";
-import YearSelect from "examples/Charts/BarCharts/ReportsBarChart/data/dataYearSelect";
+import SelectYearRevenue from "examples/Charts/BarCharts/ReportsBarChart/data/dataYearSelect";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -106,7 +106,10 @@ function ReportsBarChart({ color, title, description, date, chart, initialYear }
             </Grid>
             <Grid item xs={6} textAlign="center">
               <FormControl variant="outlined" size="small" sx={{ minWidth: 120 }}>
-                <YearSelect selectedYear={selectedYear} handleYearChange={handleYearChange} />
+                <SelectYearRevenue
+                  selectedYear={selectedYear}
+                  handleYearChange={handleYearChange}
+                />
               </FormControl>
             </Grid>
           </Grid>

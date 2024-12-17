@@ -1,31 +1,58 @@
+// fetchLineChartData.js
 import apiClient from "api/apiClient";
 
-const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+export const months = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
 
-const fetchReportsLineChartData = async () => {
+const fetchLineChartData = async (year) => {
   try {
-    const response = await apiClient.get("/user-api/statistics");
+    if (!year) throw new Error("Invalid year parameter");
+
+    const response = await apiClient.get("/api/v1/statistical/getRegistrationStats/monthly", {
+      params: { year },
+    });
 
     const apiData = response.data.data;
-    const data = months.map((_, index) => apiData[`Month ${index + 1}`] || 0);
-    // console.log("Data for chart:", response.data);
-    return {
-      labels: months, // Nhãn là danh sách 12 tháng
-      datasets: {
-        label: "User", // Nhãn cho biểu đồ
-        data, // Dữ liệu doanh thu
-      },
-    };
-  } catch (error) {
-    console.error("Error fetching bar chart data:", error);
+
+    if (!apiData || typeof apiData !== "object") {
+      throw new Error("Invalid API response structure");
+    }
+
+    const data = months.map((_, index) => {
+      const monthKey = `Month ${index + 1}`;
+      const monthData = apiData[monthKey];
+      return monthData !== undefined ? monthData : 0;
+    });
+
     return {
       labels: months,
       datasets: {
-        label: "Revenue",
-        data: Array(12).fill(0), // Mặc định giá trị cho 12 tháng là 0 nếu lỗi xảy ra
+        label: "User",
+        data,
+      },
+    };
+  } catch (error) {
+    console.error("Error fetching line chart data:", error.message);
+    return {
+      labels: months,
+      datasets: {
+        label: "User",
+        data: Array(12).fill(0),
       },
     };
   }
 };
 
-export default fetchReportsLineChartData;
+export default fetchLineChartData;

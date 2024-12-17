@@ -1,7 +1,9 @@
 // ReportsLineChart.js
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import fetchLineChartData, { months } from "layouts/dashboard/data/reportsLineChartData";
+import SelectYearRegistration from "examples/Charts/BarCharts/ReportsBarChart/data/SelectYearRegistration";
 
-// porp-types is a library for typechecking of props
+// prop-types is a library for typechecking of props
 import PropTypes from "prop-types";
 
 // react-chartjs-2 components
@@ -42,12 +44,39 @@ ChartJS.register(
   Filler
 );
 
-function ReportsLineChart({ color, title, description, date, chart }) {
-  const { data, options } = configs(chart.labels || [], chart.datasets || {});
-  const [selectedYear, setSelectedYear] = useState(2024);
-  const handleYearChange = (event) => {
-    setSelectedYear(event.target.value);
+function ReportsLineChart({ color, title, description, date, chart, initialYear }) {
+  const [selectedYear, setSelectedYear] = useState(initialYear || new Date().getFullYear());
+  const [chartData, setChartData] = useState({
+    labels: months,
+    datasets: [
+      {
+        label: "User",
+        data: Array(12).fill(0), // Default empty data for each month
+      },
+    ],
+  });
+
+  // Hàm thay đổi năm và lấy dữ liệu biểu đồ mới
+  const handleYearChange = async (event) => {
+    const year = Number(event.target.value);
+    if (!year || isNaN(year)) return;
+
+    setSelectedYear(year);
+    try {
+      const data = await fetchLineChartData(year); // Fetch new data based on selected year
+      setChartData(data);
+    } catch (error) {
+      console.error("Error fetching data:", error.message);
+    }
   };
+
+  useEffect(() => {
+    if (chart && chart.labels && chart.datasets) {
+      setChartData(chart);
+    }
+  }, [chart]);
+
+  const { data, options } = configs(chartData.labels, chartData.datasets);
 
   return (
     <Card sx={{ height: "100%" }}>
@@ -67,7 +96,7 @@ function ReportsLineChart({ color, title, description, date, chart }) {
               <Line data={data} options={options} redraw />
             </MDBox>
           ),
-          [chart, color]
+          [data, options, color]
         )}
         <MDBox pt={3} pb={1} px={1}>
           <Grid container alignItems="center">
@@ -94,29 +123,10 @@ function ReportsLineChart({ color, title, description, date, chart }) {
             </Grid>
             <Grid item xs={6} textAlign="center">
               <FormControl variant="outlined" size="small" sx={{ minWidth: 120 }}>
-                <Select
-                  value={selectedYear}
-                  onChange={handleYearChange}
-                  displayEmpty
-                  sx={{
-                    borderRadius: "6px",
-                    backgroundColor: "#fff",
-                    "& .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "#d1d9e6",
-                    },
-                    "&:hover .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "#5e72e4",
-                    },
-                    height: "30px",
-                    width: "200px",
-                  }}
-                >
-                  {[2022, 2023, 2024, 2025].map((year) => (
-                    <MenuItem key={year} value={year}>
-                      {year}
-                    </MenuItem>
-                  ))}
-                </Select>
+                <SelectYearRegistration
+                  selectedYear={selectedYear}
+                  handleYearChange={handleYearChange}
+                />
               </FormControl>
             </Grid>
           </Grid>
@@ -130,6 +140,7 @@ function ReportsLineChart({ color, title, description, date, chart }) {
 ReportsLineChart.defaultProps = {
   color: "info",
   description: "",
+  initialYear: new Date().getFullYear(),
 };
 
 // Typechecking props for the ReportsLineChart
@@ -139,6 +150,7 @@ ReportsLineChart.propTypes = {
   description: PropTypes.oneOfType([PropTypes.string, PropTypes.node]),
   date: PropTypes.string.isRequired,
   chart: PropTypes.objectOf(PropTypes.oneOfType([PropTypes.array, PropTypes.object])).isRequired,
+  initialYear: PropTypes.number,
 };
 
 export default ReportsLineChart;

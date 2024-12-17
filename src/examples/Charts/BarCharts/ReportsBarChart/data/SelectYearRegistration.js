@@ -1,10 +1,10 @@
-// SelectYearRevenue .js
+// SelectYearRegistration.js
 import React, { useState, useEffect } from "react";
 import apiClient from "api/apiClient";
 import { FormControl, Select, MenuItem } from "@mui/material";
 import PropTypes from "prop-types";
 
-const SelectYearRevenue = ({ selectedYear, handleYearChange }) => {
+const SelectYearRegistration = ({ selectedYear, handleYearChange }) => {
   const [years, setYears] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -12,8 +12,7 @@ const SelectYearRevenue = ({ selectedYear, handleYearChange }) => {
   useEffect(() => {
     const fetchYears = async () => {
       try {
-        const response = await apiClient.get("/api/v1/statistical/getAvailableRevenueYears");
-        // console.log("API get years:", response.data.data);
+        const response = await apiClient.get("/api/v1/statistical/getAvailableUserYears");
         if (response.data.success) {
           setYears(response.data.data);
         } else {
@@ -69,9 +68,9 @@ const SelectYearRevenue = ({ selectedYear, handleYearChange }) => {
   );
 };
 
-SelectYearRevenue.propTypes = {
+SelectYearRegistration.propTypes = {
   selectedYear: PropTypes.number.isRequired,
   handleYearChange: PropTypes.func.isRequired,
 };
 
-export default SelectYearRevenue;
+export default SelectYearRegistration;

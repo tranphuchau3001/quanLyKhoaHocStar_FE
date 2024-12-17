@@ -21,7 +21,7 @@ export const months = [
 const fetchBarChartData = async (year) => {
   try {
     if (!year) throw new Error("Invalid year parameter");
-    const response = await apiClient.get("/api/v1/enrollment/revenue/statistics", {
+    const response = await apiClient.get("/api/v1/statistical/revenue/statistics", {
       params: { year },
     });
 
