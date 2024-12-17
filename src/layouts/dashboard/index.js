@@ -11,7 +11,12 @@ import ReportsLineChart from "examples/Charts/LineCharts/ReportsLineChart";
 import ComplexStatisticsCard from "examples/Cards/StatisticsCards/ComplexStatisticsCard";
 import fetchBarChartData from "layouts/dashboard/data/reportsBarChartData";
 import fetchLineChartData from "layouts/dashboard/data/reportsLineChartData";
-import { fetchTodayUsers, fetchAllUsers } from "layouts/dashboard/data/fetchDataUsers";
+import {
+  fetchTodayUsers,
+  fetchAllUsers,
+  fetchTodayRevenue,
+  fetchTotalRevenue,
+} from "layouts/dashboard/data/fetchDataUsers";
 
 function Dashboard() {
   const [revenueChartData, setRevenueChartData] = useState(null);
@@ -25,6 +30,8 @@ function Dashboard() {
   const [yearlyUserPercentageChange, setYearlyUserPercentageChange] = useState(0);
   const [todayUsers, setTodayUsers] = useState(0);
   const [allUsers, setAllUsers] = useState(0);
+  const [todayRevenue, setTodayRevenue] = useState(0);
+  const [allRevenue, setAllRevenue] = useState(0);
 
   const currentMonthIndex = new Date().getMonth();
   const previousMonthIndex = currentMonthIndex - 1 >= 0 ? currentMonthIndex - 1 : 11;
@@ -51,8 +58,6 @@ function Dashboard() {
   const getYearlyRevenueChangeSign = (yearlyChange) => {
     return yearlyChange >= 0 ? `+${yearlyChange.toFixed(1)}%` : `${yearlyChange.toFixed(1)}%`;
   };
-  console.log("previousYearUser: ", previousYearUser);
-  console.log("previousYearRevenue: ", previousYearRevenue);
 
   // user
   const currentMonthUsers = userChartData?.datasets.data[currentMonthIndex] || 0;
@@ -92,7 +97,7 @@ function Dashboard() {
       const totalYearUser = dataUser.datasets.data.reduce((acc, value) => acc + value, 0);
       setTotalYearUser(totalYearUser);
 
-      // today users
+      // Today users
       const todayUserData = await fetchTodayUsers();
       const todayUserCount = todayUserData?.[0]?.userCount || 0;
       setTodayUsers(todayUserCount);
@@ -100,45 +105,59 @@ function Dashboard() {
       // All users
       const allUserData = await fetchAllUsers();
       setAllUsers(allUserData);
+
+      // Today revenue
+      const todayRevenueData = await fetchTodayRevenue();
+      setTodayRevenue(todayRevenueData);
+
+      // All revenue
+      const allRevenueData = await fetchTotalRevenue();
+      setAllRevenue(allRevenueData);
     } catch (error) {
       console.error("Error fetching initial data:", error);
     }
   };
 
+  const fetchData = async () => {
+    try {
+      const [
+        barChartData,
+        lineChartData,
+        todayUsersData,
+        allUsersData,
+        todayRevenueData,
+        allRevenueData,
+      ] = await Promise.all([
+        fetchBarChartData(initialYear),
+        fetchLineChartData(initialYear),
+        fetchTodayUsers(),
+        fetchAllUsers(),
+        fetchTodayRevenue(),
+        fetchTotalRevenue(),
+      ]);
+
+      // Cập nhật state ở đây
+      setRevenueChartData(barChartData);
+      setUserChartData(lineChartData);
+      setTodayUsers(todayUsersData?.[0]?.userCount || 0);
+      setAllUsers(allUsersData);
+      setTodayRevenue(todayRevenueData);
+      setAllRevenue(allRevenueData);
+
+      // Tính toán dữ liệu liên quan
+      const totalYearRevenue = barChartData.datasets.data.reduce((acc, value) => acc + value, 0);
+      setTotalYearRevenue(totalYearRevenue);
+
+      const totalYearUser = lineChartData.datasets.data.reduce((acc, value) => acc + value, 0);
+      setTotalYearUser(totalYearUser);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      await fetchInitialData();
-      // revenue
-      const previousYearRevenueData = await fetchBarChartData(initialYear - 1);
-      const previousYearTotalRevenue = previousYearRevenueData.datasets.data.reduce(
-        (acc, value) => acc + value,
-        0
-      );
-      setPreviousYearRevenue(previousYearTotalRevenue);
-
-      const yearlyRevenueChange = calculatePercentageChangeInAnnualRevenue(
-        totalYearRevenue,
-        previousYearTotalRevenue
-      );
-      setYearlyRevenuePercentageChange(yearlyRevenueChange);
-
-      // user
-      const previousYearUserData = await fetchLineChartData(initialYear - 1);
-      const previousYearTotalUser = previousYearUserData.datasets.data.reduce(
-        (acc, value) => acc + value,
-        0
-      );
-      setPreviousYearUser(previousYearTotalUser);
-
-      const yearlyUserChange = calculatePercentageChangeInAnnualUser(
-        totalYearUser,
-        previousYearTotalUser
-      );
-      setYearlyUserPercentageChange(yearlyUserChange);
-    };
-
     fetchData();
-  }, [initialYear, totalYearRevenue, totalYearUser]);
+  }, [initialYear]);
 
   const formatCurrencyVND = (amount) => {
     return new Intl.NumberFormat("vi-VN", {
@@ -167,7 +186,7 @@ function Dashboard() {
                 color="dark"
                 icon="insert_chart_outlined"
                 title="Tổng doanh thu"
-                count={formatCurrencyVND(currentMonthRevenue)}
+                count={formatCurrencyVND(allRevenue)}
                 percentage={{
                   color: revenuePercentageChange >= 0 ? "success" : "error",
                   label: `Cập nhật lần cuối: ${new Date().toLocaleDateString("vi-VN")}`,
@@ -216,7 +235,7 @@ function Dashboard() {
                 color="success"
                 icon="add_chart"
                 title="Doanh thu hôm nay"
-                count={formatCurrencyVND(totalYearRevenue)}
+                count={formatCurrencyVND(todayRevenue)}
                 percentage={{
                   color: yearlyRevenuePercentageChange >= 0 ? "success" : "error",
                   label: `Cập nhật lần cuối: ${new Date().toLocaleTimeString("vi-VN", {
@@ -299,14 +318,14 @@ function Dashboard() {
             </MDBox>
           </Grid>
         </Grid>
-        <Grid container spacing={3} marginTop={0}>
+        {/* <Grid container spacing={3} marginTop={0}>
           <Grid item xs={12} md={6} lg={3}>
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
                 color="dark"
                 icon="library_books"
                 title="Tổng doanh thu"
-                count={formatCurrencyVND(currentMonthRevenue)}
+                count={formatCurrencyVND(allRevenue)}
                 percentage={{
                   color: revenuePercentageChange >= 0 ? "success" : "error",
                   label: `Cập nhật lần cuối: ${new Date().toLocaleDateString("vi-VN")}`,
@@ -355,7 +374,7 @@ function Dashboard() {
                 color="success"
                 icon="leaderboard"
                 title="Doanh thu hôm nay"
-                count={formatCurrencyVND(totalYearRevenue)}
+                count={formatCurrencyVND(todayRevenue)}
                 percentage={{
                   color: yearlyRevenuePercentageChange >= 0 ? "success" : "error",
                   label: `Cập nhật lần cuối: ${new Date().toLocaleTimeString("vi-VN", {
@@ -368,7 +387,7 @@ function Dashboard() {
               />
             </MDBox>
           </Grid>
-        </Grid>
+        </Grid> */}
         <MDBox mt={4.5}>
           <Grid container spacing={3}>
             <Grid item xs={12} md={6} lg={6}>
@@ -387,7 +406,7 @@ function Dashboard() {
               <MDBox mb={3}>
                 <ReportsLineChart
                   color="success"
-                  title="Tổng số học viên"
+                  title="Số học viên hàng tháng"
                   description=""
                   date={`Cập nhật lần cuối: ${new Date().toLocaleDateString("vi-VN")}`}
                   chart={userChartData}

@@ -1,5 +1,6 @@
 import apiClient from "api/apiClient";
 
+// Lấy người dùng ngày hôm nay
 export const fetchTodayUsers = async () => {
   try {
     const response = await apiClient.get("/api/v1/statistical/getRegistrationStats/daily");
@@ -15,13 +16,38 @@ export const fetchTodayUsers = async () => {
   }
 };
 
+// Lấy tất cả người dùng
 export const fetchAllUsers = async () => {
   try {
     const response = await apiClient.get("/api/v1/statistical/getTotalUsers");
-    console.log("fetchAllUsers: ", response.data.data);
+    // console.log("fetchAllUsers: ", response.data.data);
     return response.data.data;
   } catch (error) {
     console.error("Error fetching enrollments:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+// Lấy tổng doanh thu ngày hôm nay
+export const fetchTodayRevenue = async () => {
+  try {
+    const response = await apiClient.get("/api/v1/statistical/revenue/today");
+    // console.log("Today's Revenue: ", response.data.data);
+    return response.data.data;
+  } catch (error) {
+    console.error("Error fetching today's revenue:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+// Lấy tổng doanh thu theo năm
+export const fetchTotalRevenue = async (year) => {
+  try {
+    const response = await apiClient.get(`/api/v1/statistical/revenue/total?year=${year}`);
+    // console.log("Total Revenue: ", response.data.data);
+    return response.data.data;
+  } catch (error) {
+    console.error("Error fetching total revenue:", error.response?.data || error.message);
     throw error;
   }
 };

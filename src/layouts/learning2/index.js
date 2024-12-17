@@ -336,7 +336,7 @@ const Learning2 = () => {
           });
           return;
         }
-        console.log("status", enrollment.status);
+        // console.log("status", enrollment.status);
         const enrollmentId = enrollment.enrollmentId;
         const certificateUrl = "certificate_" + enrollmentId + ".pdf";
         const saveEnrollmentStatus = await apiClient.put(
@@ -351,7 +351,7 @@ const Learning2 = () => {
         );
 
         if (saveEnrollmentStatus.data.success) {
-          console.log("Cấp chứng nhận thành công");
+          // console.log("Cấp chứng nhận thành công");
           Swal.fire({
             title: "Thành công!",
             text: "Đã cấp chứng nhận hoàn thành khóa học. Kiểm tra ở trang thông tin tài khoản",
