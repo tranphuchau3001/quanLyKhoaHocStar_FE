@@ -1,12 +1,7 @@
+// ReportsBarChart.js
 import { useMemo, useState, useEffect } from "react";
-
-// porp-types is a library for typechecking of props
 import PropTypes from "prop-types";
-
-import YearSelect from "./data/dataYearSelect";
-import fetchBarChartData from "../../../../layouts/dashboard/data/reportsBarChartData";
-
-// react-chartjs-2 components
+import fetchBarChartData, { months } from "layouts/dashboard/data/reportsBarChartData";
 import { Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -17,57 +12,55 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-
-// @mui material components
 import Card from "@mui/material/Card";
-import Divider from "@mui/material/Divider";
+import Grid from "@mui/material/Grid";
+import FormControl from "@mui/material/FormControl";
 import Icon from "@mui/material/Icon";
-
-// Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
-
-// ReportsBarChart configurations
 import configs from "examples/Charts/BarCharts/ReportsBarChart/configs";
-import { FormControl, Grid, MenuItem, Select, Typography } from "@mui/material";
+import SelectYearRevenue from "examples/Charts/BarCharts/ReportsBarChart/data/dataYearSelect";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 function ReportsBarChart({ color, title, description, date, chart, initialYear }) {
-  // const { data, options } = configs(chart.labels || [], chart.datasets || {});
-  const [selectedYear, setSelectedYear] = useState("");
-  const [chartData, setChartData] = useState({ labels: [], datasets: [] });
-  console.log("Data being passed to BarChart:", chartData);
+  const [selectedYear, setSelectedYear] = useState(initialYear || new Date().getFullYear());
+  const [chartData, setChartData] = useState({
+    labels: months,
+    datasets: [
+      {
+        label: `Revenue (${selectedYear})`,
+        data: months.map(() => 0),
+        backgroundColor: "rgba(75, 192, 192, 0.6)",
+        borderColor: "rgba(75, 192, 192, 1)",
+        borderWidth: 1,
+      },
+    ],
+  });
 
+  // Hàm thay đổi năm và lấy dữ liệu biểu đồ mới
   const handleYearChange = async (event) => {
     const year = Number(event.target.value);
-
-    if (!year || isNaN(year)) {
-      console.error("Invalid year selected:", year);
-      return; // Không gọi API nếu năm không hợp lệ
-    }
+    if (!year || isNaN(year)) return;
 
     setSelectedYear(year);
-
     try {
-      console.log("Year being passed to fetchBarChartData:", typeof year, year);
-      const data = await fetchBarChartData(Number(year));
+      const data = await fetchBarChartData(year);
       setChartData(data);
+      // console.log("Data fetchBarChartData:", data);
     } catch (error) {
-      console.error("Failed to fetch data:", error.message);
+      console.error("Error fetching data:", error.message);
     }
   };
 
   useEffect(() => {
-    const fetchData = async () => {
-      const data = await fetchBarChartData();
-      setChartData(data);
-    };
-
-    fetchData();
-  }, [initialYear]);
+    if (chart && chart.labels && chart.datasets) {
+      setChartData(chart);
+    }
+  }, [chart]);
 
   const { data, options } = configs(chartData.labels, chartData.datasets);
+
   return (
     <Card sx={{ height: "100%" }}>
       <MDBox padding="1rem">
@@ -86,7 +79,7 @@ function ReportsBarChart({ color, title, description, date, chart, initialYear }
               <Bar data={data} options={options} redraw />
             </MDBox>
           ),
-          [color, chart]
+          [data, options, color]
         )}
         <MDBox pt={3} pb={1} px={1}>
           <Grid container alignItems="center">
@@ -113,7 +106,10 @@ function ReportsBarChart({ color, title, description, date, chart, initialYear }
             </Grid>
             <Grid item xs={6} textAlign="center">
               <FormControl variant="outlined" size="small" sx={{ minWidth: 120 }}>
-                <YearSelect selectedYear={selectedYear} handleYearChange={handleYearChange} />
+                <SelectYearRevenue
+                  selectedYear={selectedYear}
+                  handleYearChange={handleYearChange}
+                />
               </FormControl>
             </Grid>
           </Grid>
@@ -123,21 +119,19 @@ function ReportsBarChart({ color, title, description, date, chart, initialYear }
   );
 }
 
-// Setting default values for the props of ReportsBarChart
 ReportsBarChart.defaultProps = {
   color: "info",
   description: "",
   initialYear: new Date().getFullYear(),
 };
 
-// Typechecking props for the ReportsBarChart
 ReportsBarChart.propTypes = {
   color: PropTypes.oneOf(["primary", "secondary", "info", "success", "warning", "error", "dark"]),
   title: PropTypes.string.isRequired,
   description: PropTypes.oneOfType([PropTypes.string, PropTypes.node]),
   date: PropTypes.string.isRequired,
   chart: PropTypes.objectOf(PropTypes.oneOfType([PropTypes.array, PropTypes.object])).isRequired,
-  initialYear: PropTypes.number, // Năm khởi tạo
+  initialYear: PropTypes.number,
 };
 
 export default ReportsBarChart;

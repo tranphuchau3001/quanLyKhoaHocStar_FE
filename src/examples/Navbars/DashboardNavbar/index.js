@@ -151,9 +151,7 @@ function DashboardNavbar({ absolute, light, isMini }) {
         </MDBox>
         {isMini ? null : (
           <MDBox sx={(theme) => navbarRow(theme, { isMini })}>
-            <MDBox pr={1}>
-              <MDInput label="Tìm kiếm" />
-            </MDBox>
+            <MDBox pr={1}>{/* <MDInput label="Tìm kiếm" /> */}</MDBox>
             <MDBox color={light ? "white" : "inherit"}>
               {/* <IconButton
                 size="small"
@@ -183,7 +181,7 @@ function DashboardNavbar({ absolute, light, isMini }) {
               </IconButton>
               {renderAccountMenu()}
 
-              <IconButton
+              {/* <IconButton
                 size="small"
                 disableRipple
                 color="inherit"
@@ -191,7 +189,7 @@ function DashboardNavbar({ absolute, light, isMini }) {
                 onClick={handleConfiguratorOpen}
               >
                 <Icon sx={iconsStyle}>settings</Icon>
-              </IconButton>
+              </IconButton> */}
 
               <IconButton
                 size="small"
