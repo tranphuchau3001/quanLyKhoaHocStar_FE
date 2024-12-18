@@ -3,6 +3,7 @@ import Home from "layouts/home";
 import Tables from "layouts/tables";
 import SignIn from "layouts/authentication/sign-in";
 import SignUp from "layouts/authentication/sign-up";
+import ForgetPassword from "layouts/authentication/forget-passowrd";
 import CourseDetail from "layouts/courses";
 import Learning from "layouts/learning2";
 import Payment from "layouts/payment";
@@ -13,6 +14,8 @@ import AccountSettings from "layouts/account/settingAccount";
 import CourseManager from "layouts/admin/CoursesManager";
 import ModulesManager from "layouts/admin/ModulesManager2";
 import AdminAccountManager from "layouts/admin/admin-account-manager";
+import SettingSettingCourseManager from "layouts/account/instructorCourse/index";
+import SchedulesCourse from "layouts/account/schedulesCourse/index";
 // @mui icons
 import Icon from "@mui/material/Icon";
 
@@ -109,9 +112,17 @@ const userRoutes = [
   // },
   {
     type: "collapse",
+    name: "Quên mật khẩu",
+    key: "forget-password",
+    icon: <Icon fontSize="small">lock_reset</Icon>,
+    route: "/authentication/forget-password",
+    component: <ForgetPassword />,
+  },
+  {
+    type: "collapse",
     name: "Đăng ký",
     key: "sign-up",
-    icon: <Icon fontSize="small">assignment</Icon>,
+    icon: <Icon fontSize="small">app_registration</Icon>,
     route: "/authentication/sign-up",
     component: <SignUp />,
   },
@@ -136,7 +147,7 @@ const userRoutesLoggedIn = [
   },
   {
     type: "collapse",
-    name: "Thông tin tài khoản",
+    name: "Khóa học của tôi",
     key: "profile",
     icon: <Icon fontSize="small">person</Icon>,
     route: "/profile",
@@ -175,6 +186,22 @@ const userRoutesLoggedIn = [
     icon: <Icon fontSize="small">receipt_long</Icon>,
     route: "/payment-return",
     component: <PaymentResult />,
+  },
+  {
+    type: "collapse",
+    name: "Khóa học đang quản lý",
+    icon: <Icon fontSize="small">library_books</Icon>,
+    key: "settingCourse",
+    route: "/settingCourse",
+    component: <SettingSettingCourseManager />,
+  },
+  {
+    type: "collapse",
+    name: "Lịch học",
+    icon: <Icon fontSize="small">library_books</Icon>,
+    key: "schedulesCourse",
+    route: "/schedulesCourse",
+    component: <SchedulesCourse />,
   },
 ];
 

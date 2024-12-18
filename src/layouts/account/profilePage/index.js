@@ -86,6 +86,28 @@ const ProfilePage = () => {
       // console.error("Error fetching courses:", error);
     }
   };
+  const checkLogin = async () => {
+    const userId = localStorage.getItem("userId");
+    if (!userId) {
+      clearInput();
+      // navigate("/home");
+      Swal.fire({
+        title: "Bạn chưa đăng nhập!",
+        text: "Vui lòng đăng nhập để tiếp tục. Bạn có muốn đăng nhập không?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Có",
+        cancelButtonText: "Không",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          navigate("/authentication/sign-in");
+        } else if (result.isDismissed) {
+          // console.log("Người dùng đã từ chối đăng nhập.");
+        }
+      });
+      return;
+    }
+  };
 
   // const fetchCourses = async () => {
   //   const userId = localStorage.getItem("userId");
@@ -139,7 +161,6 @@ const ProfilePage = () => {
 
   const handleCertificateClick = (certificateUrl) => {
     if (certificateUrl) {
-      // Sử dụng trực tiếp URL từ S3 thay vì thư mục public
       window.open(certificateUrl, "_blank");
     } else {
       alert("Không tìm thấy chứng nhận!");
@@ -185,7 +206,7 @@ const ProfilePage = () => {
           </MDTypography>
           <MDTypography variant="body2" color="secondary" sx={{ ml: 4 }}>
             <AccessTimeIcon fontSize="small" sx={{ mr: 1 }} />
-            Thành viên của Start Dev từ ngày{" "}
+            Thành viên của Star Dev từ ngày{" "}
             {registrationDate
               ? new Intl.DateTimeFormat("vi-VN", {
                   day: "2-digit",
@@ -282,7 +303,7 @@ const ProfilePage = () => {
                           />
                         </Grid>
                         <Grid item xs={8}>
-                          <CardContent sx={{ paddingLeft: "16px" }}>
+                          <CardContent sx={{ paddingLeft: "16px", mb: 3 }}>
                             <MDTypography variant="h6">{course.courseName}</MDTypography>
                             <MDTypography variant="body2" color="secondary">
                               {course.description}
