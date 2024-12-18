@@ -22,6 +22,8 @@ function Cover() {
     otp: "",
   });
 
+  const [isFormDisabled, setIsFormDisabled] = useState(false);
+  const [isNotificationShown, setIsNotificationShown] = useState(false);
   const [otpCountdown, setOtpCountdown] = useState(0);
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [isOtpVerified, setIsOtpVerified] = useState(false);
@@ -197,11 +199,10 @@ function Cover() {
       navigate("/authentication/sign-in");
     } catch (error) {
       if (error.response && error.response.data) {
-        const errorMessage = error.response.data.message;
         Swal.fire({
           icon: "error",
           title: "Đăng ký thất bại",
-          text: errorMessage || error.message,
+          text: "Bạn đăng ký tài khoản thất bại!",
         });
       }
     }
@@ -212,24 +213,27 @@ function Cover() {
     if (!isValid) return;
 
     setIsOtpSent(true);
-    setOtpCountdown(60); // Start countdown for OTP
+    setOtpCountdown(60);
+    setIsFormDisabled(true);
+
     try {
       const email = formData.email.trim();
       if (!emailRegex.test(email)) {
         alert("Email không hợp lệ");
+        setIsNotificationShown(true);
         return;
       }
 
       const response = await apiClient.post("/user-api/send-otp", { email });
 
       if (response.data.success) {
-        // OTP sent successfully
       } else {
         Swal.fire({
           icon: "error",
           title: "Lỗi",
           text: "Có lỗi khi gửi OTP.",
         });
+        setIsNotificationShown(true);
       }
     } catch (error) {
       Swal.fire({
@@ -237,139 +241,144 @@ function Cover() {
         title: "Gửi OTP thất bại",
         text: error.message,
       });
+      setIsNotificationShown(true);
     }
-  };
 
-  const handleVerifyOtp = async () => {
-    try {
-      const response = await apiClient.post("/user-api/verify-otp", {
-        email: formData.email,
-        otp: formData.otp,
-      });
+    const handleVerifyOtp = async () => {
+      try {
+        const response = await apiClient.post("/user-api/verify-otp", {
+          email: formData.email,
+          otp: formData.otp,
+        });
 
-      if (response.data.success) {
-        setIsOtpVerified(true);
-        await handleRegister();
-      } else {
+        if (response.data.success) {
+          setIsOtpVerified(true);
+          await handleRegister();
+        } else {
+          Swal.fire({
+            icon: "error",
+            title: "Mã OTP không hợp lệ",
+            text: "Vui lòng kiểm tra lại mã OTP.",
+          });
+        }
+      } catch (error) {
         Swal.fire({
           icon: "error",
-          title: "Mã OTP không hợp lệ",
-          text: "Vui lòng kiểm tra lại mã OTP.",
+          title: "Xác thực thất bại",
+          text: error.response ? error.response.data : error.message,
         });
       }
-    } catch (error) {
-      Swal.fire({
-        icon: "error",
-        title: "Xác thực thất bại",
-        text: error.response ? error.response.data : error.message,
-      });
-    }
-  };
+    };
 
-  useEffect(() => {
-    if (otpCountdown > 0) {
-      const timerId = setInterval(() => {
-        setOtpCountdown((prevCount) => prevCount - 1);
-      }, 1000);
+    useEffect(() => {
+      if (otpCountdown > 0) {
+        const timerId = setInterval(() => {
+          setOtpCountdown((prevCount) => prevCount - 1);
+        }, 1000);
 
-      return () => clearInterval(timerId);
-    } else {
-      setIsOtpSent(false);
-    }
-  }, [otpCountdown]);
+        return () => clearInterval(timerId);
+      } else {
+        setIsOtpSent(false);
+      }
+    }, [otpCountdown]);
 
-  return (
-    <CoverLayout image={bgImage}>
-      <MDBox display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
-        <Card
-          sx={{
-            borderRadius: "15px",
-            backgroundColor: "rgba(255, 255, 255)",
-            backdropFilter: "blur(1px)",
-            boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)",
-            border: "1px solid rgba(255, 255, 255, 0.6)",
-            width: "100%",
-            maxWidth: "400px",
-          }}
-        >
-          <MDTypography textAlign="center" variant="h4" fontWeight="bold" color="dark" mt={2}>
-            Đăng ký
-          </MDTypography>
-          <MDBox pb={3} px={3}>
-            <MDBox component="form" role="form">
-              {/* Form đăng ký */}
-              <MDInput
-                name="fullName"
-                type="text"
-                label="Họ và tên"
-                variant="standard"
-                fullWidth
-                onChange={handleChange}
-              />
-              <MDInput
-                name="password"
-                type="password"
-                label="Mật khẩu"
-                variant="standard"
-                fullWidth
-                onChange={handleChange}
-              />
-              <MDInput
-                name="confirmPassword"
-                type="password"
-                label="Nhập lại mật khẩu"
-                variant="standard"
-                fullWidth
-                onChange={handleChange}
-              />
-              <MDInput
-                name="email"
-                type="email"
-                label="Email"
-                variant="standard"
-                fullWidth
-                onChange={handleChange}
-              />
-              <MDInput
-                name="phone"
-                type="text"
-                label="Số điện thoại"
-                variant="standard"
-                fullWidth
-                onChange={handleChange}
-              />
+    return (
+      <CoverLayout image={bgImage}>
+        <MDBox display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+          <Card
+            sx={{
+              borderRadius: "15px",
+              backgroundColor: "rgba(255, 255, 255)",
+              backdropFilter: "blur(1px)",
+              boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)",
+              border: "1px solid rgba(255, 255, 255, 0.6)",
+              width: "100%",
+              maxWidth: "400px",
+            }}
+          >
+            <MDTypography textAlign="center" variant="h4" fontWeight="bold" color="dark" mt={4}>
+              Đăng ký
+            </MDTypography>
+            <MDBox pb={4} px={4}>
+              <MDBox component="form" role="form" display="flex" flexDirection="column" gap={3}>
+                {/* Form đăng ký */}
+                <MDInput
+                  name="fullName"
+                  type="text"
+                  label="Họ và tên"
+                  variant="standard"
+                  fullWidth
+                  onChange={handleChange}
+                  disabled={isFormDisabled || isNotificationShown}
+                />
+                <MDInput
+                  name="password"
+                  type="password"
+                  label="Mật khẩu"
+                  variant="standard"
+                  fullWidth
+                  onChange={handleChange}
+                  disabled={isFormDisabled || isNotificationShown}
+                />
+                <MDInput
+                  name="confirmPassword"
+                  type="password"
+                  label="Nhập lại mật khẩu"
+                  variant="standard"
+                  fullWidth
+                  onChange={handleChange}
+                  disabled={isFormDisabled || isNotificationShown}
+                />
+                <MDInput
+                  name="email"
+                  type="email"
+                  label="Email"
+                  variant="standard"
+                  fullWidth
+                  onChange={handleChange}
+                  disabled={isFormDisabled || isNotificationShown}
+                />
+                <MDInput
+                  name="phone"
+                  type="text"
+                  label="Số điện thoại"
+                  variant="standard"
+                  fullWidth
+                  onChange={handleChange}
+                  disabled={isFormDisabled || isNotificationShown}
+                />
 
-              {/* OTP Form */}
-              {isOtpSent && !isOtpVerified && (
-                <>
-                  <MDInput
-                    name="otp"
-                    type="text"
-                    label="Nhập mã OTP"
-                    variant="standard"
-                    fullWidth
-                    onChange={handleChange}
-                  />
-                  <MDButton variant="gradient" color="info" fullWidth onClick={handleVerifyOtp}>
-                    Xác thực OTP
-                  </MDButton>
-                </>
-              )}
-              <MDButton
-                variant="gradient"
-                color="info"
-                fullWidth
-                onClick={handleContinue}
-                disabled={isOtpSent}
-              >
-                {isOtpSent ? "Đang gửi OTP..." : "Tiếp tục"}
-              </MDButton>
+                {/* OTP Form */}
+                {isOtpSent && !isOtpVerified && (
+                  <>
+                    <MDInput
+                      name="otp"
+                      type="text"
+                      label="Nhập mã OTP"
+                      variant="standard"
+                      fullWidth
+                      onChange={handleChange}
+                    />
+                    <MDButton variant="gradient" color="info" fullWidth onClick={handleVerifyOtp}>
+                      Xác thực OTP
+                    </MDButton>
+                  </>
+                )}
+                <MDButton
+                  variant="gradient"
+                  color="info"
+                  fullWidth
+                  onClick={handleContinue}
+                  disabled={isOtpSent}
+                >
+                  {isOtpSent ? "Đang gửi OTP..." : "Tiếp tục"}
+                </MDButton>
+              </MDBox>
             </MDBox>
-          </MDBox>
-        </Card>
-      </MDBox>
-    </CoverLayout>
-  );
+          </Card>
+        </MDBox>
+      </CoverLayout>
+    );
+  };
 }
-
 export default Cover;

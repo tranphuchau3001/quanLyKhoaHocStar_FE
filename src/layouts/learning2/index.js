@@ -63,6 +63,7 @@ const Learning2 = () => {
   const [completedQuizzesCount, setCompletedQuizzesCount] = useState(0);
   const [viewTime, setViewTime] = useState(0);
   const playerRef = useRef(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   let intervalId = useRef(null);
 
@@ -165,6 +166,7 @@ const Learning2 = () => {
   };
 
   const handleReceiveCertificate = () => {
+    setIsLoading(true);
     fetchCheckEnrollment();
   };
 
@@ -334,6 +336,7 @@ const Learning2 = () => {
             text: "Vui lòng kiểm tra ở trang thông tin tài khoản",
             icon: "warning",
           });
+          setIsLoading(false);
           return;
         }
         // console.log("status", enrollment.status);
@@ -372,6 +375,8 @@ const Learning2 = () => {
         title: "Oops...",
         text: "Có lỗi xảy ra khi cấp chứng nhận!",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -387,12 +392,11 @@ const Learning2 = () => {
 
       // console.log("Is course available:", courseExists);
       if (!courseExists) {
+        navigate(`/courses/${courseId}`);
         Swal.fire({
           title: "Bạn chưa đăng ký khóa học này!",
           text: "Vui lòng đăng ký khóa học để tiếp tục.",
           icon: "warning",
-        }).then(() => {
-          navigate(`/courses/${courseId}`);
         });
         return;
       }
@@ -572,8 +576,12 @@ const Learning2 = () => {
                     </MDTypography>
                     {selectedQuiz.questions.map((question, index) => (
                       <MDBox key={question.questionId} mb={3}>
-                        <MDTypography variant="body1" fontWeight="bold">
-                          {index + 1}. {question.questionText}
+                        <MDTypography
+                          variant="body1"
+                          fontWeight="bold"
+                          sx={{ whiteSpace: "pre-wrap" }}
+                        >
+                          {`${index + 1}. ${question.questionText}`}
                         </MDTypography>
 
                         <FormControl component="fieldset" fullWidth>
@@ -706,8 +714,9 @@ const Learning2 = () => {
                     color="success"
                     onClick={handleReceiveCertificate}
                     sx={{ padding: "10px 20px" }}
+                    disabled={isLoading}
                   >
-                    Nhận chứng nhận
+                    {isLoading ? "Đang nhận..." : "Nhận chứng nhận"}
                   </MDButton>
                 )}
               </MDBox>
@@ -838,7 +847,7 @@ const Learning2 = () => {
                                 <ListItemText
                                   primary={
                                     <>
-                                      {`Quiz ${quizIndex + 1}`}{" "}
+                                      {`Quiz`}{" "}
                                       {quiz.completed && (
                                         <span style={{ color: "green", marginLeft: "8px" }}>✔</span>
                                       )}
