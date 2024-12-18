@@ -12,7 +12,7 @@ import Notifications from "layouts/notifications";
 import Profile from "layouts/account/profilePage";
 import AccountSettings from "layouts/account/settingAccount";
 import CourseManager from "layouts/admin/CoursesManager";
-import ModulesManager from "layouts/admin/ModulesManager";
+import ModulesManager from "layouts/admin/ModulesManager2";
 import AdminAccountManager from "layouts/admin/admin-account-manager";
 import SettingSettingCourseManager from "layouts/account/instructorCourse/index";
 import SchedulesCourse from "layouts/account/schedulesCourse/index";
@@ -122,7 +122,7 @@ const userRoutes = [
     type: "collapse",
     name: "Đăng ký",
     key: "sign-up",
-    icon: <Icon fontSize="small">App Registration</Icon>,
+    icon: <Icon fontSize="small">app_registration</Icon>,
     route: "/authentication/sign-up",
     component: <SignUp />,
   },
