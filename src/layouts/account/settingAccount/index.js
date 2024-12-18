@@ -16,6 +16,7 @@ import MDButton from "components/MDButton";
 import MDTypography from "components/MDTypography";
 import Footer from "examples/Footer";
 import apiClient from "api/apiClient";
+import { width } from "@mui/system";
 
 const AccountSettings = () => {
   const [userInfo, setUserInfo] = useState({
@@ -32,6 +33,43 @@ const AccountSettings = () => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [courses, setCourses] = useState([]);
   const navigate = useNavigate();
+  const [openSchedulePopup, setOpenSchedulePopup] = useState(false);
+  const [currentCourseId, setCurrentCourseId] = useState(null);
+  const [scheduleData, setScheduleData] = useState([]);
+  const columns = scheduleData;
+  const [selectedCourse, setSelectedCourse] = useState(null);
+
+  const fetchSchedules = async (courseId) => {
+    if (!courseId) {
+      console.error("courseId is undefined");
+      return;
+    }
+
+    try {
+      const response = await apiClient.get(
+        `/api/v1/meet/getMeetingSchedulesByCourseId?courseId=${courseId}`
+      );
+      console.log("data lịch học", response.data);
+      setScheduleData(response.data.data || []);
+    } catch (error) {
+      console.error("Error fetching schedules:", error);
+    }
+  };
+
+  const handleScheduleClick = (course) => {
+    if (course && course.courseId) {
+      setCurrentCourseId(course.courseId);
+      setSelectedCourse(course); // Sử dụng đúng biến course
+      setOpenSchedulePopup(true);
+      fetchSchedules(course.courseId);
+    } else {
+      console.log("Invalid courseId");
+    }
+  };
+
+  const handleCloseSchedulePopup = () => {
+    setOpenSchedulePopup(false);
+  };
 
   useEffect(() => {
     checkLogin();
@@ -65,9 +103,15 @@ const AccountSettings = () => {
 
     const fetchCourses = async () => {
       try {
-        const response = await apiClient.get("/api/v1/history/getAllSubmissionHistory");
+        const response = await apiClient.get(
+          "/course-api/getCoursesByInstructorId??instructorId=",
+          {
+            params: { instructorId: userId },
+          }
+        );
 
-        setCourses(response.data.courses || []);
+        setCourses(response.data.data || []);
+        console.log("Data", response.data);
       } catch (error) {
         console.error("Lỗi khi lấy dữ liệu khóa học:", error);
       }
@@ -164,7 +208,7 @@ const AccountSettings = () => {
       <MDBox pt={6} pb={3} mt={3} padding={5}>
         <Grid container spacing={6} pt={6}>
           {/* Sidebar */}
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} md={4}>
             <MDBox className="sidebar">
               <MDTypography variant="h3">Cài đặt tài khoản</MDTypography>
               <MDTypography variant="body2" color="secondary">
@@ -232,16 +276,16 @@ const AccountSettings = () => {
                   <ListItemIcon
                     sx={{ ml: 3, color: currentTab === "calendar" ? "#fff" : "inherit" }}
                   >
-                    <CalendarMonthIcon />
+                    {/* <CalendarMonthIcon /> */}
                   </ListItemIcon>
-                  <ListItemText primary="Khóa học và lịch học" />
+                  {/* <ListItemText primary="Khóa học và lịch học" /> */}
                 </ListItem>
               </List>
             </MDBox>
           </Grid>
 
           {/* Content */}
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} md={8}>
             <MDBox className="content">
               {currentTab === "info" && (
                 <>
@@ -258,8 +302,8 @@ const AccountSettings = () => {
                       <TextField
                         value={userInfo.name || ""}
                         placeholder="Chưa cập nhật tên"
-                        fullWidth
                         variant="outlined"
+                        style={{ width: "400px" }}
                         onChange={(e) => setUserInfo({ ...userInfo, name: e.target.value })}
                       />
                     </ListItemText>
@@ -298,9 +342,9 @@ const AccountSettings = () => {
                     <TextField
                       value={userInfo.phone || ""}
                       placeholder="Chưa cập nhật số điện thoại"
-                      fullWidth
                       variant="outlined"
                       onChange={(e) => setUserInfo({ ...userInfo, phone: e.target.value })}
+                      style={{ width: "400px" }}
                     />
                   </MDBox>
 
@@ -316,7 +360,7 @@ const AccountSettings = () => {
                 </>
               )}
 
-              {currentTab === "courses" && (
+              {/* {currentTab === "courses" && (
                 <>
                   <MDTypography variant="h3">Khóa học đang quản lý</MDTypography>
                   <MDTypography variant="body2" color="secondary">
@@ -326,16 +370,28 @@ const AccountSettings = () => {
                     {courses.map((course, index) => (
                       <MDBox key={index} className="course-item">
                         <img
-                          src={course.imageUrl || "default-image.png"}
+                          src={
+                            course.imgUrl
+                              ? require(`assets/images/Background/background-course/${course.imgUrl}`)
+                              : null
+                          }
                           alt="Khóa học"
                           className="course-image"
                         />
                         <MDBox className="course-details">
-                          <MDTypography variant="h6">{course.title}</MDTypography>
-                          <MDTypography variant="body2">{course.description}</MDTypography>
+                          <MDTypography variant="h6" className="course-title">
+                            {course.title}
+                          </MDTypography>
+                          <MDTypography variant="body2" className="course-description">
+                            {course.description}
+                          </MDTypography>
                           <MDBox className="course-buttons">
-                            <MDButton variant="contained" className="schedule-button">
-                              Lịch học
+                            <MDButton
+                              variant="contained"
+                              className="schedule-button"
+                              onClick={() => handleScheduleClick(course)} // Pass courseId here
+                            >
+                              LỊCH HỌC
                             </MDButton>
                             <MDButton variant="contained" className="students-button">
                               Học viên
@@ -344,14 +400,21 @@ const AccountSettings = () => {
                         </MDBox>
                       </MDBox>
                     ))}
-                  </MDBox>
-                </>
-              )}
+                  </MDBox> */}
+              {/* </>
+              )} */}
             </MDBox>
           </Grid>
         </Grid>
       </MDBox>
       <SecurityPopup open={isPopupOpen} onClose={handleClosePopup} />
+      {/* <SchedulePopup
+        open={openSchedulePopup}
+        onClose={handleCloseSchedulePopup}
+        courseData={scheduleData}
+        selectedCourse={selectedCourse}
+      /> */}
+
       <Footer />
     </PageLayout>
   );
