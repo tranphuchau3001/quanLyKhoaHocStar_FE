@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from "react";
 import Modal from "@mui/material/Modal";
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
 import PropTypes from "prop-types";
 import MDBox from "components/MDBox";
 import DataTable from "./Tables/DataTable";
-import { Button, Stack, TextField } from "@mui/material";
+import { Stack, TextField } from "@mui/material";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Swal from "sweetalert2";
 import MDButton from "components/MDButton";
+import MDTypography from "components/MDTypography";
+import apiClient from "api/apiClient";
 
 const LinkCell = ({ value }) => {
   return (
@@ -23,22 +23,17 @@ const LinkCell = ({ value }) => {
 
 const ActionCell = ({ row, handleRowAction, handleDelete }) => (
   <div style={{ display: "flex", gap: "10px" }}>
-    <Button
-      variant="contained"
-      color="info"
-      size="small"
-      onClick={() => handleRowAction(row)} // Call row action for editing
-    >
+    <MDButton variant="contained" color="info" size="small" onClick={() => handleRowAction(row)}>
       Chỉnh sửa
-    </Button>
-    <Button
+    </MDButton>
+    <MDButton
       variant="contained"
       color="error"
       size="small"
-      onClick={() => handleDelete(row.original.id)} // Pass row.id to handleDelete
+      onClick={() => handleDelete(row.original.id)}
     >
       Xóa
-    </Button>
+    </MDButton>
   </div>
 );
 
@@ -46,11 +41,10 @@ ActionCell.propTypes = {
   row: PropTypes.shape({
     original: PropTypes.shape({
       id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-      // Các thuộc tính khác của row nếu cần thiết
     }).isRequired,
   }).isRequired,
-  handleRowAction: PropTypes.func.isRequired, // Truyền hàm handleRowAction vào
-  handleDelete: PropTypes.func.isRequired, // Truyền hàm handleDelete vào
+  handleRowAction: PropTypes.func.isRequired,
+  handleDelete: PropTypes.func.isRequired,
 };
 
 const SchedulePopup = ({ open, onClose, courseData, selectedCourse }) => {
@@ -126,27 +120,17 @@ const SchedulePopup = ({ open, onClose, courseData, selectedCourse }) => {
     }
 
     const payload = {
-      meetingId: 0,
       courseId: selectedCourse.courseId,
       meetingDate: meetingDate,
       urlMeeting: urlMeeting,
-      createdAt: new Date().toISOString(),
     };
 
     try {
-      const response = await fetch("http://localhost:3030/api/v1/meet/createMeetingSchedule", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
+      const response = await apiClient.post("/api/v1/meet/createMeetingSchedule", payload);
 
-      if (!response.ok) {
-        throw new Error(`Error: ${response.statusText}`);
+      if (!response.data.success) {
+        throw new Error(`Error: ${response.data.message}`);
       }
-
-      const result = await response.json();
       const newRow = {
         id: rows.length + 1,
         date: new Date(meetingDate).toLocaleString("vi-VN", {
@@ -206,19 +190,11 @@ const SchedulePopup = ({ open, onClose, courseData, selectedCourse }) => {
     };
 
     try {
-      const response = await fetch("http://localhost:3030/api/v1/meet/updateMeetingSchedule", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
+      const response = await apiClient.put("/api/v1/meet/updateMeetingSchedule", payload);
 
-      if (!response.ok) {
-        throw new Error(`Error: ${response.statusText}`);
+      if (!response.data.success) {
+        throw new Error(response.data.message || "Có lỗi xảy ra khi cập nhật lịch học.");
       }
-
-      const result = await response.json();
 
       const updatedRows = rows.map((row) => {
         if (row.id === selectedMeetingId) {
@@ -246,7 +222,9 @@ const SchedulePopup = ({ open, onClose, courseData, selectedCourse }) => {
       toast.success("Cập nhật lịch học thành công.");
     } catch (error) {
       console.error("Failed to update meeting schedule:", error);
-      toast.error("Có lỗi xảy ra khi cập nhật lịch học. Vui lòng thử lại.");
+      toast.error(
+        error.response?.data?.message || "Có lỗi xảy ra khi cập nhật lịch học. Vui lòng thử lại."
+      );
     }
   };
 
@@ -256,36 +234,26 @@ const SchedulePopup = ({ open, onClose, courseData, selectedCourse }) => {
       return;
     }
 
-    const payload = {
-      meetingId: meetingId, // Pass the meetingId in the body
-    };
-    console.log(payload);
-
     try {
-      const response = await fetch("http://localhost:3030/api/v1/meet/deleteMeetingSchedule", {
-        method: "DELETE", // Use POST method here instead of DELETE
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
+      const response = await apiClient.delete("/api/v1/meet/deleteMeetingSchedule", {
+        data: { meetingId },
       });
 
-      if (!response.ok) {
-        throw new Error(`Error: ${response.statusText}`);
+      if (response.data.success) {
+        setRows(rows.filter((row) => row.id !== meetingId));
+        toast.success("Xóa lịch học thành công.");
+      } else {
+        throw new Error(response.data.message || "Có lỗi xảy ra khi xóa lịch học.");
       }
-
-      // Update the rows after deletion
-      setRows(rows.filter((row) => row.id !== meetingId));
-      toast.success("Xóa lịch học thành công.");
     } catch (error) {
       console.error("Failed to delete meeting schedule:", error);
-      toast.error("Có lỗi xảy ra khi xóa lịch học.");
+      toast.error(error.response?.data?.message || "Có lỗi xảy ra khi xóa lịch học.");
     }
   };
 
   return (
     <Modal open={open} onClose={onClose}>
-      <Box
+      <MDBox
         sx={{
           position: "absolute",
           top: "50%",
@@ -318,12 +286,12 @@ const SchedulePopup = ({ open, onClose, courseData, selectedCourse }) => {
             <Card sx={{ boxShadow: "none", borderRadius: 2 }}>
               <MDBox>
                 <Stack spacing={2}>
-                  <Typography variant="h3" textAlign={"center"}>
+                  <MDTypography variant="h3" textAlign={"center"}>
                     {selectedCourse ? selectedCourse.title : "Khóa học không xác định"}
-                  </Typography>
-                  <Typography variant="h6" textAlign={"center"}>
+                  </MDTypography>
+                  <MDTypography variant="h6" textAlign={"center"}>
                     {selectedCourse ? selectedCourse.description : "Mô tả không có sẵn"}
-                  </Typography>
+                  </MDTypography>
                 </Stack>
               </MDBox>
             </Card>
@@ -359,7 +327,7 @@ const SchedulePopup = ({ open, onClose, courseData, selectedCourse }) => {
             />
           </Grid>
           <Grid item xs={6}>
-            <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
+            <MDBox sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
               <MDButton variant="contained" color="primary" onClick={handleAddSchedule}>
                 Thêm
               </MDButton>
@@ -376,7 +344,7 @@ const SchedulePopup = ({ open, onClose, courseData, selectedCourse }) => {
               <MDButton variant="outlined" color="info">
                 Mới
               </MDButton>
-            </Box>
+            </MDBox>
           </Grid>
         </Grid>
         <Card sx={{ boxShadow: "none", borderRadius: 2, mt: 2 }}>
@@ -415,7 +383,7 @@ const SchedulePopup = ({ open, onClose, courseData, selectedCourse }) => {
             />
           </MDBox>
         </Card>
-      </Box>
+      </MDBox>
     </Modal>
   );
 };
