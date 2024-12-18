@@ -13,7 +13,7 @@ import AccountSettings from "layouts/account/settingAccount";
 import CourseManager from "layouts/admin/CoursesManager";
 import ModulesManager from "layouts/admin/ModulesManager";
 import AdminAccountManager from "layouts/admin/admin-account-manager";
-import SettingSettomgCourseManager from "layouts/account/instructorCourse/index";
+import SettingSettingCourseManager from "layouts/account/instructorCourse/index";
 // @mui icons
 import Icon from "@mui/material/Icon";
 
@@ -183,7 +183,7 @@ const userRoutesLoggedIn = [
     icon: <Icon fontSize="small">library_books</Icon>,
     key: "courseManagercourseManager",
     route: "/settingCourse",
-    component: <SettingSettomgCourseManager />,
+    component: <SettingSettingCourseManager />,
   },
 ];
 
