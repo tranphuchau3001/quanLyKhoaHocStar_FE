@@ -86,6 +86,28 @@ const ProfilePage = () => {
       // console.error("Error fetching courses:", error);
     }
   };
+  const checkLogin = async () => {
+    const userId = localStorage.getItem("userId");
+    if (!userId) {
+      clearInput();
+      // navigate("/home");
+      Swal.fire({
+        title: "Bạn chưa đăng nhập!",
+        text: "Vui lòng đăng nhập để tiếp tục. Bạn có muốn đăng nhập không?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Có",
+        cancelButtonText: "Không",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          navigate("/authentication/sign-in");
+        } else if (result.isDismissed) {
+          // console.log("Người dùng đã từ chối đăng nhập.");
+        }
+      });
+      return;
+    }
+  };
 
   // const fetchCourses = async () => {
   //   const userId = localStorage.getItem("userId");

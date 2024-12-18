@@ -17,9 +17,6 @@ import MDTypography from "components/MDTypography";
 import Footer from "examples/Footer";
 import apiClient from "api/apiClient";
 import { width } from "@mui/system";
-import SchedulePopup from "./popup/schedulePopup";
-import scheduleData from "./popup/data/scheduleData";
-import { ToastContainer } from "react-toastify";
 
 const AccountSettings = () => {
   const [userInfo, setUserInfo] = useState({
@@ -208,7 +205,6 @@ const AccountSettings = () => {
   return (
     <PageLayout>
       <DefaultNavbar />
-      <ToastContainer />
       <MDBox pt={6} pb={3} mt={3} padding={5}>
         <Grid container spacing={6} pt={6}>
           {/* Sidebar */}
@@ -280,9 +276,9 @@ const AccountSettings = () => {
                   <ListItemIcon
                     sx={{ ml: 3, color: currentTab === "calendar" ? "#fff" : "inherit" }}
                   >
-                    <CalendarMonthIcon />
+                    {/* <CalendarMonthIcon /> */}
                   </ListItemIcon>
-                  <ListItemText primary="Khóa học và lịch học" />
+                  {/* <ListItemText primary="Khóa học và lịch học" /> */}
                 </ListItem>
               </List>
             </MDBox>
@@ -364,7 +360,7 @@ const AccountSettings = () => {
                 </>
               )}
 
-              {currentTab === "courses" && (
+              {/* {currentTab === "courses" && (
                 <>
                   <MDTypography variant="h3">Khóa học đang quản lý</MDTypography>
                   <MDTypography variant="body2" color="secondary">
@@ -395,7 +391,7 @@ const AccountSettings = () => {
                               className="schedule-button"
                               onClick={() => handleScheduleClick(course)} // Pass courseId here
                             >
-                              Lịch học
+                              LỊCH HỌC
                             </MDButton>
                             <MDButton variant="contained" className="students-button">
                               Học viên
@@ -404,20 +400,20 @@ const AccountSettings = () => {
                         </MDBox>
                       </MDBox>
                     ))}
-                  </MDBox>
-                </>
-              )}
+                  </MDBox> */}
+              {/* </>
+              )} */}
             </MDBox>
           </Grid>
         </Grid>
       </MDBox>
       <SecurityPopup open={isPopupOpen} onClose={handleClosePopup} />
-      <SchedulePopup
+      {/* <SchedulePopup
         open={openSchedulePopup}
         onClose={handleCloseSchedulePopup}
         courseData={scheduleData}
         selectedCourse={selectedCourse}
-      />
+      /> */}
 
       <Footer />
     </PageLayout>

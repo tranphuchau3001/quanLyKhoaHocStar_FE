@@ -13,6 +13,7 @@ import AccountSettings from "layouts/account/settingAccount";
 import CourseManager from "layouts/admin/CoursesManager";
 import ModulesManager from "layouts/admin/ModulesManager";
 import AdminAccountManager from "layouts/admin/admin-account-manager";
+import SettingSettomgCourseManager from "layouts/account/instructorCourse/index";
 // @mui icons
 import Icon from "@mui/material/Icon";
 
@@ -136,7 +137,7 @@ const userRoutesLoggedIn = [
   },
   {
     type: "collapse",
-    name: "Thông tin tài khoản",
+    name: "Khóa học của tôi",
     key: "profile",
     icon: <Icon fontSize="small">person</Icon>,
     route: "/profile",
@@ -175,6 +176,14 @@ const userRoutesLoggedIn = [
     icon: <Icon fontSize="small">receipt_long</Icon>,
     route: "/payment-return",
     component: <PaymentResult />,
+  },
+  {
+    type: "collapse",
+    name: "Khóa học đang quản lý",
+    icon: <Icon fontSize="small">library_books</Icon>,
+    key: "courseManagercourseManager",
+    route: "/settingCourse",
+    component: <SettingSettomgCourseManager />,
   },
 ];
 
