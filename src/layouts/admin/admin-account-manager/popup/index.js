@@ -105,8 +105,9 @@ const PopupComponent = ({ open, onClose, account, onSave }) => {
   };
 
   const handleSave = async () => {
-    const { name, email, phone, roles } = formData;
+    const { name, email, phone, roles, status } = formData;
 
+    // Kiểm tra thông tin bắt buộc
     if (!name) {
       toast.error("Họ và tên là bắt buộc!");
       return;
@@ -124,15 +125,22 @@ const PopupComponent = ({ open, onClose, account, onSave }) => {
       return;
     }
 
+    // Kiểm tra không cho vô hiệu hóa tài khoản đang đăng nhập
+    const currentEmail = localStorage.getItem("email");
+    if (email === currentEmail && status !== "active") {
+      toast.error("Không thể vô hiệu hóa tài khoản đang đăng nhập!");
+      return;
+    }
+
     try {
       const payload = {
         userId: account.userId,
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
+        name,
+        email,
+        phone,
         avatarUrl: formData.avatar,
-        roleId: formData.roles.admin ? 1 : formData.roles.teacher ? 2 : formData.roles.user ? 3 : 0,
-        status: formData.status === "active",
+        roleId: roles.admin ? 1 : roles.teacher ? 2 : roles.user ? 3 : 0,
+        status: status === "active",
       };
 
       await updateUser(payload);
@@ -143,14 +151,22 @@ const PopupComponent = ({ open, onClose, account, onSave }) => {
         onSave();
         onClose();
       }, toastDuration);
-      return;
     } catch (error) {
       alert("Lỗi khi cập nhật thông tin!");
     }
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+    <Dialog
+      open={open}
+      onClose={onClose}
+      fullWidth
+      maxWidth="sm"
+      sx={{
+        backgroundColor: "rgba(249, 249, 249, 0.47)",
+        border: "1px solid rgba(0, 0, 0, 0.1)",
+      }}
+    >
       <ToastContainer />
       <DialogTitle style={{ textAlign: "center" }}>Chỉnh sửa thông tin tài khoản</DialogTitle>
       <DialogContent>

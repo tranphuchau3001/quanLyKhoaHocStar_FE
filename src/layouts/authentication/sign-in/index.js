@@ -62,6 +62,11 @@ function SignIn() {
       if (response.data && response.data.token && response.data.userId) {
         const { token, userId, name, email, avatarUrl, roleId, registrationDate, status } =
           response.data;
+        if (!status) {
+          setIsLoggedIn(false);
+          Swal.fire("Thất bại", "Tài khoản của bạn đã bị vô hiệu hóa.", "error");
+          return;
+        }
         localStorage.setItem("token", token);
         localStorage.setItem("userId", userId);
         localStorage.setItem("name", name);
@@ -87,11 +92,7 @@ function SignIn() {
       console.error("Lỗi khi gọi API: ", error);
 
       if (error.response) {
-        Swal.fire(
-          "Thất bại",
-          `Đăng nhập thất bại. Lỗi: ${error.response?.data?.message || error.response.statusText}`,
-          "error"
-        );
+        Swal.fire("Thất bại", `Đăng nhập thất bại. Vui lòng thử lại `, "error");
       } else if (error.request) {
         Swal.fire("Thất bại", "Không thể kết nối đến server. Vui lòng thử lại.", "error");
       } else {
@@ -172,22 +173,12 @@ function SignIn() {
               />
             </MDBox>
             <MDBox display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-              <Stack direction="row" alignItems="center">
-                <Checkbox checked={checked} onChange={handleChange} color="primary" />
-                <MDTypography
-                  variant="button"
-                  fontWeight="regular"
-                  color="dark"
-                  sx={{ cursor: "pointer", userSelect: "none" }}
-                >
-                  &nbsp;Nhớ mật khẩu
-                </MDTypography>
-              </Stack>
+              <Stack direction="row" alignItems="center"></Stack>
               <MDTypography
                 variant="button"
                 color="dark"
                 component="a"
-                href="#"
+                href="/authentication/forget-password"
                 fontWeight="regular"
               >
                 Quên mật khẩu?

@@ -3,6 +3,7 @@ import Home from "layouts/home";
 import Tables from "layouts/tables";
 import SignIn from "layouts/authentication/sign-in";
 import SignUp from "layouts/authentication/sign-up";
+import ForgetPassword from "layouts/authentication/forget-passowrd";
 import CourseDetail from "layouts/courses";
 import Learning from "layouts/learning2";
 import Payment from "layouts/payment";
@@ -109,9 +110,17 @@ const userRoutes = [
   // },
   {
     type: "collapse",
+    name: "Quên mật khẩu",
+    key: "forget-password",
+    icon: <Icon fontSize="small">lock_reset</Icon>,
+    route: "/authentication/forget-password",
+    component: <ForgetPassword />,
+  },
+  {
+    type: "collapse",
     name: "Đăng ký",
     key: "sign-up",
-    icon: <Icon fontSize="small">assignment</Icon>,
+    icon: <Icon fontSize="small">App Registration</Icon>,
     route: "/authentication/sign-up",
     component: <SignUp />,
   },

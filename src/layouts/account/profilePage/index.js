@@ -185,7 +185,7 @@ const ProfilePage = () => {
           </MDTypography>
           <MDTypography variant="body2" color="secondary" sx={{ ml: 4 }}>
             <AccessTimeIcon fontSize="small" sx={{ mr: 1 }} />
-            Thành viên của Start Dev từ ngày{" "}
+            Thành viên của Star Dev từ ngày{" "}
             {registrationDate
               ? new Intl.DateTimeFormat("vi-VN", {
                   day: "2-digit",
@@ -282,7 +282,7 @@ const ProfilePage = () => {
                           />
                         </Grid>
                         <Grid item xs={8}>
-                          <CardContent sx={{ paddingLeft: "16px" }}>
+                          <CardContent sx={{ paddingLeft: "16px", mb: 3 }}>
                             <MDTypography variant="h6">{course.courseName}</MDTypography>
                             <MDTypography variant="body2" color="secondary">
                               {course.description}
