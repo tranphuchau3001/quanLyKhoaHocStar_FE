@@ -11,7 +11,6 @@ import { Avatar, Card, CardContent, CardMedia, Grid, Paper, Divider, Button } fr
 import apiClient from "api/apiClient";
 import MDButton from "components/MDButton";
 import SchedulePopup from "./popup/schedulePopup";
-import StudentPopup from "./popup/enrollmentPopup";
 
 const ProfilePage = () => {
   const navigate = useNavigate();
@@ -19,45 +18,10 @@ const ProfilePage = () => {
   const email = localStorage.getItem("email");
   const [courses, setCourses] = useState([]);
   const [openSchedulePopup, setOpenSchedulePopup] = useState(false);
-  const [openStudentPopup, setOpenStudentPopup] = useState(false);
   const [currentCourseId, setCurrentCourseId] = useState(null);
   const [scheduleData, setScheduleData] = useState([]);
-  const [studentData, setStudentData] = useState([]);
   const columns = scheduleData;
   const [selectedCourse, setSelectedCourse] = useState(null);
-  const [rows, setRows] = useState([]); // State lưu danh sách học viên
-
-  // useEffect(() => {
-  //   const storedName = localStorage.getItem("name");
-  //   const storedRegistrationDate = localStorage.getItem("registrationDate");
-  //   const storedUserId = localStorage.getItem("userId");
-
-  //   if (storedName) setName(storedName);
-
-  //   if (storedUserId && storedUserId !== "") {
-  //     if (userId !== storedUserId) {
-  //       setUserId(storedUserId);
-  //     }
-  //     fetchCourses(storedUserId);
-  //   } else if (!isNavigating.current) {
-  //     // console.error("Không có userId");
-  //     Swal.fire({
-  //       title: "Bạn chưa đăng nhập",
-  //       text: "Bạn cần đăng nhập mới có thông tin. Bạn có muốn đăng nhập không?",
-  //       icon: "warning",
-  //       showCancelButton: true,
-  //       confirmButtonText: "Có",
-  //       cancelButtonText: "Không",
-  //     }).then((result) => {
-  //       if (result.isConfirmed) {
-  //         isNavigating.current = true;
-  //         navigate("/authentication/sign-in");
-  //       } else if (result.isDismissed) {
-  //         // console.log("Người dùng đã từ chối đăng nhập.");
-  //       }
-  //     });
-  //   }
-  // }, [userId, navigate]);
 
   const fetchSchedules = async (courseId) => {
     if (!courseId) {
@@ -78,28 +42,71 @@ const ProfilePage = () => {
   useEffect(() => {
     const userId = localStorage.getItem("userId");
     if (!userId) {
-      // console.error("userId is empty, cannot fetch courses");
+      console.error("userId is empty, cannot fetch courses");
       return;
     }
+
     const fetchCourses = async () => {
+      console.log("User ID:", userId);
+
       try {
-        const response = await apiClient.get(
-          "/course-api/getCoursesByInstructorId??instructorId=",
-          {
-            params: { instructorId: userId },
-          }
+        // Gọi API đầu tiên để lấy danh sách enrollments
+        const enrollmentResponse = await apiClient.get("/api/v1/enrollment/getEnrollmentByUserId", {
+          params: { userId: userId },
+        });
+
+        const enrollments = enrollmentResponse.data.data || [];
+        console.log("Enrollments:", enrollments);
+
+        // Duyệt qua từng enrollment để lấy thông tin chi tiết khóa học
+        const validCourses = await Promise.all(
+          enrollments.map(async (enrollment) => {
+            try {
+              // Gọi API lấy thông tin chi tiết khóa học
+              const courseResponse = await apiClient.get("/course-api/getCourseById", {
+                params: { courseId: enrollment.courseId },
+              });
+
+              const course = courseResponse.data.data;
+
+              // Chỉ lấy các khóa học có giá > 0
+              if (course.price > 0) {
+                return {
+                  ...enrollment, // Dữ liệu từ API đầu tiên
+                  ...course, // Dữ liệu từ API thứ hai
+                };
+              } else {
+                console.warn(
+                  `Khóa học với courseId=${enrollment.courseId} có giá trị không hợp lệ.`
+                );
+                return null; // Loại bỏ nếu price <= 0
+              }
+            } catch (error) {
+              console.error(
+                `Lỗi khi lấy thông tin khóa học với courseId=${enrollment.courseId}`,
+                error
+              );
+              return null; // Nếu lỗi, trả về null
+            }
+          })
         );
 
-        setCourses(response.data.data || []);
-        console.log("Data", response.data);
+        // Lọc ra các khóa học hợp lệ (loại bỏ null hoặc undefined)
+        const filteredCourses = validCourses.filter(
+          (course) => course !== null && course !== undefined
+        );
+        setCourses(filteredCourses);
+
+        console.log("Filtered Courses:", filteredCourses);
       } catch (error) {
         console.error("Lỗi khi lấy dữ liệu khóa học:", error);
       }
     };
 
     fetchCourses();
-  }, [userId]);
-  const handleScheduleClick = (course) => {
+  }, [userId]); // Chạy lại khi userId thay đổi
+
+  const handleSchedulesClick = (course) => {
     if (course && course.courseId) {
       setCurrentCourseId(course.courseId);
       setSelectedCourse(course); // Sử dụng đúng biến course
@@ -114,43 +121,13 @@ const ProfilePage = () => {
     setOpenSchedulePopup(false);
   };
 
-  const fetchStudent = async (courseId) => {
-    if (!courseId) {
-      console.error("courseId is undefined");
-      return;
-    }
-
-    try {
-      const response = await apiClient.get(
-        `http://localhost:3030/api/v1/enrollment/getEnrollmentByCourseId?courseId=${courseId}`
-      );
-      console.log("data sinh viên", response.data);
-      setStudentData(response.data.data || []);
-    } catch (error) {
-      console.error("Error fetching schedules:", error);
-    }
-  };
-  const handleStudentClick = async (course) => {
-    if (course && course.courseId) {
-      setCurrentCourseId(course.courseId);
-      setSelectedCourse(course); // Sử dụng đúng biến course
-      setOpenStudentPopup(true);
-      fetchStudent(course.courseId);
-    } else {
-      console.log("Invalid courseId");
-    }
-  };
-  const handleCloseStudentPopup = () => {
-    setOpenStudentPopup(false);
-  };
-
   return (
     <DashboardLayout>
       <Navbar />
       <Grid padding={3}>
-        <MDTypography variant="h3">Khóa học đang quản lý</MDTypography>
+        <MDTypography variant="h3">Lịch Học</MDTypography>
         <MDTypography variant="body2" color="secondary">
-          Quản lý khóa học bạn đang quản lý và có thể thêm lịch học cho khóa học này
+          Bạn có thể xem các lịch học của khóa học đã tham gia ở trang này
         </MDTypography>
       </Grid>
       <Grid container spacing={3} padding={3}>
@@ -206,20 +183,12 @@ const ProfilePage = () => {
                 <MDBox className="course-buttons" style={{ marginTop: "16px" }}>
                   <MDButton
                     variant="contained"
-                    className="schedule-button"
-                    onClick={() => handleScheduleClick(course)}
-                    color="primary"
-                  >
-                    Lịch Học
-                  </MDButton>
-                  <MDButton
-                    variant="contained"
                     className="students-button"
-                    style={{ marginLeft: "8px" }}
-                    color="secondary"
-                    onClick={() => handleStudentClick(course)}
+                    style={{ marginLeft: "80px" }}
+                    color="primary"
+                    onClick={() => handleSchedulesClick(course)}
                   >
-                    Học viên
+                    Xem lịch học
                   </MDButton>
                 </MDBox>
               </MDBox>
@@ -231,12 +200,6 @@ const ProfilePage = () => {
         open={openSchedulePopup}
         onClose={handleCloseSchedulePopup}
         courseData={scheduleData}
-        selectedCourse={selectedCourse}
-      />
-      <StudentPopup
-        open={openStudentPopup}
-        onClose={handleCloseStudentPopup}
-        courseData={studentData}
         selectedCourse={selectedCourse}
       />
     </DashboardLayout>

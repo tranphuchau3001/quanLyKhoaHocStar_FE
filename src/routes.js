@@ -14,6 +14,7 @@ import CourseManager from "layouts/admin/CoursesManager";
 import ModulesManager from "layouts/admin/ModulesManager";
 import AdminAccountManager from "layouts/admin/admin-account-manager";
 import SettingSettingCourseManager from "layouts/account/instructorCourse/index";
+import SchedulesCourse from "layouts/account/schedulesCourse/index";
 // @mui icons
 import Icon from "@mui/material/Icon";
 
@@ -181,9 +182,17 @@ const userRoutesLoggedIn = [
     type: "collapse",
     name: "Khóa học đang quản lý",
     icon: <Icon fontSize="small">library_books</Icon>,
-    key: "courseManagercourseManager",
+    key: "settingCourse",
     route: "/settingCourse",
     component: <SettingSettingCourseManager />,
+  },
+  {
+    type: "collapse",
+    name: "Lịch học",
+    icon: <Icon fontSize="small">library_books</Icon>,
+    key: "schedulesCourse",
+    route: "/schedulesCourse",
+    component: <SchedulesCourse />,
   },
 ];
 
